@@ -8,47 +8,81 @@ const Tracking = () => {
   const metrics = [
     {
       title: 'TOTAL ACTIVITIES',
-      value: 127,
-      change: '+12% from last month',
+      value: 20,
+      change: 'System total',
       icon: <AcademicCapIcon className="w-8 h-8 text-blue-600" />,
       bgColor: 'bg-blue-50',
       textColor: 'text-blue-600'
     },
     {
       title: 'COMPLETION RATE',
-      value: '78%',
-      change: '+5% from last month',
+      value: '85%',
+      change: '+8% from last month',
       icon: <div className="w-8 h-8 text-green-600 text-2xl">🎯</div>,
       bgColor: 'bg-green-50',
       textColor: 'text-green-600'
     },
     {
+      title: 'AVERAGE ACCURACY',
+      value: '82.5%',
+      change: '+5.2% from last month',
+      icon: <div className="w-8 h-8 text-purple-600 text-2xl">🎯</div>,
+      bgColor: 'bg-purple-50',
+      textColor: 'text-purple-600'
+    },
+    {
       title: 'AVERAGE SCORE',
-      value: '87.5',
-      change: '+3.2 from last month',
+      value: '87.3',
+      change: '+4.1 from last month',
       icon: <StarIcon className="w-8 h-8 text-yellow-600" />,
       bgColor: 'bg-yellow-50',
       textColor: 'text-yellow-600'
     },
     {
-      title: 'STREAK DAYS',
-      value: 14,
-      change: 'Current streak',
-      icon: <FireIcon className="w-8 h-8 text-orange-600" />,
-      bgColor: 'bg-orange-50',
-      textColor: 'text-orange-600'
+      title: 'ACTIVE STUDENTS',
+      value: 24,
+      change: '+3 new students',
+      icon: <UsersIcon className="w-8 h-8 text-indigo-600" />,
+      bgColor: 'bg-indigo-50',
+      textColor: 'text-indigo-600'
     },
   ];
 
+  // Accuracy rates by category (based on actual system: 5 academic + 1 daily life category)
+  const accuracyRates = [
+    { category: 'Colors', accuracy: 85, completed: '18/24', icon: '🎨', color: 'bg-purple-500' },
+    { category: 'Shapes', accuracy: 78, completed: '20/24', icon: '🔷', color: 'bg-blue-500' },
+    { category: 'Numbers', accuracy: 82, completed: '19/24', icon: '🔢', color: 'bg-green-500' },
+    { category: 'Letters', accuracy: 74, completed: '17/24', icon: '�', color: 'bg-indigo-500' },
+    { category: 'Patterns', accuracy: 69, completed: '16/24', icon: '🧩', color: 'bg-pink-500' },
+    { category: 'Daily Life', accuracy: 77, completed: '22/24', icon: '🏠', color: 'bg-orange-500' }
+  ];
+
+  // Difficulty level progression (across all 20 activities: 15 academic + 5 daily life)
+  const difficultyProgression = [
+    { level: 'Easy', progress: 85, completed: '20/24', icon: '🌱', color: 'bg-green-500', bgColor: 'bg-green-50' },
+    { level: 'Medium', progress: 72, completed: '17/24', icon: '🔥', color: 'bg-orange-500', bgColor: 'bg-orange-50' },
+    { level: 'Hard', progress: 63, completed: '15/24', icon: '💎', color: 'bg-red-500', bgColor: 'bg-red-50' }
+  ];
+
+  // Skills breakdown (based on actual 6 categories)
+  const skillsBreakdown = [
+    { skill: 'Numbers', progress: 67, accuracy: 82, activities: '19/24', icon: '🔢', color: 'from-green-400 to-green-600' },
+    { skill: 'Shapes', progress: 83, accuracy: 78, activities: '20/24', icon: '🔷', color: 'from-blue-400 to-blue-600' },
+    { skill: 'Colors', progress: 75, accuracy: 85, activities: '18/24', icon: '🎨', color: 'from-purple-400 to-purple-600' },
+    { skill: 'Letters', progress: 71, accuracy: 74, activities: '17/24', icon: '�', color: 'from-indigo-400 to-indigo-600' },
+    { skill: 'Patterns', progress: 67, accuracy: 69, activities: '16/24', icon: '🧩', color: 'from-pink-400 to-pink-600' },
+    { skill: 'Daily Life', progress: 92, accuracy: 77, activities: '22/24', icon: '🏠', color: 'from-orange-400 to-orange-600' }
+  ];
+
   const categories = [
-    { name: 'Academic Skills', percent: 75, count: '45/60', icon: '📚', color: 'bg-blue-500' },
-    { name: 'Social & Daily Life', percent: 71, count: '32/45', icon: '👥', color: 'bg-green-500' },
-    { name: 'Object Recognition', percent: 80, count: '28/35', icon: '✏️', color: 'bg-purple-500' },
+    { name: 'Academic Skills', percent: 73, count: '15/20', icon: '📚', color: 'bg-blue-500' },
+    { name: 'Daily Life Skills', percent: 77, count: '5/5', icon: '🏠', color: 'bg-orange-500' }
   ];
 
   const recentActivities = [
     {
-      title: 'Counting Numbers 1-10',
+      title: 'Numbers - Easy Level',
       user: 'Emma Johnson',
       category: 'Academic',
       time: '2 hours ago',
@@ -58,9 +92,9 @@ const Tracking = () => {
       avatar: 'EJ'
     },
     {
-      title: 'Grocery Shopping Simulation',
+      title: 'Daily Life Skills Activity',
       user: 'Michael Chen',
-      category: 'Social/Daily Life',
+      category: 'Daily Life',
       time: '4 hours ago',
       difficulty: 'Medium',
       score: '87%',
@@ -68,44 +102,64 @@ const Tracking = () => {
       avatar: 'MC'
     },
     {
-      title: 'Object Recognition Challenge',
+      title: 'Shapes - Hard Level',
       user: 'Sarah Williams',
-      category: 'Objects',
+      category: 'Academic',
       time: '6 hours ago',
       difficulty: 'Hard',
-      score: '98%',
+      score: '78%',
       difficultyColor: 'bg-red-100 text-red-800',
       avatar: 'SW'
     },
+    {
+      title: 'Color Recognition - Medium',
+      user: 'Alex Rodriguez',
+      category: 'Academic',
+      time: '1 day ago',
+      difficulty: 'Medium',
+      score: '92%',
+      difficultyColor: 'bg-yellow-100 text-yellow-800',
+      avatar: 'AR'
+    },
+    {
+      title: 'Matching Type - Easy',
+      user: 'Lisa Park',
+      category: 'Academic',
+      time: '1 day ago',
+      difficulty: 'Easy',
+      score: '88%',
+      difficultyColor: 'bg-green-100 text-green-800',
+      avatar: 'LP'
+    }
   ];
 
   const milestones = [
     {
       title: 'First Steps',
-      description: 'Complete 5 activities',
+      description: 'Complete first 3 activities',
       percent: 100,
       color: 'bg-green-500',
       completed: true,
     },
     {
-      title: 'Learning Streak',
-      description: 'Complete activities 7 days in a row',
+      title: 'Academic Explorer',
+      description: 'Try all 5 academic activity types',
       percent: 85,
       color: 'bg-blue-500',
       completed: false,
     },
     {
-      title: 'Category Explorer',
-      description: 'Try all 3 categories',
-      percent: 100,
-      color: 'bg-green-500',
-      completed: true,
+      title: 'Daily Life Champion',
+      description: 'Complete all 5 daily life activities',
+      percent: 60,
+      color: 'bg-orange-500',
+      completed: false,
     },
     {
-      title: 'Master Learner',
-      description: 'Complete 50 activities',
-      percent: 76,
-      color: 'bg-blue-500',
+      title: 'System Master',
+      description: 'Complete all 20 available activities',
+      percent: 45,
+      color: 'bg-purple-500',
       completed: false,
     },
   ];
@@ -175,8 +229,8 @@ const Tracking = () => {
               <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center py-4">
                   <div className="flex items-center space-x-4">
-                    <div className="bg-blue-600 text-white p-2 rounded-xl">
-                      <AcademicCapIcon className="w-8 h-8" />
+                    <div className="bg-blue-600 text-white rounded-xl">
+                      <AcademicCapIcon className="w-6 h-6" />
                     </div>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                       AutiSync
@@ -198,7 +252,7 @@ const Tracking = () => {
                   <div className="flex items-center space-x-4">
                     <button
                       onClick={AdminProfile}
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-2 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                className="-my-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-1 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
                     >
                       <img
                         src="/src/assets/kidprofile1.jpg"
@@ -241,7 +295,7 @@ const Tracking = () => {
         </div>
 
         {/* Metrics Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           {metrics.map((metric, index) => (
             <div key={index} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
               <div className={`${metric.bgColor} rounded-xl p-3 w-fit mb-4`}>
@@ -322,6 +376,100 @@ const Tracking = () => {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* New Tracking Sections */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+          {/* Accuracy Rates by Category */}
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-800">Accuracy Rates by Category</h3>
+              <div className="bg-purple-100 p-2 rounded-lg">
+                <span className="text-2xl">🎯</span>
+              </div>
+            </div>
+            <div className="space-y-4">
+              {accuracyRates.map((item, idx) => (
+                <div key={idx} className="bg-gray-50 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">{item.icon}</span>
+                      <div>
+                        <span className="font-semibold text-gray-700">{item.category}</span>
+                        <p className="text-sm text-gray-500">{item.completed} completed</p>
+                      </div>
+                    </div>
+                    <span className="text-lg font-bold text-gray-800">{item.accuracy}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                      className={`${item.color} h-3 rounded-full transition-all duration-500`}
+                      style={{ width: `${item.accuracy}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Difficulty Level Progression */}
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-800">Difficulty Level Progression</h3>
+              <div className="bg-orange-100 p-2 rounded-lg">
+                <span className="text-2xl">📈</span>
+              </div>
+            </div>
+            <div className="space-y-4">
+              {difficultyProgression.map((level, idx) => (
+                <div key={idx} className={`${level.bgColor} rounded-xl p-4 border border-gray-200`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">{level.icon}</span>
+                      <div>
+                        <span className="font-semibold text-gray-700">{level.level} Level</span>
+                        <p className="text-sm text-gray-500">{level.completed} activities</p>
+                      </div>
+                    </div>
+                    <span className="text-lg font-bold text-gray-800">{level.progress}%</span>
+                  </div>
+                  <div className="w-full bg-white/50 rounded-full h-3">
+                    <div
+                      className={`${level.color} h-3 rounded-full transition-all duration-500`}
+                      style={{ width: `${level.progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Skills Breakdown */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold text-gray-800">Skills Breakdown</h3>
+            <div className="bg-blue-100 p-2 rounded-lg">
+              <span className="text-2xl">📊</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            {skillsBreakdown.map((skill, idx) => (
+              <div key={idx} className={`bg-gradient-to-br ${skill.color} rounded-2xl p-6 text-white text-center shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105`}>
+                <div className="text-4xl mb-3">{skill.icon}</div>
+                <h4 className="text-lg font-bold mb-2">{skill.skill}</h4>
+                <div className="space-y-2">
+                  <div className="bg-white/20 rounded-full p-2">
+                    <p className="text-sm font-semibold">Progress: {skill.progress}%</p>
+                  </div>
+                  <div className="bg-white/20 rounded-full p-2">
+                    <p className="text-sm font-semibold">Accuracy: {skill.accuracy}%</p>
+                  </div>
+                  <p className="text-xs opacity-90">{skill.activities} activities completed</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

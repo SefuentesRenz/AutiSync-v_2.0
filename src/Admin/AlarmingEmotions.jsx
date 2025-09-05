@@ -92,8 +92,8 @@ const AlarmingEmotions = () => {
               <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center py-4">
                   <div className="flex items-center space-x-4">
-                    <div className="bg-blue-600 text-white p-2 rounded-xl">
-                      <AcademicCapIcon className="w-8 h-8" />
+                    <div className="bg-blue-600 text-white rounded-xl">
+                      <AcademicCapIcon className="w-6 h-6" />
                     </div>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                       AutiSync
@@ -115,7 +115,7 @@ const AlarmingEmotions = () => {
                   <div className="flex items-center space-x-4">
                     <button
                       onClick={AdminProfile}
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-2 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                className="-my-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-1 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
                     >
                       <img
                         src="/src/assets/kidprofile1.jpg"
