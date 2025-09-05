@@ -148,7 +148,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             correctAnswer: "Triangle"
           }
         ],
-        Spelling: [
+        MatchingType: [
           {
             questionText: "How do you spell this word?",
             imageSrc: "/src/assets/flashcards/cat.jpg",

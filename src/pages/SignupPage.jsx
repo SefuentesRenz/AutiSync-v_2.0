@@ -20,7 +20,7 @@ function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [userType, setUserType] = useState("student"); // "student" or "admin"
+  const [userType, setUserType] = useState("student"); // "student", "admin", or "parent"
 
   const handleInputChange = (e) => {
     setFormData({
@@ -52,8 +52,8 @@ function SignupPage() {
       return;
     }
 
-    // Validate passwords match (only for admin accounts)
-    if (userType === 'admin' && formData.password !== formData.confirmPassword) {
+    // Validate passwords match (only for admin and parent accounts)
+    if ((userType === 'admin' || userType === 'parent') && formData.password !== formData.confirmPassword) {
       setError("Passwords do not match!");
       setLoading(false);
       return;
@@ -77,8 +77,8 @@ function SignupPage() {
             age: userType === 'student' ? parseInt(formData.age) : null,
             parent_email: userType === 'student' ? formData.parentEmail : null,
             address: formData.address,
-            gender: formData.gender, // Gender for both students and admins
-            phone_number: userType === 'admin' ? formData.phoneNumber : null,
+            gender: formData.gender, // Gender for all user types
+            phone_number: (userType === 'admin' || userType === 'parent') ? formData.phoneNumber : null,
             user_type: userType // Store the user type
           }
         }
@@ -159,10 +159,10 @@ function SignupPage() {
               <span className="text-lg mr-2">🎯</span>
               What type of account would you like to create?
             </label>
-            <div className="flex justify-center gap-4">
+            <div className="flex justify-center gap-2">
               <button
                 type="button"
-                className={`px-6 py-3 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 text-base shadow-sm flex items-center space-x-2 ${
+                className={`px-4 py-3 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm shadow-sm flex items-center space-x-2 ${
                   userType === 'student' 
                     ? 'bg-blue-100 border-blue-500 text-blue-900 transform scale-105' 
                     : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
@@ -174,7 +174,7 @@ function SignupPage() {
               </button>
               <button
                 type="button"
-                className={`px-6 py-3 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-200 text-base shadow-sm flex items-center space-x-2 ${
+                className={`px-4 py-3 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm shadow-sm flex items-center space-x-2 ${
                   userType === 'admin' 
                     ? 'bg-purple-100 border-purple-500 text-purple-900 transform scale-105' 
                     : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
@@ -183,6 +183,18 @@ function SignupPage() {
               >
                 <span className="text-xl">🧑‍🏫</span>
                 <span>Teacher/Admin</span>
+              </button>
+              <button
+                type="button"
+                className={`px-4 py-3 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-200 text-sm shadow-sm flex items-center space-x-2 ${
+                  userType === 'parent' 
+                    ? 'bg-green-100 border-green-500 text-green-900 transform scale-105' 
+                    : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                }`}
+                onClick={() => setUserType('parent')}
+              >
+                <span className="text-xl">👨‍👩‍👧‍👦</span>
+                <span>Parent</span>
               </button>
             </div>
           </div>
@@ -305,8 +317,8 @@ function SignupPage() {
             </select>
           </div>
 
-          {/* Phone Number Field - Only show for admins */}
-          {userType === 'admin' && (
+          {/* Phone Number Field - Show for admins and parents */}
+          {(userType === 'admin' || userType === 'parent') && (
             <div>
               <label htmlFor="phoneNumber" className="flex items-center text-sm font-bold text-gray-700 mb-2">
                 <span className="text-lg mr-2">📞</span>
@@ -320,7 +332,7 @@ function SignupPage() {
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg placeholder-gray-400 transition-all duration-300"
                 placeholder="+63 912 345 6789"
-                required={userType === 'admin'}
+                required={userType === 'admin' || userType === 'parent'}
               />
             </div>
           )}
@@ -352,8 +364,8 @@ function SignupPage() {
             </div>
           </div>
 
-          {/* Confirm Password Field - Only show for admins */}
-          {userType === 'admin' && (
+          {/* Confirm Password Field - Show for admins and parents */}
+          {(userType === 'admin' || userType === 'parent') && (
             <div>
               <label htmlFor="confirmPassword" className="flex items-center text-sm font-bold text-gray-700 mb-2">
                 <span className="text-lg mr-2">🔒</span>
@@ -368,7 +380,7 @@ function SignupPage() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg transition-all duration-300"
                   placeholder="Confirm your password"
-                  required={userType === 'admin'}
+                  required={userType === 'admin' || userType === 'parent'}
                 />
                 <button
                   type="button"
@@ -395,7 +407,7 @@ function SignupPage() {
             ) : (
               <>
                 <span className="mr-2">🎉</span>
-                {userType === 'admin' ? 'Create Admin Account!' : 'Start My Learning Adventure!'}
+                {userType === 'admin' ? 'Create Admin Account!' : userType === 'parent' ? 'Create Parent Account!' : 'Start My Learning Adventure!'}
               </>
             )}
           </button>

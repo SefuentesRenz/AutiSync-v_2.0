@@ -21,12 +21,16 @@ import FlashcardsPage from './pages/FlashcardsPage';
 // Admin pages
 import ActivitiesPage from './Admin/Activities';
 import AddActivity from './Admin/AddActivity';
-import ExpressionWall from './Admin/ExpressionWall';
+// import ExpressionWall from './Admin/ExpressionWall';
 import Tracking from './Admin/Tracking';
 import AdminProfile from './Admin/AdminProfile.jsx';
 import AlarmingEmotions from './Admin/AlarmingEmotions.jsx';
 import Students from './Admin/Students.jsx';
 // import Notifications from './Admin/Notifications';
+
+// Parent pages
+import ParentDashboard from './Parents/ParentDashboard.jsx';
+import ParentHomepage from './Parents/ParentHomepage.jsx';
 
 function App() {
   return (
@@ -50,11 +54,15 @@ function App() {
         {/* Admin Pages */}
         <Route path="/activities" element={<ActivitiesPage />} />
         <Route path="/addactivity" element={<AddActivity />} />
-        <Route path="/expressionwall" element={<ExpressionWall />} />
+        {/* <Route path="/expressionwall" element={<ExpressionWall />} /> */}
         <Route path="/tracking" element={<Tracking />} />
         <Route path="/adminprofile" element={<AdminProfile />} />
         <Route path="/alarmingemotions" element={<AlarmingEmotions />} />
         <Route path="/admin/students" element={<Students />} />
+
+        {/* Parent Pages */}
+        <Route path="/parent-homepage" element={<ParentHomepage />} />
+        <Route path="/parent-dashboard" element={<ParentDashboard />} />
       </Routes>
     </ChatProvider>
     </AuthProvider>

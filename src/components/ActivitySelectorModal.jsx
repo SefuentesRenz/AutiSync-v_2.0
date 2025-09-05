@@ -35,7 +35,7 @@ const activities = [
   },
   { 
     id: 5, 
-    name: "Spelling", 
+    name: "Matching Type", 
     icon: "📝", 
     color: "from-pink-500 to-rose-600",
     bgColor: "bg-pink-50",

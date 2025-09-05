@@ -50,6 +50,8 @@ function LoginPage() {
       // Redirect based on user type
       if (userType === "admin") {
         navigate("/tracking"); // Redirect admin to tracking page
+      } else if (userType === "parent") {
+        navigate("/parent-homepage"); // Redirect parent to parent homepage
       } else {
         navigate("/home"); // Redirect student to home page
       }
@@ -101,20 +103,27 @@ function LoginPage() {
 
         <form className="space-y-5" onSubmit={handleLogin}>
           {/* User type selection */}
-          <div className="flex justify-center gap-4 mb-2">
+          <div className="flex justify-center gap-2 mb-2">
             <button
               type="button"
-              className={`px-6 py-2 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 text-base shadow-sm ${userType === 'student' ? 'bg-blue-100 border-blue-500 text-blue-900' : 'bg-white border-gray-300 text-gray-600'}`}
+              className={`px-4 py-2 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm shadow-sm ${userType === 'student' ? 'bg-blue-100 border-blue-500 text-blue-900' : 'bg-white border-gray-300 text-gray-600'}`}
               onClick={() => setUserType('student')}
             >
               👦 Student
             </button>
             <button
               type="button"
-              className={`px-6 py-2 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-200 text-base shadow-sm ${userType === 'admin' ? 'bg-purple-100 border-purple-500 text-purple-900' : 'bg-white border-gray-300 text-gray-600'}`}
+              className={`px-4 py-2 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm shadow-sm ${userType === 'admin' ? 'bg-purple-100 border-purple-500 text-purple-900' : 'bg-white border-gray-300 text-gray-600'}`}
               onClick={() => setUserType('admin')}
             >
               🧑‍🏫 Admin
+            </button>
+            <button
+              type="button"
+              className={`px-4 py-2 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-200 text-sm shadow-sm ${userType === 'parent' ? 'bg-green-100 border-green-500 text-green-900' : 'bg-white border-gray-300 text-gray-600'}`}
+              onClick={() => setUserType('parent')}
+            >
+              👨‍👩‍👧‍👦 Parent
             </button>
           </div>
           <div>
@@ -188,12 +197,12 @@ function LoginPage() {
             {loading ? (
               <>
                 <span className="mr-2">⏳</span>
-                Logging in as {userType === 'admin' ? 'Admin' : 'Student'}...
+                Logging in as {userType === 'admin' ? 'Admin' : userType === 'parent' ? 'Parent' : 'Student'}...
               </>
             ) : (
               <>
                 <span className="mr-2">🚀</span>
-                {userType === 'admin' ? 'Login as Admin' : 'Start Learning!'}
+                {userType === 'admin' ? 'Login as Admin' : userType === 'parent' ? 'Access Parent Portal' : 'Start Learning!'}
               </>
             )}
           </button>
