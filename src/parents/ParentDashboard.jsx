@@ -259,12 +259,6 @@ const ParentDashboard = () => {
                 Overview
               </button>
               <button 
-                onClick={() => setCurrentView('progress')}
-                className={`text-lg font-semibold transition-colors ${currentView === 'progress' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
-              >
-                Progress
-              </button>
-              <button 
                 onClick={() => setCurrentView('emotions')}
                 className={`text-lg font-semibold transition-colors ${currentView === 'emotions' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
               >
@@ -536,23 +530,6 @@ const ParentDashboard = () => {
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {currentView === 'progress' && (
-          <div className="space-y-8">
-            {/* Progress content can be added here later */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                <ChartBarIcon className="w-6 h-6 mr-3 text-purple-600" />
-                Progress Overview
-              </h2>
-              <div className="text-center py-8">
-                <div className="text-6xl mb-4">📈</div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">Progress Details</h3>
-                <p className="text-gray-600">Additional progress tracking features coming soon</p>
               </div>
             </div>
           </div>
