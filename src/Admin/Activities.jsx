@@ -117,7 +117,7 @@ const ActivitiesPage = () => {
             <div className="flex items-center space-x-4">
               <button
                 onClick={AdminProfile}
-                className="-my-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-1 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                className="cursor-pointer -my-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-1 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
               >
                 <img
                   src="/src/assets/kidprofile1.jpg"

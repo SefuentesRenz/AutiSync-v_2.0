@@ -31,9 +31,11 @@ const LandingPage = () => {
               onClick={adminpage} 
               className="flex items-center space-x-3 cursor-pointer group"
             >
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-all duration-300">
-                <span className="text-white font-bold text-lg">A</span>
-              </div>
+              <img
+                  src="/src/assets/logo.png"
+                  alt="AutiSync Logo"
+                  className="w-16 h-16 object-contain"
+                />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-800 to-purple-600 bg-clip-text text-transparent">
                 AutiSync v2.0
               </h1>

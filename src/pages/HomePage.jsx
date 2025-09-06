@@ -70,12 +70,14 @@ const HomePage = () => {
 
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-sm">
-        <div className="container mx-auto px-3 py-2">
+        <div className="container mx-auto px-3 py-1">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-lg">A</span>
-              </div>
+              <img
+                  src="/src/assets/logo.png"
+                  alt="AutiSync Logo"
+                  className="w-16 h-16 object-contain"
+                />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 AutiSync v2.0
               </h1>

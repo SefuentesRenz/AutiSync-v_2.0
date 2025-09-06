@@ -10,6 +10,13 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [userType, setUserType] = useState("student"); // "student" or "admin"
+  
+  // Forgot Password States
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState("");
+  const [forgotError, setForgotError] = useState("");
 
   const navigate = useNavigate();
 
@@ -25,6 +32,38 @@ function LoginPage() {
   const signupPageRoute = (e) => {
     e.preventDefault();
     navigate("/signuppage");
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotError("");
+    setForgotSuccess("");
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        setForgotError(error.message);
+      } else {
+        setForgotSuccess("Password reset email sent! Check your inbox.");
+        setForgotEmail("");
+      }
+    } catch (error) {
+      setForgotError("An unexpected error occurred. Please try again.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const toggleForgotPassword = () => {
+    setShowForgotPassword(!showForgotPassword);
+    setForgotError("");
+    setForgotSuccess("");
+    setForgotEmail("");
+    setError(""); // Clear login errors when switching
   };
 
   const handleLogin = async (e) => {
@@ -75,23 +114,27 @@ function LoginPage() {
       <div className="relative z-10 bg-white/90 backdrop-blur-xl p-7 rounded-2xl shadow-xl w-full max-w-md border border-white/20 animate-fade-in-scale">
         {/* Header with logo */}
         <div className="text-center mb-7">
-          <div className="flex items-center justify-center mb-2 -mt-2">
-            <div className="w-14 h-14 bg-gradient-to-r from-blue-800 to-purple-800 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-xl">A</span>
-            </div>
+          <div className="flex items-center justify-center -mb-3 -mt-7">
+            <img
+                  src="/src/assets/logo.png"
+                  alt="AutiSync Logo"
+                  className="w-23 h-23 object-contain"
+                />
           </div>
           <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
             AutiSync v2.0
           </h2>
-          <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl p-3 mb-3">
-            <h3 className="text-xl font-bold text-gray-800 flex items-center justify-center">
-              Welcome Back!
-              <span className="text-xl mr-2 animate-wiggle">👋</span>
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Please enter your details to login! ✨
-            </p>
-          </div>
+          {!showForgotPassword && (
+            <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl p-3 mb-3">
+              <h3 className="text-xl font-bold text-gray-800 flex items-center justify-center">
+                Welcome Back!
+                <span className="text-xl mr-2 animate-wiggle">👋</span>
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Please enter your details to login! ✨
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Error message */}
@@ -101,9 +144,82 @@ function LoginPage() {
           </div>
         )}
 
-        <form className="space-y-5" onSubmit={handleLogin}>
+        {/* Forgot Password Error/Success Messages */}
+        {forgotError && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+            {forgotError}
+          </div>
+        )}
+
+        {forgotSuccess && (
+          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm">
+            {forgotSuccess}
+          </div>
+        )}
+
+        {showForgotPassword ? (
+          /* Forgot Password Form */
+          <form className="space-y-5" onSubmit={handleForgotPassword}>
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                🔐 Reset Your Password
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Enter your email address and we'll send you a link to reset your password.
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="forgotEmail"
+                className="flex items-center text-sm font-bold text-gray-700 mb-1"
+              >
+                📧 Email Address
+              </label>
+              <input
+                type="email"
+                id="forgotEmail"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-base transition-all duration-300"
+                placeholder="Enter your email address"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={forgotLoading}
+              className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white py-3 rounded-xl text-base font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {forgotLoading ? (
+                <>
+                  <span className="mr-2">⏳</span>
+                  Sending Reset Email...
+                </>
+              ) : (
+                <>
+                  <span className="mr-2">📤</span>
+                  Send Reset Email
+                </>
+              )}
+            </button>
+
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={toggleForgotPassword}
+                className="text-sm font-semibold cursor-pointer text-blue-600 hover:text-blue-800 transition-colors duration-200"
+              >
+                ← Back to Login
+              </button>
+            </div>
+          </form>
+        ) : (
+          /* Login Form */
+          <form className="space-y-5" onSubmit={handleLogin}>
           {/* User type selection */}
-          <div className="flex justify-center gap-2 mb-2">
+          <div className="flex justify-center gap-2 mb-4">
             <button
               type="button"
               className={`px-4 py-2 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm shadow-sm ${userType === 'student' ? 'bg-blue-100 border-blue-500 text-blue-900' : 'bg-white border-gray-300 text-gray-600'}`}
@@ -183,9 +299,10 @@ function LoginPage() {
           <div className="flex justify-center">
             <button
               type="button"
-              className="text-sm font-semibold cursor-pointer decoration-2 -mt-2"
+              onClick={toggleForgotPassword}
+              className="text-sm font-semibold cursor-pointer decoration-2 -mt-2 text-blue-600 hover:text-blue-800 transition-colors duration-200"
             >
-              Forgot password?
+              {showForgotPassword ? 'Back to Login' : 'Forgot password?'}
             </button>
           </div>
 
@@ -207,6 +324,7 @@ function LoginPage() {
             )}
           </button>
         </form>
+        )}
 
         <div className="mt-7 space-y-4">
           <div className="text-center">

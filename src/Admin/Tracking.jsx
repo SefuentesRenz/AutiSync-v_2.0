@@ -252,7 +252,7 @@ const Tracking = () => {
                   <div className="flex items-center space-x-4">
                     <button
                       onClick={AdminProfile}
-                className="-my-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-1 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                className="cursor-pointer -my-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-1 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
                     >
                       <img
                         src="/src/assets/kidprofile1.jpg"
@@ -286,7 +286,7 @@ const Tracking = () => {
             
             <button
               onClick={() => navigate('/admin/students')}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 transition-all duration-200 transform hover:scale-105 shadow-lg"
+              className="cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 transition-all duration-200 transform hover:scale-105 shadow-lg"
             >
               <UsersIcon className="w-5 h-5" />
               <span>Manage Students</span>

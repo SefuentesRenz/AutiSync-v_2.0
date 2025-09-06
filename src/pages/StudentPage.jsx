@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const StudentPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [streakDays, setStreakDays] = useState(4);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -135,9 +137,14 @@ const StudentPage = () => {
   <div className="container mx-auto px-3 py-2">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-lg">A</span>
-              </div>
+              <div className="flex items-center space-x-4">
+              <img
+                  src="/src/assets/logo.png"
+                  alt="AutiSync Logo"
+                  className="w-16 h-16 object-contain"
+                />
+              
+            </div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 AutiSync
               </h1>
@@ -168,7 +175,9 @@ const StudentPage = () => {
                   alt="Profile"
                   className="w-10 h-10 rounded-xl object-cover border-2 border-white shadow-sm group-hover:scale-105 transition-transform duration-300"
                 />
-                <span className="hidden sm:block text-sm font-semibold text-gray-700">Chris</span>
+                <span className="hidden sm:block text-sm font-semibold text-gray-700">
+                  {user?.user_metadata?.username || user?.user_metadata?.full_name?.split(' ')[0] || 'User'}
+                </span>
               </div>
             </div>
           </div>
@@ -200,7 +209,7 @@ const StudentPage = () => {
                 <div className="flex">
                   <h2 className="text-2xl font-bold pt-1 text-gray-800">Welcome, </h2>
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    Chris!
+                    {user?.user_metadata?.username || user?.user_metadata?.full_name?.split(' ')[0] || 'User'}!
                   </h1>
                 </div>
               </div>

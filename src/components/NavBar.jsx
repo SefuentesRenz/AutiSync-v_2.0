@@ -1,8 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const NavBar = ({ onProfileClick }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleProfileClick = () => {
     if (onProfileClick) {
@@ -24,6 +26,9 @@ const NavBar = ({ onProfileClick }) => {
   return (
     <header className="bg-blue-500 text-white py-2">
       <div className="container mx-auto px-6 flex justify-between items-center">
+        
+              
+            
         <h2 className="text-white text-2xl font-bold">AutiSync v2.0</h2>
         <nav className="flex items-center text-lg space-x-6">
           <a href="/home" className="text-white hover:text-blue-900 transition-colors duration-200 flex items-center">
@@ -44,7 +49,9 @@ const NavBar = ({ onProfileClick }) => {
                 alt="Profile"
                 className="w-8 h-8 rounded-xl object-cover border-2 border-white shadow-sm group-hover:scale-105 transition-transform duration-300"
               />
-              <span className="hidden sm:block text-sm font-semibold text-gray-700">Chris</span>
+              <span className="hidden sm:block text-sm font-semibold text-gray-700">
+                {user?.user_metadata?.username || user?.user_metadata?.full_name?.split(' ')[0] || 'User'}
+              </span>
             </div>
         </nav>
       </div>
