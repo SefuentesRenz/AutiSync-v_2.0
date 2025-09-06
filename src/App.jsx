@@ -8,9 +8,10 @@ import { AuthProvider } from './contexts/AuthContext.jsx'; // Import AuthContext
 
 import LoginPage from './pages/LoginPage';
 import LandingPage from './pages/LandingPage';
-import HomePage from './pages/Homepage';
+import HomePage from './pages/HomePage';
 import SignupPage from './pages/SignupPage';
 import StudentPage from './pages/StudentPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 // import ChooseCategory from './pages/ChooseCategory';
 // import ChooseDifficulty from './pages/ChooseDifficulty';
 import StudentProfile from './pages/StudentProfile';
@@ -29,8 +30,8 @@ import Students from './Admin/Students.jsx';
 // import Notifications from './Admin/Notifications';
 
 // Parent pages
-import ParentDashboard from './Parents/ParentDashboard.jsx';
-import ParentHomepage from './Parents/ParentHomepage.jsx';
+import ParentDashboard from './parents/ParentDashboard.jsx';
+import ParentHomepage from './parents/ParentHomepage.jsx';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
         <ScrollToTop />
         <Routes>
         <Route path="/loginpage" element={<LoginPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/" element={<LandingPage />} />
         <Route path="/signuppage" element={<SignupPage />} />

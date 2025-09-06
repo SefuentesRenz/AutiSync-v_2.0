@@ -19,7 +19,6 @@ export default function StudentProfile() {
     address: "",
     gender: "",
     grade: "",
-    school: "",
     interests: ["Drawing", "Animals", "Music", "Numbers"],
     achievements: 0,
     day_streak: 0,
@@ -137,7 +136,6 @@ export default function StudentProfile() {
           address: data.address || '',
           gender: data.gender || '',
           grade: data.grade || '',
-          school: data.school || '',
           interests: data.interests || ["Drawing", "Animals", "Music", "Numbers"],
           achievements: data.achievements || 0,
           day_streak: data.day_streak || 0,
@@ -174,7 +172,6 @@ export default function StudentProfile() {
         address: '',
         gender: '',
         grade: '',
-        school: '',
         interests: ["Drawing", "Animals", "Music", "Numbers"],
         achievements: 0,
         day_streak: 0,
@@ -210,7 +207,6 @@ export default function StudentProfile() {
         address: data.address || '',
         gender: data.gender || '',
         grade: data.grade || '',
-        school: data.school || '',
         interests: data.interests || ["Drawing", "Animals", "Music", "Numbers"],
         achievements: data.achievements || 0,
         day_streak: data.day_streak || 0,
@@ -260,7 +256,6 @@ export default function StudentProfile() {
         address: userInfo.address,
         gender: userInfo.gender,
         grade: userInfo.grade,
-        school: userInfo.school,
         interests: userInfo.interests,
         achievements: userInfo.achievements,
         day_streak: userInfo.day_streak,
@@ -355,12 +350,14 @@ export default function StudentProfile() {
 
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-sm">
-        <div className="container mx-auto px-6 py-4">
+        <div className="container mx-auto px-6 py-1">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-lg">A</span>
-              </div>
+              <img
+                  src="/src/assets/logo.png"
+                  alt="AutiSync Logo"
+                  className="w-16 h-16 object-contain"
+                />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 AutiSync
               </h1>
@@ -433,22 +430,20 @@ export default function StudentProfile() {
               <div className="mb-4">
                 {isEditing ? (
                   <div className="space-y-2">
-                    <input
-                      type="text"
-                      name="first_name"
-                      value={userInfo.first_name}
-                      onChange={handleChange}
-                      placeholder="First Name"
-                      className="text-2xl font-bold text-gray-800 bg-transparent border-b-2 border-blue-500 focus:outline-none text-center lg:text-left mr-2"
-                    />
-                    <input
-                      type="text"
-                      name="last_name"
-                      value={userInfo.last_name}
-                      onChange={handleChange}
-                      placeholder="Last Name"
-                      className="text-2xl font-bold text-gray-800 bg-transparent border-b-2 border-blue-500 focus:outline-none text-center lg:text-left"
-                    />
+                    <div className="flex items-center">
+                      <span className="text-2xl font-bold text-gray-800 mr-2">Hi, </span>
+                      <input
+                        type="text"
+                        name="username"
+                        value={userInfo.username}
+                        onChange={handleChange}
+                        placeholder="Username"
+                        className="text-2xl font-bold text-gray-800 bg-transparent border-b-2 border-blue-500 focus:outline-none text-center lg:text-left"
+                        minLength="3"
+                        maxLength="20"
+                      />
+                      <span className="text-2xl font-bold text-gray-800 ml-1">! 👋</span>
+                    </div>
                   </div>
                 ) : (
                   <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-2">
@@ -475,37 +470,6 @@ export default function StudentProfile() {
                 ))}
               </div>
             </div>
-
-            {/* Edit Button */}
-            <div className="flex flex-col gap-4">
-              {isEditing ? (
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="btn-autism-friendly bg-gradient-to-r from-gray-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                >
-                  {saving ? (
-                    <>
-                      <span className="mr-2">⏳</span>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <span className="mr-2">💾</span>
-                      Save Changes
-                    </>
-                  )}
-                </button>
-              ) : (
-                <button
-                  onClick={handleEdit}
-                  className="btn-autism-friendly bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center"
-                >
-                  <span className="mr-2">✏️</span>
-                  Edit Profile
-                </button>
-              )}
-            </div>
           </div>
         </div>
 
@@ -513,10 +477,52 @@ export default function StudentProfile() {
         <div className="grid md:grid-cols-2 gap-8 mb-8">
           {/* Personal Information */}
           <div className="card-autism-friendly bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/20">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-              <span className="text-3xl mr-3">👤</span>
-              Personal Information
-            </h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                <span className="text-3xl mr-3">👤</span>
+                Personal Information
+              </h2>
+              
+              {/* Edit/Save Button */}
+              <div className="flex gap-2">
+                {isEditing ? (
+                  <>
+                    <button
+                      onClick={handleCancel}
+                      className="btn-autism-friendly bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 text-white px-4 py-2 rounded-xl font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center text-sm"
+                    >
+                      <span className="mr-1">❌</span>
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="btn-autism-friendly bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-4 py-2 rounded-xl font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm"
+                    >
+                      {saving ? (
+                        <>
+                          <span className="mr-1">⏳</span>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <span className="mr-1">💾</span>
+                          Save
+                        </>
+                      )}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={handleEdit}
+                    className="btn-autism-friendly bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-xl font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center text-sm"
+                  >
+                    <span className="mr-1">✏️</span>
+                    Edit
+                  </button>
+                )}
+              </div>
+            </div>
             
             <div className="space-y-4">
               {/* Full Name */}
@@ -545,6 +551,27 @@ export default function StudentProfile() {
                     <p className="text-gray-800 font-medium">
                       {`${userInfo.first_name || "Chris"} ${userInfo.last_name || "Student"}`.trim()}
                     </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Username */}
+              <div className="flex items-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200/50">
+                <span className="text-2xl mr-4">🎮</span>
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-gray-700">Username</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name="username"
+                      value={userInfo.username}
+                      onChange={handleChange}
+                      className="w-full bg-transparent border-b border-purple-400 focus:outline-none text-gray-800"
+                      minLength="3"
+                      maxLength="20"
+                    />
+                  ) : (
+                    <p className="text-gray-800 font-medium">@{userInfo.username || "chris_explorer"}</p>
                   )}
                 </div>
               </div>
@@ -615,25 +642,6 @@ export default function StudentProfile() {
                     </select>
                   ) : (
                     <p className="text-gray-800 font-medium">{userInfo.grade ? `Grade ${userInfo.grade}` : "Grade 2"}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* School */}
-              <div className="flex items-center p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl border border-emerald-200/50">
-                <span className="text-2xl mr-4">🏫</span>
-                <div className="flex-1">
-                  <label className="block text-sm font-semibold text-gray-700">School</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="school"
-                      value={userInfo.school}
-                      onChange={handleChange}
-                      className="w-full bg-transparent border-b border-emerald-400 focus:outline-none text-gray-800"
-                    />
-                  ) : (
-                    <p className="text-gray-800 font-medium">{userInfo.school || "Elementary School"}</p>
                   )}
                 </div>
               </div>

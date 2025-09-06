@@ -21,6 +21,7 @@ import {
 } from '@heroicons/react/24/solid';
 import SystemInformation from './SystemInformation';
 import MotivationTips from './MotivationTips';
+import ParentProfileModal from '../components/ParentProfileModal';
 
 const ParentDashboard = () => {
   const navigate = useNavigate();
@@ -29,12 +30,17 @@ const ParentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [selectedChild, setSelectedChild] = useState(null);
   const [currentView, setCurrentView] = useState('overview');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showAddChild, setShowAddChild] = useState(false);
+  const [error, setError] = useState('');
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   // Enhanced mock data matching student and admin page structures
   const mockChildrenData = [
     {
       id: 1,  
       name: "Emma Johnson",
+      username: "emma_explorer",
       age: 8,
       email: "emma.student@example.com",
       profilePicture: "/src/assets/kidprofile1.jpg",
@@ -102,13 +108,13 @@ const ParentDashboard = () => {
       },
       // Enhanced emotions data with levels matching admin Expression Wall
       emotions: [
-        { date: '2025-09-04', emotion: 'happy', level: 5, priority: 'Positive' },
-        { date: '2025-09-03', emotion: 'excited', level: 5, priority: 'Positive' },
-        { date: '2025-09-02', emotion: 'happy', level: 4, priority: 'Positive' },
-        { date: '2025-09-01', emotion: 'calm', level: 3, priority: 'Neutral' },
-        { date: '2025-08-31', emotion: 'happy', level: 5, priority: 'Positive' },
-        { date: '2025-08-30', emotion: 'excited', level: 4, priority: 'Positive' },
-        { date: '2025-08-29', emotion: 'calm', level: 3, priority: 'Neutral' }
+        { date: '2025-09-04', emotion: 'happy', level: 5, priority: 'Positive', username: 'emma_explorer' },
+        { date: '2025-09-03', emotion: 'excited', level: 5, priority: 'Positive', username: 'emma_explorer' },
+        { date: '2025-09-02', emotion: 'happy', level: 4, priority: 'Positive', username: 'emma_explorer' },
+        { date: '2025-09-01', emotion: 'calm', level: 3, priority: 'Neutral', username: 'emma_explorer' },
+        { date: '2025-08-31', emotion: 'happy', level: 5, priority: 'Positive', username: 'emma_explorer' },
+        { date: '2025-08-30', emotion: 'excited', level: 4, priority: 'Positive', username: 'emma_explorer' },
+        { date: '2025-08-29', emotion: 'calm', level: 3, priority: 'Neutral', username: 'emma_explorer' }
       ],
       // Enhanced badges matching student page structure
       badges: [
@@ -125,13 +131,118 @@ const ParentDashboard = () => {
   ];
 
   useEffect(() => {
-    // For now, using mock data
-    setTimeout(() => {
+    if (user) {
+      fetchChildrenData();
+    }
+  }, [user]);
+
+  const fetchChildrenData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Fetch children whose parent_email matches the logged-in parent's email
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('parent_email', user.email)
+        .eq('user_type', 'student');
+
+      if (error) {
+        console.error('Error fetching children:', error);
+        // Fall back to mock data if database fetch fails
+        setChildrenData(mockChildrenData);
+        setSelectedChild(mockChildrenData[0]);
+      } else if (data && data.length > 0) {
+        // Transform database data to match expected format
+        const transformedData = data.map(child => ({
+          id: child.id,
+          name: `${child.first_name} ${child.last_name}`.trim() || child.username,
+          username: child.username,
+          age: child.age,
+          email: child.email || 'No email provided',
+          profilePicture: "/src/assets/kidprofile1.jpg",
+          // Add mock activity data for now
+          recentActivities: [
+            {
+              id: 1,
+              title: "Numbers - Easy Level",
+              category: "Academic", 
+              difficulty: "Easy",
+              completedAt: "2 hours ago",
+              score: 95,
+              timeSpent: "15 min",
+              emotion: "happy"
+            }
+          ],
+          // Add mock progress data
+          progress: mockChildrenData[0].progress,
+          emotions: mockChildrenData[0].emotions.map(emotion => ({
+            ...emotion,
+            username: child.username
+          })),
+          badges: mockChildrenData[0].badges
+        }));
+        
+        setChildrenData(transformedData);
+        setSelectedChild(transformedData[0]);
+      } else {
+        // No children found
+        setChildrenData([]);
+        setSelectedChild(null);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setError('Failed to load children data');
+      // Fall back to mock data
       setChildrenData(mockChildrenData);
-      setSelectedChild(mockChildrenData[0]); // Select first child by default
+      setSelectedChild(mockChildrenData[0]);
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, []);
+    }
+  };
+
+  const searchForChild = async () => {
+    if (!searchQuery.trim()) {
+      setError('Please enter a username or email to search');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+
+      // Search for child by username or email
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .or(`username.eq.${searchQuery},email.eq.${searchQuery}`)
+        .eq('user_type', 'student')
+        .single();
+
+      if (error || !data) {
+        setError('Student not found. Please check the username or email.');
+        return;
+      }
+
+      // Check if this child is already connected to this parent
+      const existingChild = childrenData.find(child => child.id === data.id);
+      if (existingChild) {
+        setError('This student is already in your children list.');
+        return;
+      }
+
+      // For now, we'll just show the found child info
+      // In a real system, you might want to send a connection request
+      alert(`Found student: ${data.first_name} ${data.last_name} (@${data.username})\n\nTo connect with this student, ask them to update their Parent Email to: ${user.email}`);
+      
+    } catch (error) {
+      console.error('Search error:', error);
+      setError('An error occurred while searching for the student.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -214,18 +325,144 @@ const ParentDashboard = () => {
 
   if (!selectedChild) {
     return (
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen flex items-center justify-center">
-        <div className="text-center bg-white rounded-2xl p-8 shadow-lg border border-gray-100 max-w-md">
-          <div className="text-6xl mb-6">📝</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">No Children Found</h2>
-          <p className="text-gray-600 mb-6">Please ensure your child has registered with your email as their parent email.</p>
-          <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-            <h3 className="font-semibold text-blue-800 mb-2">Quick Setup Guide:</h3>
-            <ol className="text-sm text-blue-700 text-left space-y-1">
-              <li>1. Ask your child to create a student account</li>
-              <li>2. Use your email as the parent contact</li>
-              <li>3. Refresh this page to see their progress</li>
-            </ol>
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen p-6">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <span className="text-white font-bold text-2xl">A</span>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Parent Dashboard</h1>
+            <p className="text-gray-600">Manage and track your children's learning progress</p>
+          </div>
+
+          {/* No Children Found / Search Section */}
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Current Children */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <UsersIcon className="w-6 h-6 mr-2 text-blue-600" />
+                My Children
+              </h2>
+              
+              {childrenData.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">👨‍👩‍👧‍�</div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">No Children Connected</h3>
+                  <p className="text-gray-500 text-sm mb-4">
+                    Children who register with your email ({user?.email}) will appear here automatically.
+                  </p>
+                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <h4 className="font-semibold text-blue-800 mb-2">Setup Instructions:</h4>
+                    <ol className="text-sm text-blue-700 text-left space-y-1">
+                      <li>1. Have your child create a student account</li>
+                      <li>2. They should use <strong>{user?.email}</strong> as parent email</li>
+                      <li>3. Refresh this page to see their progress</li>
+                    </ol>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {childrenData.map((child) => (
+                    <div key={child.id} className="flex items-center p-3 bg-gray-50 rounded-lg">
+                      <img 
+                        src={child.profilePicture} 
+                        alt={child.name}
+                        className="w-12 h-12 rounded-full mr-3"
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-800">{child.name}</h3>
+                        <p className="text-sm text-gray-500">@{child.username} • Age {child.age}</p>
+                      </div>
+                      <button
+                        onClick={() => setSelectedChild(child)}
+                        className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                      >
+                        View Progress
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              <button
+                onClick={fetchChildrenData}
+                className="w-full mt-4 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center"
+              >
+                🔄 Refresh Children List
+              </button>
+            </div>
+
+            {/* Find Child Section */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span className="text-2xl mr-2">🔍</span>
+                Find Your Child
+              </h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Search by Username or Email
+                  </label>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Enter username or email..."
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                {error && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    {error}
+                  </div>
+                )}
+                
+                <button
+                  onClick={searchForChild}
+                  disabled={loading || !searchQuery.trim()}
+                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                >
+                  {loading ? (
+                    <>⏳ Searching...</>
+                  ) : (
+                    <>🔍 Search for Child</>
+                  )}
+                </button>
+                
+                <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                  <h4 className="font-semibold text-yellow-800 mb-2">💡 How it works:</h4>
+                  <ul className="text-sm text-yellow-700 space-y-1">
+                    <li>• Search finds any student account by username or email</li>
+                    <li>• Ask your child to update their parent email to <strong>{user?.email}</strong></li>
+                    <li>• Once updated, they'll appear in "My Children" automatically</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Quick Actions */}
+          <div className="mt-8 text-center">
+            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Need Help?</h3>
+              <div className="flex flex-wrap justify-center gap-4">
+                <button 
+                  onClick={() => navigate('/signuppage')}
+                  className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  📝 Help Child Create Account
+                </button>
+                <button 
+                  onClick={handleLogout}
+                  className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  🚪 Logout
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -237,42 +474,69 @@ const ParentDashboard = () => {
       {/* Header with Navbar */}
       <header className="bg-white shadow-lg border-b-4 border-blue-500">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-3">
             <div className="flex items-center space-x-4">
-              <div className="bg-blue-600 text-white rounded-xl p-2">
-                <AcademicCapIcon className="w-6 h-6" />
+              <div className="">
+                <img
+                  src="/src/assets/logo.png"
+                  alt="Parent Profile"
+                  className="w-15 h-15 -my-4 rounded-xl object-cover border-2 border-white"
+                />
               </div>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  AutiSync Parent
+                  AutiSync 
                 </h1>
-                <p className="text-sm text-gray-600">Monitor {selectedChild?.name || 'your child'}'s progress</p>
+                {/* <p className="text-sm text-gray-600">Monitor {selectedChild?.name || 'your child'}'s progress</p> */}
               </div>
+              
+              {/* Child Selector - Show only if multiple children */}
+              {childrenData.length > 1 && (
+                <div className="ml-6">
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">
+                    Viewing Child:
+                  </label>
+                  <select
+                    value={selectedChild?.id || ''}
+                    onChange={(e) => {
+                      const child = childrenData.find(c => c.id.toString() === e.target.value);
+                      setSelectedChild(child);
+                    }}
+                    className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {childrenData.map((child) => (
+                      <option key={child.id} value={child.id}>
+                        {child.name} (@{child.username})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
             
             <nav className="hidden md:flex space-x-8">
             
               <button 
                 onClick={() => setCurrentView('overview')}
-                className={`text-lg font-semibold transition-colors ${currentView === 'overview' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
+                className={`text-lg font-semibold cursor-pointer transition-colors ${currentView === 'overview' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
               >
                 Overview
               </button>
               <button 
                 onClick={() => setCurrentView('emotions')}
-                className={`text-lg font-semibold transition-colors ${currentView === 'emotions' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
+                className={`text-lg font-semibold cursor-pointer transition-colors ${currentView === 'emotions' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
               >
                 Emotions
               </button>
               <button 
                 onClick={() => setCurrentView('badges')}
-                className={`text-lg font-semibold transition-colors ${currentView === 'badges' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
+                className={`text-lg font-semibold cursor-pointer transition-colors ${currentView === 'badges' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
               >
                 Badges
               </button>
               <button 
                 onClick={() => setCurrentView('tips')}
-                className={`text-lg font-semibold transition-colors ${currentView === 'tips' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
+                className={`text-lg font-semibold cursor-pointer transition-colors ${currentView === 'tips' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
               >
                 Tips
               </button>
@@ -280,8 +544,8 @@ const ParentDashboard = () => {
             
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => navigate('/parent-homepage')}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-1 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                onClick={() => setShowProfileModal(true)}
+                className="bg-gradient-to-r cursor-pointer from-blue-500 to-purple-600 text-white p-1 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
               >
                 <img
                   src="/src/assets/kidprofile1.jpg"
@@ -553,6 +817,7 @@ const ParentDashboard = () => {
                         <div>
                           <h3 className="font-bold text-gray-800 capitalize">{emotion.emotion}</h3>
                           <p className="text-sm text-gray-600">{new Date(emotion.date).toLocaleDateString()}</p>
+                          <p className="text-xs text-blue-600 font-semibold">@{emotion.username}</p>
                         </div>
                       </div>
                       <div className="text-right">
@@ -974,6 +1239,12 @@ const ParentDashboard = () => {
           </div>
         )}
       </div>
+      
+      {/* Parent Profile Modal */}
+      <ParentProfileModal 
+        isOpen={showProfileModal} 
+        onClose={() => setShowProfileModal(false)} 
+      />
     </div>
   );
 };

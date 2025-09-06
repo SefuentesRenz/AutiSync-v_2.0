@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { AcademicCapIcon, PencilIcon, CheckIcon, XMarkIcon, UserCircleIcon, CalendarIcon, MapPinIcon, IdentificationIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/solid';
+import { AcademicCapIcon, PencilIcon, CheckIcon, XMarkIcon, UserCircleIcon, CalendarIcon, MapPinIcon, IdentificationIcon, ArrowRightOnRectangleIcon, PhoneIcon } from '@heroicons/react/24/solid';
 
 export default function AdminProfile() {
   const [showProfile, setShowProfile] = useState(true);
@@ -9,18 +9,13 @@ export default function AdminProfile() {
 
   // Default profile information for teacher/admin
   const [userInfo, setUserInfo] = useState({
-    firstName: "Maria Leonora",
-    lastName: "Theresa",
+    fullName: "Maria Leonora Theresa",
     email: "maria.theresa@autisync.edu",
-    employeeId: "TCH-2024-001",
-    department: "Special Education",
-    position: "Senior Special Education Teacher",
-    specialization: "Autism Spectrum Disorders",
+    phone: "+63 912 345 6789",
     birthday: "June 8, 1985",
     address: "Sinto Dos, Bajada, Davao City",
-    phone: "+63 912 345 6789",
     gender: "Female",
-    education: "Master's in Special Education"
+    profileImage: "/src/assets/kidprofile1.jpg"
   });
 
   const navigate = useNavigate();
@@ -68,6 +63,18 @@ export default function AdminProfile() {
       ...prevInfo,
       [name]: value,
     }));
+  };
+
+  // Handle profile image change
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setUserInfo((prevInfo) => ({
+        ...prevInfo,
+        profileImage: imageUrl,
+      }));
+    }
   };
 
   const AdminProfile = () => {
@@ -133,27 +140,35 @@ export default function AdminProfile() {
                   {/* Profile Image */}
                   <div className="relative">
                     <img
-                      src="/src/assets/kidprofile1.jpg"
+                      src={userInfo.profileImage}
                       alt="Profile"
                       className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
                     />
                     <div className="absolute bottom-0 right-0 bg-green-500 w-8 h-8 rounded-full border-4 border-white flex items-center justify-center">
                       <span className="text-white text-xs">✓</span>
                     </div>
+                    {isEditing && (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                        <label className="cursor-pointer text-white text-sm font-medium hover:text-gray-200">
+                          Change Photo
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    )}
                   </div>
                   
                   {/* Basic Info */}
                   <div className="text-center md:text-left flex-1">
                     <h2 className="text-3xl font-bold mb-2">
-                      {userInfo.firstName} {userInfo.lastName}
+                      {userInfo.fullName}
                     </h2>
-                    <p className="text-blue-100 text-lg font-medium mb-1">{userInfo.position}</p>
-                    <p className="text-blue-200 mb-2">{userInfo.department}</p>
-                    <div className="flex flex-wrap justify-center md:justify-start gap-2">
-                      <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
-                        ID: {userInfo.employeeId}
-                      </span>
-                    </div>
+                    <p className="text-blue-100 text-lg font-medium mb-1">Teacher Profile</p>
+                    <p className="text-blue-200 mb-2">AutiSync User</p>
                   </div>
 
                   {/* Action Buttons */}
@@ -162,14 +177,14 @@ export default function AdminProfile() {
                       <>
                         <button
                           onClick={handleEditClick}
-                          className="bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 hover:bg-gray-50 transition-colors shadow-lg"
+                          className="cursor-pointer bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 hover:bg-gray-50 transition-colors shadow-lg"
                         >
                           <PencilIcon className="w-5 h-5" />
                           <span>Edit Profile</span>
                         </button>
                         <button
                           onClick={handleLogout}
-                          className="bg-red-500 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 hover:bg-red-600 transition-colors shadow-lg"
+                          className="cursor-pointer bg-red-500 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 hover:bg-red-600 transition-colors shadow-lg"
                         >
                           <ArrowRightOnRectangleIcon className="w-5 h-5" />
                           <span>Logout</span>
@@ -209,40 +224,24 @@ export default function AdminProfile() {
                     </div>
 
                     <div className="space-y-4">
-                      {/* First Name */}
-                      <div className="bg-gray-50 rounded-xl p-4">
-                        <label className="block text-sm font-medium text-gray-600 mb-2">First Name</label>
+                      {/* Full Name */}
+                      <div className="bg-blue-50 rounded-xl p-4">
+                        <label className="block text-sm font-medium text-gray-600 mb-2">Full Name</label>
                         {isEditing ? (
                           <input
                             type="text"
-                            name="firstName"
-                            value={userInfo.firstName}
+                            name="fullName"
+                            value={userInfo.fullName}
                             onChange={handleChange}
                             className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         ) : (
-                          <p className="text-lg font-semibold text-gray-800">{userInfo.firstName}</p>
-                        )}
-                      </div>
-
-                      {/* Last Name */}
-                      <div className="bg-gray-50 rounded-xl p-4">
-                        <label className="block text-sm font-medium text-gray-600 mb-2">Last Name</label>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            name="lastName"
-                            value={userInfo.lastName}
-                            onChange={handleChange}
-                            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        ) : (
-                          <p className="text-lg font-semibold text-gray-800">{userInfo.lastName}</p>
+                          <p className="text-lg font-semibold text-gray-800">{userInfo.fullName}</p>
                         )}
                       </div>
 
                       {/* Email */}
-                      <div className="bg-gray-50 rounded-xl p-4">
+                      <div className="bg-blue-50 rounded-xl p-4">
                         <label className="block text-sm font-medium text-gray-600 mb-2">Email Address</label>
                         {isEditing ? (
                           <input
@@ -258,8 +257,11 @@ export default function AdminProfile() {
                       </div>
 
                       {/* Phone */}
-                      <div className="bg-gray-50 rounded-xl p-4">
-                        <label className="block text-sm font-medium text-gray-600 mb-2">Phone Number</label>
+                      <div className="bg-blue-50 rounded-xl p-4">
+                        <label className="flex items-center space-x-2 text-sm font-medium text-gray-600 mb-2">
+                          <PhoneIcon className="w-4 h-4" />
+                          <span>Phone Number</span>
+                        </label>
                         {isEditing ? (
                           <input
                             type="tel"
@@ -274,7 +276,7 @@ export default function AdminProfile() {
                       </div>
 
                       {/* Birthday */}
-                      <div className="bg-gray-50 rounded-xl p-4">
+                      <div className="bg-blue-50 rounded-xl p-4">
                         <label className="flex items-center space-x-2 text-sm font-medium text-gray-600 mb-2">
                           <CalendarIcon className="w-4 h-4" />
                           <span>Date of Birth</span>
@@ -291,16 +293,26 @@ export default function AdminProfile() {
                           <p className="text-lg font-semibold text-gray-800">{userInfo.birthday}</p>
                         )}
                       </div>
+                    </div>
+                  </div>
 
+                  {/* Additional Information */}
+                  <div className="space-y-6">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <IdentificationIcon className="w-6 h-6 text-purple-600" />
+                      <h3 className="text-xl font-bold text-gray-800">Additional Information</h3>
+                    </div>
+
+                    <div className="space-y-4">
                       {/* Gender */}
-                      <div className="bg-gray-50 rounded-xl p-4">
+                      <div className="bg-purple-50 rounded-xl p-4">
                         <label className="block text-sm font-medium text-gray-600 mb-2">Gender</label>
                         {isEditing ? (
                           <select
                             name="gender"
                             value={userInfo.gender}
                             onChange={handleChange}
-                            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           >
                             <option value="Female">Female</option>
                             <option value="Male">Male</option>
@@ -313,7 +325,7 @@ export default function AdminProfile() {
                       </div>
 
                       {/* Address */}
-                      <div className="bg-gray-50 rounded-xl p-4">
+                      <div className="bg-purple-50 rounded-xl p-4">
                         <label className="flex items-center space-x-2 text-sm font-medium text-gray-600 mb-2">
                           <MapPinIcon className="w-4 h-4" />
                           <span>Address</span>
@@ -324,90 +336,10 @@ export default function AdminProfile() {
                             value={userInfo.address}
                             onChange={handleChange}
                             rows="2"
-                            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                           />
                         ) : (
                           <p className="text-lg font-semibold text-gray-800">{userInfo.address}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Professional Information */}
-                  <div className="space-y-6">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <IdentificationIcon className="w-6 h-6 text-purple-600" />
-                      <h3 className="text-xl font-bold text-gray-800">Professional Information</h3>
-                    </div>
-
-                    <div className="space-y-4">
-                      {/* Employee ID */}
-                      <div className="bg-purple-50 rounded-xl p-4">
-                        <label className="block text-sm font-medium text-gray-600 mb-2">Employee ID</label>
-                        <p className="text-lg font-semibold text-gray-800">{userInfo.employeeId}</p>
-                      </div>
-
-                      {/* Position */}
-                      <div className="bg-purple-50 rounded-xl p-4">
-                        <label className="block text-sm font-medium text-gray-600 mb-2">Position</label>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            name="position"
-                            value={userInfo.position}
-                            onChange={handleChange}
-                            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          />
-                        ) : (
-                          <p className="text-lg font-semibold text-gray-800">{userInfo.position}</p>
-                        )}
-                      </div>
-
-                      {/* Department */}
-                      <div className="bg-purple-50 rounded-xl p-4">
-                        <label className="block text-sm font-medium text-gray-600 mb-2">Department</label>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            name="department"
-                            value={userInfo.department}
-                            onChange={handleChange}
-                            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          />
-                        ) : (
-                          <p className="text-lg font-semibold text-gray-800">{userInfo.department}</p>
-                        )}
-                      </div>
-
-                      {/* Specialization */}
-                      <div className="bg-purple-50 rounded-xl p-4">
-                        <label className="block text-sm font-medium text-gray-600 mb-2">Specialization</label>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            name="specialization"
-                            value={userInfo.specialization}
-                            onChange={handleChange}
-                            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          />
-                        ) : (
-                          <p className="text-lg font-semibold text-gray-800">{userInfo.specialization}</p>
-                        )}
-                      </div>
-
-                      {/* Education */}
-                      <div className="bg-purple-50 rounded-xl p-4">
-                        <label className="block text-sm font-medium text-gray-600 mb-2">Education</label>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            name="education"
-                            value={userInfo.education}
-                            onChange={handleChange}
-                            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          />
-                        ) : (
-                          <p className="text-lg font-semibold text-gray-800">{userInfo.education}</p>
                         )}
                       </div>
                     </div>
@@ -419,7 +351,7 @@ export default function AdminProfile() {
                   <div className="flex justify-between items-center">
                     <button
                       onClick={backToHome}
-                      className="bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-xl font-semibold transition-colors flex items-center space-x-2"
+                      className="cursor-pointer bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-xl font-semibold transition-colors flex items-center space-x-2"
                     >
                       <span>← Back to Dashboard</span>
                     </button>

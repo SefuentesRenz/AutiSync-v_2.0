@@ -105,41 +105,41 @@ const Students = () => {
       {/* Header */}
       <header className="bg-white shadow-lg border-b-4 border-blue-500">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <div className="bg-blue-600 text-white p-2 rounded-xl">
-                <AcademicCapIcon className="w-8 h-8" />
-              </div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                AutiSync
-              </h1>
-            </div>
-            
-            <nav className="hidden md:flex space-x-8">
-              <a href="/tracking" className="text-gray-600 text-lg hover:text-blue-600 font-semibold  transition-colors">
-                Dashboard
-              </a>
-              <a href="/activities" className="text-gray-600 text-lg hover:text-blue-600 font-semibold  transition-colors">
-                Activities
-              </a>
-              <a href="/alarmingemotions" className="text-gray-600 text-lg hover:text-blue-600 font-semibold transition-colors">
-                Expression Wall
-              </a>
-            </nav>
-            
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={AdminProfile}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-2 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
-              >
-                <img
-                  src="/src/assets/kidprofile1.jpg"
-                  alt="Profile"
-                  className="h-10 w-10 rounded-full object-cover"
-                />
-              </button>
-            </div>
-          </div>
+           <div className="flex justify-between items-center py-4">
+                            <div className="flex items-center space-x-4">
+                              <div className="bg-blue-600 text-white rounded-xl">
+                                <AcademicCapIcon className="w-6 h-6" />
+                              </div>
+                              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                AutiSync
+                              </h1>
+                            </div>
+                            
+                            <nav className="hidden md:flex space-x-8">
+                              <a href="/tracking" className="text-gray-600 text-lg hover:text-blue-600 font-semibold  transition-colors">
+                                Dashboard
+                              </a>
+                              <a href="/activities" className="text-gray-600 text-lg hover:text-blue-600 font-semibold  transition-colors">
+                                Activities
+                              </a>
+                              <a href="/alarmingemotions" className="text-gray-600 text-lg hover:text-blue-600 font-semibold transition-colors">
+                                Expression Wall
+                              </a>
+                            </nav>
+                            
+                            <div className="flex items-center space-x-4">
+                              <button
+                                onClick={AdminProfile}
+                          className="cursor-pointer -my-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-1 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                              >
+                                <img
+                                  src="/src/assets/kidprofile1.jpg"
+                                  alt="Profile"
+                                  className="h-10 w-10 rounded-full object-cover"
+                                />
+                              </button>
+                            </div>
+                          </div>
         </div>
       </header>
 
@@ -152,7 +152,7 @@ const Students = () => {
           </div>
           <button
             onClick={handleBackToDashboard}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 transition-all duration-200 transform hover:scale-105 shadow-lg"
+            className="cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 transition-all duration-200 transform hover:scale-105 shadow-lg"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

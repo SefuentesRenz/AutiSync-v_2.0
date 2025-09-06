@@ -6,6 +6,7 @@ function SignupPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -13,7 +14,8 @@ function SignupPage() {
     parentEmail: '',
     address: '',
     gender: '',
-    phoneNumber: ''
+    phoneNumber: '',
+    profilePicture: null
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -21,12 +23,26 @@ function SignupPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [userType, setUserType] = useState("student"); // "student", "admin", or "parent"
+  const [profilePicturePreview, setProfilePicturePreview] = useState(null);
 
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({
+        ...formData,
+        profilePicture: file
+      });
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setProfilePicturePreview(previewUrl);
+    }
   };
 
   const loginPageRoute = (e) => {
@@ -74,6 +90,7 @@ function SignupPage() {
         options: {
           data: {
             full_name: formData.fullName,
+            username: userType === 'student' ? formData.username : null,
             age: userType === 'student' ? parseInt(formData.age) : null,
             parent_email: userType === 'student' ? formData.parentEmail : null,
             address: formData.address,
@@ -119,10 +136,12 @@ function SignupPage() {
       <div className="relative z-10 bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl w-full max-w-lg border border-white/20 animate-fade-in-scale">
         {/* Header with logo */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-2xl">A</span>
-            </div>
+          <div className="flex items-center -mt-7 justify-center ">
+            <img
+                  src="/src/assets/logo.png"
+                  alt="AutiSync Logo"
+                  className="w-22 h-22 object-contain"
+                />
           </div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-1 -mt-2">
             AutiSync
@@ -217,6 +236,70 @@ function SignupPage() {
             />
           </div>
 
+          {/* Profile Picture Upload */}
+          <div>
+            <label className="flex items-center text-sm font-bold text-gray-700 mb-2">
+              <span className="text-lg mr-2">📸</span>
+              Profile Picture (Optional)
+            </label>
+            <div className="flex items-center space-x-4">
+              {/* Profile Picture Preview */}
+              <div className="w-20 h-20 rounded-full bg-gray-200 border-2 border-gray-300 flex items-center justify-center overflow-hidden">
+                {profilePicturePreview ? (
+                  <img 
+                    src={profilePicturePreview} 
+                    alt="Profile Preview" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-2xl text-gray-400">👤</span>
+                )}
+              </div>
+              
+              {/* Upload Button */}
+              <div className="flex-1">
+                <input
+                  type="file"
+                  id="profilePicture"
+                  accept="image/*"
+                  onChange={handleProfilePictureChange}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="profilePicture"
+                  className="inline-flex items-center px-4 py-2 border-2 border-blue-300 text-blue-700 bg-blue-50 rounded-xl hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-200 cursor-pointer text-sm font-medium"
+                >
+                  <span className="text-lg mr-2">📷</span>
+                  Choose Photo
+                </label>
+                <p className="text-xs text-gray-500 mt-1">You can skip this and add a photo later</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Username Field - Only show for students */}
+          {userType === 'student' && (
+            <div>
+              <label htmlFor="username" className="flex items-center text-sm font-bold text-gray-700 mb-2">
+                <span className="text-lg mr-2">🎮</span>
+                Username
+              </label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                value={formData.username}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg placeholder-gray-400 transition-all duration-300"
+                placeholder="Choose a fun username!"
+                required={userType === 'student'}
+                minLength="3"
+                maxLength="20"
+              />
+              <p className="text-xs text-gray-500 mt-1">This will be your display name in the app (3-20 characters)</p>
+            </div>
+          )}
+
           {/* Email Field */}
           <div>
             <label htmlFor="email" className="flex items-center text-sm font-bold text-gray-700 mb-2">
@@ -292,6 +375,7 @@ function SignupPage() {
                 placeholder="parent@example.com"
                 required={userType === 'student'}
               />
+              <p className="text-xs text-gray-500 mt-1">Your parent/guardian will use this email to view your progress</p>
             </div>
           )}
 

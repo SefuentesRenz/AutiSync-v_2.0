@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { 
@@ -13,10 +13,12 @@ import {
   LightBulbIcon
 } from '@heroicons/react/24/solid';
 import MotivationTips from '../parents/MotivationTips';
+import ParentProfileModal from '../components/ParentProfileModal';
 
 const ParentHomepage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const handleLogout = async () => {
     const { supabase } = await import('../lib/supabase');
@@ -69,14 +71,20 @@ const ParentHomepage = () => {
                 <span>View Dashboard</span>
               </button>
               <button
-                onClick={handleLogout}
+                onClick={() => setShowProfileModal(true)}
                 className="p-2 bg-white hover:bg-gray-50 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg"
               >
                 <img
                   src="/src/assets/kidprofile1.jpg"
                   alt="Parent Profile"
-                  className="h-12 w-12 rounded-xl object-cover border-2 border-indigo-200"
+                  className="h-12 w-12 cursor-pointer rounded-xl object-cover border-2 border-indigo-200"
                 />
+              </button>
+              <button
+                onClick={handleLogout}
+                className="text-red-600 hover:text-red-800 px-4 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 font-semibold"
+              >
+                Logout
               </button>
             </div>
           </div>
@@ -307,6 +315,12 @@ const ParentHomepage = () => {
           </div>
         </div>
       </div>
+      
+      {/* Parent Profile Modal */}
+      <ParentProfileModal 
+        isOpen={showProfileModal} 
+        onClose={() => setShowProfileModal(false)} 
+      />
     </div>
   );
 };
