@@ -19,6 +19,7 @@ export default function StudentProfile() {
     address: "",
     gender: "",
     grade: "",
+    parent_email: "",
     interests: ["Drawing", "Animals", "Music", "Numbers"],
     achievements: 0,
     day_streak: 0,
@@ -515,7 +516,7 @@ export default function StudentProfile() {
                 ) : (
                   <button
                     onClick={handleEdit}
-                    className="btn-autism-friendly bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-xl font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center text-sm"
+                    className="btn-autism-friendly bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6   py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center text-xl cursor-pointer"
                   >
                     <span className="mr-1">✏️</span>
                     Edit
@@ -642,6 +643,33 @@ export default function StudentProfile() {
                     </select>
                   ) : (
                     <p className="text-gray-800 font-medium">{userInfo.grade ? `Grade ${userInfo.grade}` : "Grade 2"}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Parent/Guardian Email */}
+              <div className="flex items-center p-4 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-2xl border border-orange-200/50">
+                <span className="text-2xl mr-4">👨‍👩‍👧‍👦</span>
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-gray-700">Parent/Guardian Email</label>
+                  {isEditing ? (
+                    <input
+                      type="email"
+                      name="parent_email"
+                      value={userInfo.parent_email}
+                      onChange={handleChange}
+                      className="w-full bg-transparent border-b border-orange-400 focus:outline-none text-gray-800"
+                      placeholder="parent@example.com"
+                    />
+                  ) : (
+                    <p className="text-gray-800 font-medium">
+                      {userInfo.parent_email || "No parent email linked"}
+                    </p>
+                  )}
+                  {!isEditing && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      This email links your account to a parent dashboard
+                    </p>
                   )}
                 </div>
               </div>

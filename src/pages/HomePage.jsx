@@ -69,7 +69,7 @@ const HomePage = () => {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-sm">
+      <header className="sticky top-0 z-10 bg-white/70 backdrop-blur-xl border-b border-white/20 shadow-sm">
         <div className="container mx-auto px-3 py-1">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">

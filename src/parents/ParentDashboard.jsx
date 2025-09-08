@@ -22,6 +22,8 @@ import {
 import SystemInformation from './SystemInformation';
 import MotivationTips from './MotivationTips';
 import ParentProfileModal from '../components/ParentProfileModal';
+import AddChildModal from '../components/AddChildModal';
+import LinkChildModal from '../components/LinkChildModal';
 
 const ParentDashboard = () => {
   const navigate = useNavigate();
@@ -30,10 +32,12 @@ const ParentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [selectedChild, setSelectedChild] = useState(null);
   const [currentView, setCurrentView] = useState('overview');
-  const [searchQuery, setSearchQuery] = useState('');
   const [showAddChild, setShowAddChild] = useState(false);
+  const [showLinkChild, setShowLinkChild] = useState(false);
   const [error, setError] = useState('');
   const [showProfileModal, setShowProfileModal] = useState(false);
+
+  console.log('ParentDashboard render - showAddChild:', showAddChild);
 
   // Enhanced mock data matching student and admin page structures
   const mockChildrenData = [
@@ -150,9 +154,10 @@ const ParentDashboard = () => {
 
       if (error) {
         console.error('Error fetching children:', error);
-        // Fall back to mock data if database fetch fails
-        setChildrenData(mockChildrenData);
-        setSelectedChild(mockChildrenData[0]);
+        console.error('Error details:', error.message);
+        setError(`Failed to load children data: ${error.message}`);
+        setChildrenData([]);
+        setSelectedChild(null);
       } else if (data && data.length > 0) {
         // Transform database data to match expected format
         const transformedData = data.map(child => ({
@@ -194,51 +199,8 @@ const ParentDashboard = () => {
     } catch (error) {
       console.error('Error:', error);
       setError('Failed to load children data');
-      // Fall back to mock data
-      setChildrenData(mockChildrenData);
-      setSelectedChild(mockChildrenData[0]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const searchForChild = async () => {
-    if (!searchQuery.trim()) {
-      setError('Please enter a username or email to search');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError('');
-
-      // Search for child by username or email
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .or(`username.eq.${searchQuery},email.eq.${searchQuery}`)
-        .eq('user_type', 'student')
-        .single();
-
-      if (error || !data) {
-        setError('Student not found. Please check the username or email.');
-        return;
-      }
-
-      // Check if this child is already connected to this parent
-      const existingChild = childrenData.find(child => child.id === data.id);
-      if (existingChild) {
-        setError('This student is already in your children list.');
-        return;
-      }
-
-      // For now, we'll just show the found child info
-      // In a real system, you might want to send a connection request
-      alert(`Found student: ${data.first_name} ${data.last_name} (@${data.username})\n\nTo connect with this student, ask them to update their Parent Email to: ${user.email}`);
-      
-    } catch (error) {
-      console.error('Search error:', error);
-      setError('An error occurred while searching for the student.');
+      setChildrenData([]);
+      setSelectedChild(null);
     } finally {
       setLoading(false);
     }
@@ -247,6 +209,32 @@ const ParentDashboard = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/loginpage');
+  };
+
+  const handleChildAdded = (newChild) => {
+    // Close the add child modal
+    setShowAddChild(false);
+    // Refresh children data from database
+    fetchChildrenData();
+    // Small delay then select the new child
+    setTimeout(() => {
+      if (newChild && newChild.id) {
+        setSelectedChild(newChild);
+      }
+    }, 500);
+  };
+
+  const handleChildLinked = (linkedChild) => {
+    // Close the link child modal
+    setShowLinkChild(false);
+    // Refresh children data from database
+    fetchChildrenData();
+    // Small delay then select the linked child
+    setTimeout(() => {
+      if (linkedChild && linkedChild.id) {
+        setSelectedChild(linkedChild);
+      }
+    }, 500);
   };
 
   const getEmotionIcon = (emotion) => {
@@ -329,36 +317,88 @@ const ParentDashboard = () => {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <span className="text-white font-bold text-2xl">A</span>
-            </div>
+        
             <h1 className="text-3xl font-bold text-gray-800 mb-2">Parent Dashboard</h1>
             <p className="text-gray-600">Manage and track your children's learning progress</p>
           </div>
 
           {/* No Children Found / Search Section */}
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Current Children */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <UsersIcon className="w-6 h-6 mr-2 text-blue-600" />
-                My Children
-              </h2>
+          <div className="max-w-4xl mx-auto">
+            {/* Current Children - Full Width */}
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                  <UsersIcon className="w-6 h-6 mr-2 text-blue-600" />
+                  My Children
+                </h2>
+                <button
+                  onClick={() => {
+                    console.log('Add Child button clicked!');
+                    console.log('Current showAddChild state:', showAddChild);
+                    setShowAddChild(true);
+                    console.log('After setting state to true');
+                  }}
+                  className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center space-x-2"
+                >
+                  <UserIcon className="w-5 h-5" />
+                  <span>Add Child</span>
+                </button>
+              </div>
               
               {childrenData.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-6xl mb-4">👨‍👩‍👧‍�</div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2">No Children Connected</h3>
-                  <p className="text-gray-500 text-sm mb-4">
-                    Children who register with your email ({user?.email}) will appear here automatically.
+                <div className="text-center py-12">
+                  {/* Modern Icon */}
+                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
+                    <UsersIcon className="w-12 h-12 text-blue-600" />
+                  </div>
+                  
+                  {/* Main Message */}
+                  <h3 className="text-2xl font-bold text-gray-800 mb-3">No Children Connected Yet</h3>
+                  <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto leading-relaxed">
+                    Start monitoring your child's learning journey by creating an account or connecting an existing one.
                   </p>
-                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                    <h4 className="font-semibold text-blue-800 mb-2">Setup Instructions:</h4>
-                    <ol className="text-sm text-blue-700 text-left space-y-1">
-                      <li>1. Have your child create a student account</li>
-                      <li>2. They should use <strong>{user?.email}</strong> as parent email</li>
-                      <li>3. Refresh this page to see their progress</li>
-                    </ol>
+                  
+                  {/* Action Cards */}
+                  <div className="grid gap-6 max-w-2xl mx-auto">
+                    {/* Create Account Card */}
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border-2 border-blue-100 hover:border-blue-200 transition-all duration-300 transform hover:scale-[1.02]">
+                      <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-blue-500 rounded-full">
+                        <UserIcon className="w-8 h-8 text-white" />
+                      </div>
+                      <h4 className="text-xl font-bold text-blue-800 mb-3">Create New Account</h4>
+                      <p className="text-blue-700 mb-4 leading-relaxed">
+                        Create a learning account for your child instantly. No email required - we'll handle everything!
+                      </p>
+                      <button
+                        onClick={() => setShowAddChild(true)}
+                        className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                      >
+                        <span className="flex items-center justify-center space-x-2">
+                          <span>👶</span>
+                          <span>Create Child Account</span>
+                        </span>
+                      </button>
+                    </div>
+                    
+                    {/* Connect Existing Account Card */}
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-green-100 hover:border-green-200 transition-all duration-300 transform hover:scale-[1.02]">
+                      <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-green-500 rounded-full">
+                        <ChevronRightIcon className="w-8 h-8 text-white" />
+                      </div>
+                      <h4 className="text-xl font-bold text-green-800 mb-3">Link Existing Account</h4>
+                      <p className="text-green-700 mb-4 leading-relaxed">
+                        If your child already has a student account, you can link it to your parent account using their credentials.
+                      </p>
+                      <button
+                        onClick={() => setShowLinkChild(true)}
+                        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                      >
+                        <span className="flex items-center justify-center space-x-2">
+                          <span>🔗</span>
+                          <span>Link Existing Account</span>
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -392,56 +432,6 @@ const ParentDashboard = () => {
                 🔄 Refresh Children List
               </button>
             </div>
-
-            {/* Find Child Section */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-2xl mr-2">🔍</span>
-                Find Your Child
-              </h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Search by Username or Email
-                  </label>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Enter username or email..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                
-                {error && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                    {error}
-                  </div>
-                )}
-                
-                <button
-                  onClick={searchForChild}
-                  disabled={loading || !searchQuery.trim()}
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-                >
-                  {loading ? (
-                    <>⏳ Searching...</>
-                  ) : (
-                    <>🔍 Search for Child</>
-                  )}
-                </button>
-                
-                <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
-                  <h4 className="font-semibold text-yellow-800 mb-2">💡 How it works:</h4>
-                  <ul className="text-sm text-yellow-700 space-y-1">
-                    <li>• Search finds any student account by username or email</li>
-                    <li>• Ask your child to update their parent email to <strong>{user?.email}</strong></li>
-                    <li>• Once updated, they'll appear in "My Children" automatically</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
           </div>
           
           {/* Quick Actions */}
@@ -450,10 +440,10 @@ const ParentDashboard = () => {
               <h3 className="text-lg font-bold text-gray-800 mb-4">Need Help?</h3>
               <div className="flex flex-wrap justify-center gap-4">
                 <button 
-                  onClick={() => navigate('/signuppage')}
+                  onClick={() => setShowAddChild(true)}
                   className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors"
                 >
-                  📝 Help Child Create Account
+                  📝 Create Child Account
                 </button>
                 <button 
                   onClick={handleLogout}
@@ -1244,6 +1234,20 @@ const ParentDashboard = () => {
       <ParentProfileModal 
         isOpen={showProfileModal} 
         onClose={() => setShowProfileModal(false)} 
+      />
+      
+      {/* Add Child Modal */}
+      <AddChildModal 
+        isOpen={showAddChild} 
+        onClose={() => setShowAddChild(false)}
+        onChildAdded={handleChildAdded}
+      />
+
+      {/* Link Child Modal */}
+      <LinkChildModal 
+        isOpen={showLinkChild} 
+        onClose={() => setShowLinkChild(false)}
+        onChildLinked={handleChildLinked}
       />
     </div>
   );

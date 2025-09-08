@@ -111,7 +111,7 @@ function LoginPage() {
         <div className="absolute bottom-32 left-1/3 w-32 h-32 bg-pink-200/20 rounded-full blur-xl animate-bounce-gentle"></div>
       </div>
 
-      <div className="relative z-10 bg-white/90 backdrop-blur-xl p-7 rounded-2xl shadow-xl w-full max-w-md border border-white/20 animate-fade-in-scale">
+      <div className="relative z-10 bg-white/80 backdrop-blur-xl p-7 rounded-2xl shadow-xl w-full max-w-md border border-white/20 animate-fade-in-scale">
         {/* Header with logo */}
         <div className="text-center mb-7">
           <div className="flex items-center justify-center -mb-3 -mt-7">
@@ -247,9 +247,13 @@ function LoginPage() {
               htmlFor="email"
               className="flex items-center text-sm font-bold text-gray-700 mb-1"
             >
-              {/* <span className="text-lg mr-2">📧</span> */}
-              Email Address
+              {userType === 'student' ? 'Email Address or Username' : 'Email Address'}
             </label>
+            {userType === 'student' && (
+              <p className="text-xs text-gray-500 mb-2">
+                💡 If your parent created your account, ask them for your login details
+              </p>
+            )}
             <div className="relative">
               <input
                 type="email"
@@ -257,7 +261,7 @@ function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-base placeholder-gray-400 transition-all duration-300"
-                placeholder="you@example.com"
+                placeholder={userType === 'student' ? 'Email or ask parent for login details' : 'you@example.com'}
                 required
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3">

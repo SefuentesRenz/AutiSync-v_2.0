@@ -24,12 +24,21 @@ const NavBar = ({ onProfileClick }) => {
     const studentProfileRoute = () => navigate("/studentprofile");
 
   return (
-    <header className="bg-blue-500 text-white py-2">
-      <div className="container mx-auto px-6 flex justify-between items-center">
+    <header className="bg-blue-500 text-white  ">
+      
+      <div className=" container -my-1 mx-auto px-6 flex justify-between items-center">
         
-              
             
-        <h2 className="text-white text-2xl font-bold">AutiSync v2.0</h2>
+        <div className="flex items-center space-x-4">
+              <img
+                  src="/src/assets/logo.png"
+                  alt="AutiSync Logo"
+                  className="w-16 h-16 object-contain"
+                />
+              <h1 className="text-2xl font-bold text-white bg-clip-text text-transparent">
+                AutiSync v2.0
+              </h1>
+            </div>
         <nav className="flex items-center text-lg space-x-6">
           <a href="/home" className="text-white hover:text-blue-900 transition-colors duration-200 flex items-center">
                 Home

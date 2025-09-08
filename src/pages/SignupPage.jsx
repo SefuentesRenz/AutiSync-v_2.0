@@ -11,6 +11,7 @@ function SignupPage() {
     password: '',
     confirmPassword: '',
     age: '',
+    grade: '',
     parentEmail: '',
     address: '',
     gender: '',
@@ -92,6 +93,7 @@ function SignupPage() {
             full_name: formData.fullName,
             username: userType === 'student' ? formData.username : null,
             age: userType === 'student' ? parseInt(formData.age) : null,
+            grade: userType === 'student' ? formData.grade : null,
             parent_email: userType === 'student' ? formData.parentEmail : null,
             address: formData.address,
             gender: formData.gender, // Gender for all user types
@@ -133,7 +135,7 @@ function SignupPage() {
         <div className="absolute bottom-32 left-1/3 w-32 h-32 bg-pink-200/20 rounded-full blur-xl animate-bounce-gentle"></div>
       </div>
 
-      <div className="relative z-10 bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl w-full max-w-lg border border-white/20 animate-fade-in-scale">
+      <div className="relative z-10 bg-white/70 backdrop-blur-xl p-8 rounded-3xl shadow-2xl w-full max-w-lg border border-white/20 animate-fade-in-scale">
         {/* Header with logo */}
         <div className="text-center mb-8">
           <div className="flex items-center -mt-7 justify-center ">
@@ -144,7 +146,7 @@ function SignupPage() {
                 />
           </div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-1 -mt-2">
-            AutiSync
+            AutiSync v2.0
           </h2>
           <div className="bg-gradient-to-r from-green-100 to-blue-100 rounded-2xl p-4 mb-4">
             <h3 className="text-xl font-bold text-gray-800 mb-2 flex items-center justify-center">
@@ -355,6 +357,40 @@ function SignupPage() {
                 max="25"
                 required={userType === 'student'}
               />
+            </div>
+          )}
+
+          {/* Grade Level Field - Only show for students */}
+          {userType === 'student' && (
+            <div>
+              <label htmlFor="grade" className="flex items-center text-sm font-bold text-gray-700 mb-2">
+                <span className="text-lg mr-2">📚</span>
+                Grade Level
+              </label>
+              <select
+                id="grade"
+                name="grade"
+                value={formData.grade}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg transition-all duration-300"
+                required={userType === 'student'}
+              >
+                <option value="">Select your grade level</option>
+                <option value="K">Kindergarten</option>
+                <option value="1">Grade 1</option>
+                <option value="2">Grade 2</option>
+                <option value="3">Grade 3</option>
+                <option value="4">Grade 4</option>
+                <option value="5">Grade 5</option>
+                <option value="6">Grade 6</option>
+                <option value="7">Grade 7</option>
+                <option value="8">Grade 8</option>
+                <option value="9">Grade 9</option>
+                <option value="10">Grade 10</option>
+                <option value="11">Grade 11</option>
+                <option value="12">Grade 12</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">Choose the grade level you're currently in</p>
             </div>
           )}
 
