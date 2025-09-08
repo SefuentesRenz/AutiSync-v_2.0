@@ -58,7 +58,7 @@ const LandingPage = () => {
           <section className="py-5">
             <div className="max-w-4xl mx-auto">
               {/* Hero content */}
-              <div className="mb-12 animate-fade-in-scale">
+              <div className="mb-12 mt-5 animate-fade-in-scale">
                 <h2 className="text-5xl sm:text-6xl font-bold mb-6">
                   <span className="block text-gray-800">Welcome to</span>
                   <span className="text-blue-900">
