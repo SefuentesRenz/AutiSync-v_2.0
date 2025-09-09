@@ -166,7 +166,7 @@ const FlashcardsPage = () => {
                     </div>
                     <button
                       onClick={() => setSelectedDifficulty(null)}
-                      className="bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 px-6 py-3 rounded-2xl transition-all duration-300 flex items-center space-x-3 shadow-lg hover:shadow-xl transform hover:scale-105"
+                      className="cursor-pointer bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 px-6 py-3 rounded-2xl transition-all duration-300 flex items-center space-x-3 shadow-lg hover:shadow-xl transform hover:scale-105"
                     >
                       <span className="text-xl">←</span>
                       <span className="font-semibold">Go Back</span>

@@ -35,7 +35,7 @@ const NavBar = ({ onProfileClick }) => {
                   alt="AutiSync Logo"
                   className="w-16 h-16 object-contain"
                 />
-              <h1 className="text-2xl font-bold text-white bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold text-white bg-clip-text S">
                 AutiSync v2.0
               </h1>
             </div>
