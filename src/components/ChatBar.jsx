@@ -179,7 +179,7 @@ const ChatBar = () => {
                 onChange={(e) => setMessageInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="write your message..."
-                className="w-full p-4 pr-16 border-none rounded-2xl resize-none h-20 text-sm bg-transparent focus:outline-none placeholder-gray-400 transition-all duration-300"
+                className="w-full p-4 pr-16 border-none rounded-2xl resize-none h-17 text-sm bg-transparent focus:outline-none placeholder-gray-400 transition-all duration-300"
                 maxLength={200}
               />
               
