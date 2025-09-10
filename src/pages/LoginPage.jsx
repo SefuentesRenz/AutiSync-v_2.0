@@ -222,21 +222,21 @@ function LoginPage() {
           <div className="flex justify-center gap-2 mb-4">
             <button
               type="button"
-              className={`px-4 py-2 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm shadow-sm ${userType === 'student' ? 'bg-blue-100 border-blue-500 text-blue-900' : 'bg-white border-gray-300 text-gray-600'}`}
+              className={`px-4 py-2 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm shadow-sm cursor-pointer ${userType === 'student' ? 'bg-blue-100 border-blue-500 text-blue-900' : 'bg-white border-gray-300 text-gray-600'}`}
               onClick={() => setUserType('student')}
             >
               👦 Student
             </button>
             <button
               type="button"
-              className={`px-4 py-2 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm shadow-sm ${userType === 'admin' ? 'bg-purple-100 border-purple-500 text-purple-900' : 'bg-white border-gray-300 text-gray-600'}`}
+              className={`px-4 py-2 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm shadow-sm cursor-pointer ${userType === 'admin' ? 'bg-purple-100 border-purple-500 text-purple-900' : 'bg-white border-gray-300 text-gray-600'}`}
               onClick={() => setUserType('admin')}
             >
               🧑‍🏫 Admin
             </button>
             <button
               type="button"
-              className={`px-4 py-2 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-200 text-sm shadow-sm ${userType === 'parent' ? 'bg-green-100 border-green-500 text-green-900' : 'bg-white border-gray-300 text-gray-600'}`}
+              className={`px-4 py-2 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-200 text-sm shadow-sm cursor-pointer ${userType === 'parent' ? 'bg-green-100 border-green-500 text-green-900' : 'bg-white border-gray-300 text-gray-600'}`}
               onClick={() => setUserType('parent')}
             >
               👨‍👩‍👧‍👦 Parent

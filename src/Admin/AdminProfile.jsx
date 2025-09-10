@@ -351,7 +351,7 @@ export default function AdminProfile() {
                   <div className="flex justify-between items-center">
                     <button
                       onClick={backToHome}
-                      className="cursor-pointer bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-xl font-semibold transition-colors flex items-center space-x-2"
+                      className="cursor-pointer bg-green-600 hover:bg-green-800 text-white px-8 py-3 rounded-xl font-semibold transition-colors flex items-center space-x-2"
                     >
                       <span>← Back to Dashboard</span>
                     </button>

@@ -14,7 +14,7 @@ const CategorySelector = ({ onSelectCategory, onJoinFriend }) => (
         Choose Category
       </h2>
       <button 
-        className="btn-autism-friendly bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white text-lg font-bold px-8 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 mb-2"
+        className="btn-autism-friendly bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white text-lg font-bold px-8 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 mb-2 cursor-pointer"
         onClick={onJoinFriend}
       >
        Join a Friend

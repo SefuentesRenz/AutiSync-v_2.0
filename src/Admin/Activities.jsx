@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AcademicCapIcon, PlusIcon, PlayIcon, ClockIcon, StarIcon } from '@heroicons/react/24/solid';
+import ActivityDetailsModal from '../components/ActivityDetailsModal';
 
 const ActivitiesPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedActivity, setSelectedActivity] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const activities = [
     {
@@ -87,6 +90,16 @@ const ActivitiesPage = () => {
     }
   };
 
+  const handleViewDetails = (activity) => {
+    setSelectedActivity(activity);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedActivity(null);
+  };
+
   return (
     <div className="bg-gradient-to-br from-blue-50 to-indigo-50 max-h-screen">
       {/* Header */}
@@ -140,7 +153,7 @@ const ActivitiesPage = () => {
           
           <button 
             onClick={addActivity} 
-            className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 shadow-lg transition-all duration-200 transform hover:scale-105"
+            className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 shadow-lg transition-all duration-200 transform hover:scale-105 cursor-pointer"
           >
             <PlusIcon className="w-5 h-5" />
             <span>Create New Activity</span>
@@ -262,10 +275,13 @@ const ActivitiesPage = () => {
                 </div>
                 
                 <div className="flex space-x-3">
-                  <button className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105">
+                  <button 
+                    onClick={() => handleViewDetails(activity)}
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105 cursor-pointer"
+                  >
                     View Details
                   </button>
-                  <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-xl font-semibold transition-colors">
+                  <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-xl font-semibold transition-colors cursor-pointer">
                     Edit
                   </button>
                 </div>
@@ -282,6 +298,13 @@ const ActivitiesPage = () => {
           </div>
         )}
       </div>
+
+      {/* Activity Details Modal */}
+      <ActivityDetailsModal 
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        activity={selectedActivity}
+      />
     </div>
   );
 };

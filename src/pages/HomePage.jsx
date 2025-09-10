@@ -14,12 +14,12 @@ const HomePage = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState(3);
   const [expressions, setExpressions] = useState([
-    { emotion: "Happy", description: "Feeling Happy at level 2", image: "src/assets/happy.png", level: 2, time: "2 hours ago", userName: "Emma" },
-    { emotion: "Calm", description: "Feeling calm at level 5", image: "src/assets/calm.png", level: 5, time: "5 hours ago", userName: "Alex" },
-    { emotion: "Excited", description: "Feeling excited at level 4", image: "src/assets/excited.png", level: 4, time: "Yesterday", userName: "Sam" },
-    { emotion: "Calm", description: "Feeling calm at level 2", image: "src/assets/calm.png", level: 2, time: "1 hour ago", userName: "Jordan" },
-    { emotion: "Sad", description: "Feeling sad at level 3", image: "src/assets/sad.png", level: 3, time: "2 hours ago", userName: "Riley" },
-    { emotion: "Excited", description: "Feeling excited at level 1", image: "src/assets/excited.png", level: 1, time: "Yesterday", userName: "Casey" },
+    { emotion: "Happy", image: "src/assets/happy.png", level: 2, time: "2 hours ago", userName: "Emma" },
+    { emotion: "Calm", image: "src/assets/calm.png", level: 5, time: "5 hours ago", userName: "Alex" },
+    { emotion: "Excited",  image: "src/assets/excited.png", level: 4, time: "Yesterday", userName: "Sam" },
+    { emotion: "Calm", image: "src/assets/calm.png", level: 2, time: "1 hour ago", userName: "Jordan" },
+    { emotion: "Sad",  image: "src/assets/sad.png", level: 3, time: "2 hours ago", userName: "Riley" },
+    { emotion: "Excited", image: "src/assets/excited.png", level: 1, time: "Yesterday", userName: "Casey" },
   ]);
 
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ const HomePage = () => {
     const emotionData = Emotions.find((emotion) => emotion.name === selectedEmotion);
     const newExpression = {
       emotion: selectedEmotion,
-      description: `Feeling ${selectedEmotion} at level ${selectedLevel}`,
+      // description: `Feeling ${selectedEmotion} at level ${selectedLevel}`,
       image: emotionData?.image,
       level: selectedLevel,
       time: "Just now",
@@ -295,7 +295,7 @@ const HomePage = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Academic Category */}
-              <div className=" bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-3xl text-center cursor-pointer border-3 border-white/50 hover:border-blue-300 hover:shadow-xl transition-all duration-300 group">
+              <div className=" bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-3xl text-center border-3 border-white/50 hover:border-blue-300 hover:shadow-xl transition-all duration-300 group">
                 <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                   <span className="text-white text-4xl">🎓</span>
                 </div>
@@ -306,7 +306,7 @@ const HomePage = () => {
               </div>
 
               {/* Social/Daily Life Skills Category */}
-              <div className=" bg-gradient-to-br from-orange-50 to-yellow-50 p-8 rounded-3xl text-center cursor-pointer border-3 border-white/50 hover:border-orange-300 hover:shadow-xl transition-all duration-300 group">
+              <div className=" bg-gradient-to-br from-orange-50 to-yellow-50 p-8 rounded-3xl text-center border-3 border-white/50 hover:border-orange-300 hover:shadow-xl transition-all duration-300 group">
                 <div className="w-24 h-24 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                   <span className="text-white text-4xl">👥</span>
                 </div>
@@ -335,7 +335,7 @@ const HomePage = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Easy Level */}
-              <div className=" bg-gradient-to-br from-green-50 to-emerald-50 p-8 rounded-3xl text-center cursor-pointer border-3 border-white/50 hover:border-green-300 hover:shadow-xl transition-all duration-300 group">
+              <div className=" bg-gradient-to-br from-green-50 to-emerald-50 p-8 rounded-3xl text-center border-3 border-white/50 hover:border-green-300 hover:shadow-xl transition-all duration-300 group">
                 <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                   <span className="text-white text-4xl">✓</span>
                 </div>
@@ -346,7 +346,7 @@ const HomePage = () => {
               </div>
 
               {/* Medium Level */}
-              <div className="card-autism-friendly bg-gradient-to-br from-yellow-50 to-amber-50 p-8 rounded-3xl text-center cursor-pointer border-3 border-white/50 hover:border-yellow-300 hover:shadow-xl transition-all duration-300 group">
+              <div className="card-autism-friendly bg-gradient-to-br from-yellow-50 to-amber-50 p-8 rounded-3xl text-center  border-3 border-white/50 hover:border-yellow-300 hover:shadow-xl transition-all duration-300 group">
                 <div className="w-24 h-24 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                   <span className="text-white text-4xl">⭐</span>
                 </div>
@@ -357,7 +357,7 @@ const HomePage = () => {
               </div>
 
               {/* Hard Level */}
-              <div className="card-autism-friendly bg-gradient-to-br from-red-50 to-rose-50 p-8 rounded-3xl text-center cursor-pointer border-3 border-white/50 hover:border-red-300 hover:shadow-xl transition-all duration-300 group">
+              <div className="card-autism-friendly bg-gradient-to-br from-red-50 to-rose-50 p-8 rounded-3xl text-center  border-3 border-white/50 hover:border-red-300 hover:shadow-xl transition-all duration-300 group">
                 <div className="w-24 h-24 bg-gradient-to-r from-red-500 to-rose-600 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                   <span className="text-white text-4xl">!</span>
                 </div>
@@ -401,7 +401,7 @@ const HomePage = () => {
               <h2 className="text-3xl font-bold text-gray-800 mb-2">
                 You're feeling <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">{selectedEmotion}</span>! 
               </h2>
-              <p className="text-gray-600 mb-6 text-lg">How strong is this feeling? Pick a number! 🎯</p>
+              {/* <p className="text-gray-600 mb-6 text-lg">How strong is this feeling? Pick a number! 🎯</p> */}
 
               {/* Level Selection */}
               <div className="mb-8">
@@ -449,13 +449,13 @@ const HomePage = () => {
                       {selectedLevel <= 2 ? '😌' : selectedLevel === 3 ? '😊' : selectedLevel === 4 ? '😄' : '🤗'}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-3 font-semibold">
+                  {/* <p className="text-sm text-gray-600 mt-3 font-semibold">
                     {selectedLevel === 1 ? "Just a tiny bit - barely noticeable" :
                      selectedLevel === 2 ? "A little bit - light feeling" :
                      selectedLevel === 3 ? "Medium amount - noticeable feeling" :
                      selectedLevel === 4 ? "Quite a lot - strong feeling" :
                      "Very much - overwhelming feeling"}
-                  </p>
+                  </p> */}
                 </div>
               </div>
 

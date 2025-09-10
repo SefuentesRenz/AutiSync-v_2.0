@@ -183,7 +183,7 @@ function SignupPage() {
             <div className="flex justify-center gap-2">
               <button
                 type="button"
-                className={`px-4 py-3 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm shadow-sm flex items-center space-x-2 ${
+                className={`px-4 py-3 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 text-sm shadow-sm flex items-center space-x-2 cursor-pointer ${
                   userType === 'student' 
                     ? 'bg-blue-100 border-blue-500 text-blue-900 transform scale-105' 
                     : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
@@ -195,7 +195,7 @@ function SignupPage() {
               </button>
               <button
                 type="button"
-                className={`px-4 py-3 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm shadow-sm flex items-center space-x-2 ${
+                className={`px-4 py-3 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-200 text-sm shadow-sm flex items-center space-x-2 cursor-pointer ${
                   userType === 'admin' 
                     ? 'bg-purple-100 border-purple-500 text-purple-900 transform scale-105' 
                     : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
@@ -207,7 +207,7 @@ function SignupPage() {
               </button>
               <button
                 type="button"
-                className={`px-4 py-3 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-200 text-sm shadow-sm flex items-center space-x-2 ${
+                className={`px-4 py-3 rounded-xl font-bold border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-200 text-sm shadow-sm flex items-center space-x-2 cursor-pointer ${
                   userType === 'parent' 
                     ? 'bg-green-100 border-green-500 text-green-900 transform scale-105' 
                     : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
@@ -477,7 +477,7 @@ function SignupPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors duration-200 cursor-pointer"
               >
                 <span className="text-lg">{showPassword ? "🙈" : "👀"}</span>
               </button>
@@ -505,7 +505,7 @@ function SignupPage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors duration-200 cursor-pointer"
                 >
                   <span className="text-lg">{showConfirmPassword ? "🙈" : "👀"}</span>
                 </button>

@@ -65,15 +65,7 @@ const Tracking = () => {
     { level: 'Hard', progress: 63, completed: '15/24', icon: '💎', color: 'bg-red-500', bgColor: 'bg-red-50' }
   ];
 
-  // Skills breakdown (based on actual 6 categories)
-  const skillsBreakdown = [
-    { skill: 'Numbers', progress: 67, accuracy: 82, activities: '19/24', icon: '🔢', color: 'from-green-400 to-green-600' },
-    { skill: 'Shapes', progress: 83, accuracy: 78, activities: '20/24', icon: '🔷', color: 'from-blue-400 to-blue-600' },
-    { skill: 'Colors', progress: 75, accuracy: 85, activities: '18/24', icon: '🎨', color: 'from-purple-400 to-purple-600' },
-    { skill: 'Letters', progress: 71, accuracy: 74, activities: '17/24', icon: '�', color: 'from-indigo-400 to-indigo-600' },
-    { skill: 'Patterns', progress: 67, accuracy: 69, activities: '16/24', icon: '🧩', color: 'from-pink-400 to-pink-600' },
-    { skill: 'Daily Life', progress: 92, accuracy: 77, activities: '22/24', icon: '🏠', color: 'from-orange-400 to-orange-600' }
-  ];
+  
 
   const categories = [
     { name: 'Academic Skills', percent: 73, count: '15/20', icon: '📚', color: 'bg-blue-500' },
@@ -166,53 +158,86 @@ const Tracking = () => {
 
   const badges = [
     {
-      title: 'Academic Star',
-      description: 'Complete 20 academic activities',
       icon: '⭐',
-      earned: true,
+      title: 'First Steps',
+      description: 'Completed your first activity',
+      status: 'EARNED',
+      color: 'from-yellow-400 to-yellow-600',
+      bgColor: 'bg-yellow-50',
+      animation: 'animate-bounce-gentle'
     },
     {
-      title: 'Color Master',
-      description: 'Complete 5 color-related activities',
+      icon: '🎓',
+      title: 'Academic Star',
+      description: 'Completed 5 academic activities',
+      status: 'EARNED',
+      color: 'from-blue-400 to-blue-600',
+      bgColor: 'bg-blue-50',
+      animation: 'animate-pulse-gentle'
+    },
+    {
       icon: '🎨',
-      earned: true,
+      title: 'Color Master',
+      description: 'Awarded for completing 5 color-related activities',
+      status: 'EARNED',
+      color: 'from-purple-400 to-purple-600',
+      bgColor: 'bg-purple-50',
+      animation: 'animate-bounce-gentle'
     },
     {
-      title: 'Shape Explorer',
-      description: 'Finish 5 shape activities',
       icon: '🔷',
-      earned: true,
+      title: 'Shape Explorer',
+      description: 'Awarded after finishing 5 shape activities',
+      status: 'EARNED',
+      color: 'from-blue-400 to-indigo-600',
+      bgColor: 'bg-blue-50',
+      animation: 'animate-float'
     },
     {
-      title: 'Number Ninja',
-      description: 'Answer 20 number-related questions correctly',
       icon: '🔢',
-      earned: false,
+      title: 'Number Ninja',
+      description: 'Earned by correctly answering 20 number-related questions',
+      status: 'EARNED',
+      color: 'from-green-400 to-green-600',
+      bgColor: 'bg-green-50',
+      animation: 'animate-wiggle'
     },
     {
-      title: 'Consistency Champ',
-      description: 'Complete activities 3 days in a row',
       icon: '📅',
-      earned: false,
+      title: 'Consistency Champ',
+      description: 'Given for completing activities 3 days in a row',
+      status: 'LOCKED',
+      color: 'from-gray-400 to-gray-500',
+      bgColor: 'bg-gray-50',
+      animation: ''
     },
     {
-      title: 'Helper Badge',
-      description: 'Activities done collaboratively with parent/teacher',
       icon: '🤝',
-      earned: true,
+      title: 'Helper Badge',
+      description: 'For activities done collaboratively with a parent/teacher',
+      status: 'EARNED',
+      color: 'from-orange-400 to-orange-600',
+      bgColor: 'bg-orange-50',
+      animation: 'animate-pulse-gentle'
     },
     {
-      title: 'Daily Life Hero',
-      description: 'Finish 5 Daily Life Skills activities',
       icon: '🏠',
-      earned: false,
+      title: 'Daily Life Hero',
+      description: 'Awarded for finishing 5 "Daily Life Skills" activities',
+      status: 'EARNED',
+      color: 'from-teal-400 to-teal-600',
+      bgColor: 'bg-teal-50',
+      animation: 'animate-float-delayed'
     },
     {
-      title: 'All-Rounder',
-      description: 'Complete at least one activity in every category',
       icon: '🏆',
-      earned: false,
-    },
+      title: 'All-Rounder',
+      description: 'Earned when a student completes at least one activity in every category',
+      status: 'LOCKED',
+      color: 'from-gray-400 to-gray-500',
+      bgColor: 'bg-gray-50',
+      animation: ''
+    }
   ];
 
   const navigate = useNavigate();
@@ -265,36 +290,37 @@ const Tracking = () => {
               </div>
             </header>
 
-      <div className="max-w-full mx-auto sm:px-6  py-4">
-        {/* Page Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-          <div className="mb-4 md:mb-0">
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">Admin Dashboard</h1>
-            <p className="text-lg text-gray-600">Monitor student progress and activity analytics</p>
+        {/* OVERALL STUDENTS PROGRESS DASHBOARD */}
+        <div className="max-w-full mx-auto sm:px-6  py-4">
+          {/* Page Header */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <div className="mb-4 md:mb-0">
+              <h1 className="text-4xl font-bold text-gray-800 mb-2">Admin Dashboard</h1>
+              <p className="text-lg text-gray-600">Monitor student progress and activity analytics</p>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <select 
+                value={selectedTimeRange}
+                onChange={(e) => setSelectedTimeRange(e.target.value)}
+                className="bg-white border-2 border-gray-200 rounded-xl px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="90">Last 90 days</option>
+              </select>
+              
+              <button
+                onClick={() => navigate('/admin/students')}
+                className="cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 transition-all duration-200 transform hover:scale-105 shadow-lg"
+              >
+                <UsersIcon className="w-5 h-5" />
+                <span>Manage Students</span>
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <select 
-              value={selectedTimeRange}
-              onChange={(e) => setSelectedTimeRange(e.target.value)}
-              className="bg-white border-2 border-gray-200 rounded-xl px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="7">Last 7 days</option>
-              <option value="30">Last 30 days</option>
-              <option value="90">Last 90 days</option>
-            </select>
-            
-            <button
-              onClick={() => navigate('/admin/students')}
-              className="cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 transition-all duration-200 transform hover:scale-105 shadow-lg"
-            >
-              <UsersIcon className="w-5 h-5" />
-              <span>Manage Students</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Metrics Cards */}
+          {/* Metrics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           {metrics.map((metric, index) => (
             <div key={index} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
@@ -310,35 +336,38 @@ const Tracking = () => {
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
-          {/* Category Progress */}
+          {/* Accuracy Rates by Category */}
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-800">Learning Categories</h3>
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <span className="text-2xl">📊</span>
+              <h3 className="text-xl font-bold text-gray-800">Accuracy Rates by Category</h3>
+              <div className="bg-purple-100 p-2 rounded-lg">
+                <span className="text-2xl">🎯</span>
               </div>
             </div>
-            <div className="space-y-6">
-              {categories.map((cat, idx) => (
+            <div className="space-y-4">
+              {accuracyRates.map((item, idx) => (
                 <div key={idx} className="bg-gray-50 rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-3">
-                      <span className="text-2xl">{cat.icon}</span>
-                      <span className="font-semibold text-gray-700">{cat.name}</span>
+                      <span className="text-2xl">{item.icon}</span>
+                      <div>
+                        <span className="font-semibold text-gray-700">{item.category}</span>
+                        <p className="text-sm text-gray-500">{item.completed} completed</p>
+                      </div>
                     </div>
-                    <span className="text-sm font-bold text-gray-600">{cat.count}</span>
+                    <span className="text-lg font-bold text-gray-800">{item.accuracy}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+                  <div className="w-full bg-gray-200 rounded-full h-3">
                     <div
-                      className={`${cat.color} h-3 rounded-full transition-all duration-500`}
-                      style={{ width: `${cat.percent}%` }}
+                      className={`${item.color} h-3 rounded-full transition-all duration-500`}
+                      style={{ width: `${item.accuracy}%` }}
                     ></div>
                   </div>
-                  <p className="text-sm text-gray-600">{cat.percent}% complete</p>
                 </div>
               ))}
             </div>
           </div>
+        
 
           {/* Recent Activities */}
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
@@ -381,33 +410,31 @@ const Tracking = () => {
 
         {/* New Tracking Sections */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
-          {/* Accuracy Rates by Category */}
+            {/* Category Progress */}
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-800">Accuracy Rates by Category</h3>
-              <div className="bg-purple-100 p-2 rounded-lg">
-                <span className="text-2xl">🎯</span>
+              <h3 className="text-xl font-bold text-gray-800">Learning Categories</h3>
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <span className="text-2xl">📊</span>
               </div>
             </div>
-            <div className="space-y-4">
-              {accuracyRates.map((item, idx) => (
+            <div className="space-y-6">
+              {categories.map((cat, idx) => (
                 <div key={idx} className="bg-gray-50 rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-3">
-                      <span className="text-2xl">{item.icon}</span>
-                      <div>
-                        <span className="font-semibold text-gray-700">{item.category}</span>
-                        <p className="text-sm text-gray-500">{item.completed} completed</p>
-                      </div>
+                      <span className="text-2xl">{cat.icon}</span>
+                      <span className="font-semibold text-gray-700">{cat.name}</span>
                     </div>
-                    <span className="text-lg font-bold text-gray-800">{item.accuracy}%</span>
+                    <span className="text-sm font-bold text-gray-600">{cat.count}</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
                     <div
-                      className={`${item.color} h-3 rounded-full transition-all duration-500`}
-                      style={{ width: `${item.accuracy}%` }}
+                      className={`${cat.color} h-3 rounded-full transition-all duration-500`}
+                      style={{ width: `${cat.percent}%` }}
                     ></div>
                   </div>
+                  <p className="text-sm text-gray-600">{cat.percent}% complete</p>
                 </div>
               ))}
             </div>
@@ -446,96 +473,63 @@ const Tracking = () => {
           </div>
         </div>
 
-        {/* Skills Breakdown */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-bold text-gray-800">Skills Breakdown</h3>
-            <div className="bg-blue-100 p-2 rounded-lg">
-              <span className="text-2xl">📊</span>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            {skillsBreakdown.map((skill, idx) => (
-              <div key={idx} className={`bg-gradient-to-br ${skill.color} rounded-2xl p-6 text-white text-center shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105`}>
-                <div className="text-4xl mb-3">{skill.icon}</div>
-                <h4 className="text-lg font-bold mb-2">{skill.skill}</h4>
-                <div className="space-y-2">
-                  <div className="bg-white/20 rounded-full p-2">
-                    <p className="text-sm font-semibold">Progress: {skill.progress}%</p>
-                  </div>
-                  <div className="bg-white/20 rounded-full p-2">
-                    <p className="text-sm font-semibold">Accuracy: {skill.accuracy}%</p>
-                  </div>
-                  <p className="text-xs opacity-90">{skill.activities} activities completed</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+       
 
         {/* Bottom Section */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          {/* Milestones */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-            <h3 className="text-xl font-bold text-gray-800 mb-6">Learning Milestones</h3>
-            <div className="space-y-4">
-              {milestones.map((item, idx) => (
-                <div
-                  key={idx}
-                  className={`rounded-xl p-4 border-2 transition-all duration-200 ${
-                    item.completed 
-                      ? 'bg-green-50 border-green-200 hover:bg-green-100' 
-                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-                  }`}
-                >
-                  <div className="flex justify-between items-center mb-3">
-                    <div>
-                      <p className="font-bold text-gray-800">{item.title}</p>
-                      <p className="text-sm text-gray-600">{item.description}</p>
-                    </div>
-                    {item.completed && (
-                      <CheckCircleIcon className="w-6 h-6 text-green-600" />
-                    )}
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                    <div
-                      className={`${item.color} h-2 rounded-full transition-all duration-500`}
-                      style={{ width: `${item.percent}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-sm font-medium text-gray-700">{item.percent}% complete</p>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="grid  xl:grid-cols-1 gap-8">
+         
 
           {/* Badges */}
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
             <h3 className="text-xl font-bold text-gray-800 mb-6">Achievements & Badges</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid lg:grid-cols-5 gap-4">
               {badges.map((badge, index) => (
-                <div
+                <div 
                   key={index}
-                  className={`rounded-xl p-4 text-center transition-all duration-200 transform hover:scale-105 ${
-                    badge.earned 
-                      ? 'bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-300 shadow-md' 
-                      : 'bg-gray-50 border-2 border-gray-200'
+                  className={`card-autism-friendly ${badge.bgColor} p-4 rounded-2xl text-center relative overflow-hidden border-2 ${
+                    badge.status === 'EARNED' 
+                      ? 'border-green-200 shadow-lg' 
+                      : 'border-gray-200 opacity-75'
                   }`}
                 >
-                  <div className="text-3xl mb-3">{badge.icon}</div>
-                  <p className="font-bold text-sm text-gray-800 mb-1">{badge.title}</p>
-                  <p className="text-xs text-gray-600 mb-2">{badge.description}</p>
-                  {badge.earned && (
-                    <p className="text-xs text-orange-600 font-bold bg-yellow-200 px-2 py-1 rounded-full">
-                      Earned! 🎉
-                    </p>
+                  {/* Status indicator */}
+                  {badge.status === 'EARNED' && (
+                    <div className="absolute top-2 right-2">
+                      <span className="text-green-500 text-lg animate-bounce-in">✓</span>
+                    </div>
+                  )}
+                  
+                  <div className={`w-12 h-12 bg-gradient-to-r ${badge.color} rounded-xl mx-auto mb-3 flex items-center justify-center text-2xl text-white shadow-lg ${badge.animation}`}>
+                    {badge.icon}
+                  </div>
+                  
+                  <h3 className="font-bold text-gray-800 text-sm mb-2">
+                    {badge.title}
+                  </h3>
+                  
+                  <p className="text-xs text-gray-600 mb-2 leading-tight">
+                    {badge.description}
+                  </p>
+                  
+                  <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                    badge.status === 'EARNED' 
+                      ? 'bg-green-100 text-green-600' 
+                      : 'bg-gray-100 text-gray-500'
+                  }`}>
+                    {badge.status}
+                  </span>
+                  
+                  {badge.status === 'EARNED' && (
+                    <div className="absolute bottom-1 right-1">
+                      <span className="text-yellow-400 text-sm animate-pulse-gentle">✨</span>
+                    </div>
                   )}
                 </div>
               ))}
             </div>
           </div>
         </div>
-      </div>
+        </div>
     </div>
   );
 };
