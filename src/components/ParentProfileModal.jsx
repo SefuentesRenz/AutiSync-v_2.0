@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { 
@@ -17,6 +18,7 @@ import {
 
 const ParentProfileModal = ({ isOpen, onClose }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -41,6 +43,9 @@ const ParentProfileModal = ({ isOpen, onClose }) => {
       });
     }
   }, [user, isOpen]);
+  const backtoLandingPage = () => {
+    navigate('/');
+  };
 
   if (!isOpen) return null;
 
@@ -325,12 +330,18 @@ const ParentProfileModal = ({ isOpen, onClose }) => {
           </div>
 
           {/* Close Button */}
-          <div className="mt-8 text-center">
+          <div className="mt-8 text-center space-x-4">
             <button
               onClick={onClose}
               className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
             >
               Close Profile
+            </button>
+            <button
+              onClick={backtoLandingPage}
+              className=" cursor-pointer bg-red-700 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+            >
+              Log out
             </button>
           </div>
         </div>

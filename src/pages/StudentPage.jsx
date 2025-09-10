@@ -226,7 +226,7 @@ const StudentPage = () => {
               
               <div className="relative z-10">
                 <div className="flex items-center justify-between -mb-3 -mt-3">
-                  <div>
+                  <div className="-mt-5">
                     <span className="text-6xl font-bold text-orange-600">
                       {streakDays}
                     </span>
@@ -238,7 +238,7 @@ const StudentPage = () => {
                     <img 
                       src="/src/assets/firesticker.png" 
                       alt="Streak" 
-                      className="w-28 h-28 relative right-10 object-contain" 
+                      className="w-28 h-28 relative right-10 object-contain -mt-2" 
                       style={{ 
                         mixBlendMode: 'multiply',
                         filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))'
@@ -246,7 +246,7 @@ const StudentPage = () => {
                     />
                   </div>
                 </div>
-                <p className="text-gray-600 font-medium">
+                <p className="text-gray-600 font-medium -mt-5">
                   You're doing Great, Keep Going! 💪
                 </p>
                 

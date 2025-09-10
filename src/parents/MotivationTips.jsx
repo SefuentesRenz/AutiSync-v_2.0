@@ -87,27 +87,7 @@ const MotivationTips = () => {
         }
       ]
     },
-    {
-      category: "Building Independence",
-      icon: "🌟",
-      tips: [
-        {
-          title: "Gradual Independence",
-          description: "Slowly reduce assistance as they become more comfortable with the activities.",
-          example: "You did the first one by yourself! Do you want to try the next one on your own too?"
-        },
-        {
-          title: "Choice and Control",
-          description: "Let them choose which activities to do or which category to explore first.",
-          example: "What would you like to learn about today - colors or numbers? You choose!"
-        },
-        {
-          title: "Self-Assessment",
-          description: "Encourage them to reflect on their own learning and progress.",
-          example: "How do you think you did on that activity? What was your favorite part?"
-        }
-      ]
-    }
+    
   ];
 
   const quickTips = [

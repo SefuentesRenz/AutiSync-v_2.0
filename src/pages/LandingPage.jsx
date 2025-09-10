@@ -219,7 +219,7 @@ const LandingPage = () => {
               </p>
               <button 
                 onClick={handleLogin}
-                className="btn-autism-friendly bg-white text-blue-600 px-8 py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                className="btn-autism-friendly bg-white text-blue-600 px-8 py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 cursor-pointer"
               >
                 Start Your Journey! ✨
               </button>

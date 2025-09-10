@@ -71,6 +71,26 @@ const ParentDashboard = () => {
         },
         {
           id: 3,
+          title: "Mating game",
+          category: "Academic",
+          difficulty: "Easy",
+          completedAt: "5 days ago",
+          score: 94,
+          timeSpent: "12 min",
+          emotion: "sad"
+        },
+        {
+          id: 3,
+          title: "Daily Life Skills",
+          category: "Crossing the Street",
+          difficulty: "Hard",
+          completedAt: "6 days ago",
+          score: 59,
+          timeSpent: "12 min",
+          emotion: "happy"
+        },
+        {
+          id: 3,
           title: "Shape Recognition",
           category: "Academic",
           difficulty: "Easy",
@@ -244,7 +264,7 @@ const ParentDashboard = () => {
 
   const getEmotionIcon = (emotion) => {
     const emotions = {
-      happy: '😊',
+      happy: '😄',
       excited: '🤩',
       calm: '😌',
       sad: '😢',
@@ -343,7 +363,7 @@ const ParentDashboard = () => {
                     setShowAddChild(true);
                     console.log('After setting state to true');
                   }}
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center space-x-2"
+                  className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center space-x-2 cursor-pointer"
                 >
                   <UserIcon className="w-5 h-5" />
                   <span>Add Child</span>
@@ -690,45 +710,7 @@ const ParentDashboard = () => {
 
             {/* Recent Activities and Accuracy Rates */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
-              {/* Recent Activities */}
-              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-bold text-gray-800">Recent Activities</h3>
-                  <div className="bg-green-100 p-2 rounded-lg">
-                    <span className="text-2xl">📄</span>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  {selectedChild.recentActivities.map((activity) => (
-                    <div
-                      key={activity.id}
-                      className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 hover:shadow-md transition-all duration-200"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="text-2xl">{getEmotionIcon(activity.emotion)}</div>
-                          <div>
-                            <p className="font-semibold text-gray-800">{activity.title}</p>
-                            <p className="text-sm text-gray-500">
-                              {activity.category} • {activity.completedAt}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getDifficultyColor(activity.difficulty)}`}>
-                            {activity.difficulty}
-                          </span>
-                          <div className="text-right">
-                            <div className="font-bold text-green-600 text-lg">{activity.score}%</div>
-                            <div className="text-xs text-gray-500">{activity.timeSpent}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
+              
               {/* Accuracy Rates by Category */}
               <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
                 <div className="flex justify-between items-center mb-6">
@@ -760,6 +742,46 @@ const ParentDashboard = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Recent Activities */}
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-gray-800">Recent Activities</h3>
+                  <div className="bg-green-100 p-2 rounded-lg">
+                    <span className="text-2xl">📄</span>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {selectedChild.recentActivities.map((activity) => (
+                    <div
+                      key={activity.id}
+                      className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 hover:shadow-md transition-all duration-200"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="text-2xl">{getEmotionIcon(activity.emotion)}</div>
+                          <div>
+                            <p className="font-semibold text-gray-800">{activity.title}</p>
+                            <p className="text-sm text-gray-500">
+                              {activity.category} • {activity.completedAt}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getDifficultyColor(activity.difficulty)}`}>
+                            {activity.difficulty}
+                          </span>
+                          <div className="text-right">
+                            <div className="font-bold text-green-600 text-lg">{activity.score}%</div>
+                            <div className="text-xs text-gray-500">{activity.timeSpent}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
             </div>
 
             {/* Difficulty Progression */}
@@ -928,7 +950,7 @@ const ParentDashboard = () => {
                 <TrophyIcon className="w-6 h-6 mr-3 text-yellow-600" />
                 Achievement Badges
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                 {selectedChild.badges.map((badge) => (
                   <div
                     key={badge.id}

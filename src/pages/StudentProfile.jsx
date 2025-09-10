@@ -24,7 +24,7 @@ export default function StudentProfile() {
     achievements: 0,
     day_streak: 0,
     activities_done: 0,
-    stars_earned: 0,
+    accuracy_rate: 83,
     favoriteColor: "#3B82F6",
     learning_style: {
       visual: true,
@@ -141,7 +141,7 @@ export default function StudentProfile() {
           achievements: data.achievements || 0,
           day_streak: data.day_streak || 0,
           activities_done: data.activities_done || 0,
-          stars_earned: data.stars_earned || 0,
+          accuracy_rate: data.accuracy_rate || 83,
           favoriteColor: data.favorite_color || "#3B82F6",
           learning_style: data.learning_style || {
             visual: true,
@@ -177,7 +177,7 @@ export default function StudentProfile() {
         achievements: 0,
         day_streak: 0,
         activities_done: 0,
-        stars_earned: 0,
+        accuracy_rate: 0,
         favorite_color: "#3B82F6",
         learning_style: {
           visual: true,
@@ -212,7 +212,7 @@ export default function StudentProfile() {
         achievements: data.achievements || 0,
         day_streak: data.day_streak || 0,
         activities_done: data.activities_done || 0,
-        stars_earned: data.stars_earned || 0,
+        accuracy_rate: data.accuracy_rate || 0,
         favoriteColor: data.favorite_color || "#3B82F6",
         learning_style: data.learning_style || {
           visual: true,
@@ -261,7 +261,7 @@ export default function StudentProfile() {
         achievements: userInfo.achievements,
         day_streak: userInfo.day_streak,
         activities_done: userInfo.activities_done,
-        stars_earned: userInfo.stars_earned,
+        accuracy_rate: userInfo.accuracy_rate,
         favorite_color: userInfo.favoriteColor,
         learning_style: userInfo.learning_style,
         updated_at: new Date().toISOString()
@@ -307,9 +307,9 @@ export default function StudentProfile() {
 
   const stats = [
     { icon: "🏆", label: "Achievements", value: userInfo.achievements, color: "from-yellow-400 to-orange-500" },
-    { icon: "🔥", label: "Day Streak", value: userInfo.day_streak, color: "from-red-400 to-pink-500" },
+    { icon: "🔥", label: "Day Streak", value: userInfo.day_streak, color: "from-red-400 to-pink-500 text-xl" },
     { icon: "🎯", label: "Activities Done", value: userInfo.activities_done, color: "from-blue-400 to-indigo-500" },
-    { icon: "⭐", label: "Stars Earned", value: userInfo.stars_earned, color: "from-purple-400 to-blue-500" },
+    { icon: "⭐", label: "Accuracy Rate", value: userInfo.accuracy_rate, color: "from-purple-400 to-blue-500" },
     { icon: "📊", label: "Completion Rate", value: `${studentTrackingData.completionRate}%`, color: "from-green-400 to-teal-500" }
   ];
 
@@ -815,82 +815,14 @@ export default function StudentProfile() {
 
         {/* Individual Progress Tracking */}
         <div className="card-autism-friendly bg-white/80 backdrop-blur-xl rounded-3xl p-6 mb-8 shadow-2xl border border-white/20">
+          <div classname="grid md:grid-cols-2 gap-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
             <span className="text-3xl mr-3 animate-bounce-gentle">📊</span>
             My Learning Progress
-          </h2>
+          </h2>         
+          
 
-          {/* Accuracy Rates */}
-          <div className="mb-8">
-            <h3 className="text-xl font-bold text-gray-700 mb-4 flex items-center">
-              <span className="text-2xl mr-2">🎯</span>
-              Subject Accuracy Rates
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              {studentTrackingData.accuracyRates.map((item, idx) => (
-                <div key={idx} className={`${item.color} rounded-xl p-4 text-white text-center shadow-lg animate-float`} style={{animationDelay: `${idx * 0.1}s`}}>
-                  <div className="text-2xl mb-2">{item.icon}</div>
-                  <div className="text-sm font-bold mb-1">{item.category}</div>
-                  <div className="text-lg font-bold">{item.accuracy}%</div>
-                  <div className="text-xs opacity-90">{item.completed}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Difficulty Level Progression */}
-          <div className="mb-8">
-            <h3 className="text-xl font-bold text-gray-700 mt-10 mb-4  flex items-center">
-              <span className="text-2xl mr-2">📊</span>
-              Difficulty Level Progress
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {studentTrackingData.difficultyProgression.map((level, idx) => (
-                <div key={idx} className={`${level.bgColor} rounded-xl p-4 border border-gray-200`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-2xl">{level.icon}</span>
-                      <div>
-                        <span className="font-semibold text-gray-700">{level.level}</span>
-                        <p className="text-sm text-gray-500">{level.completed}</p>
-                      </div>
-                    </div>
-                    <span className="text-lg font-bold text-gray-800">{level.progress}%</span>
-                  </div>
-                  <div className="w-full bg-white/50 rounded-full h-3">
-                    <div
-                      className={`${level.color} h-3 rounded-full transition-all duration-500`}
-                      style={{ width: `${level.progress}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Skills Breakdown */}
-          <div>
-            <h3 className="text-xl font-bold text-gray-700 mb-4 mt-4 flex items-center">
-              <span className="text-2xl mr-2 ">🌟</span>
-              Skills Breakdown
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              {studentTrackingData.skillsBreakdown.map((skill, idx) => (
-                <div key={idx} className={`bg-gradient-to-br ${skill.color} rounded-2xl p-4 text-white text-center shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105`}>
-                  <div className="text-3xl mb-2">{skill.icon}</div>
-                  <h4 className="text-sm font-bold mb-2">{skill.skill}</h4>
-                  <div className="space-y-1">
-                    <div className="bg-white/20 rounded-full py-1 px-2">
-                      <p className="text-xs font-semibold">Progress: {skill.progress}%</p>
-                    </div>
-                    <div className="bg-white/20 rounded-full py-1 px-2">
-                      <p className="text-xs font-semibold">Accuracy: {skill.accuracy}%</p>
-                    </div>
-                    <p className="text-xs opacity-90">{skill.activities} done</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+              
           </div>
         </div>
 

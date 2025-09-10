@@ -32,6 +32,7 @@ import Students from './Admin/Students.jsx';
 // Parent pages
 import ParentDashboard from './parents/ParentDashboard.jsx';
 import ParentHomepage from './parents/ParentHomepage.jsx';
+import StudentProgress from './Admin/StudentProgress.jsx';
 
 function App() {
   return (
@@ -61,6 +62,7 @@ function App() {
         <Route path="/adminprofile" element={<AdminProfile />} />
         <Route path="/alarmingemotions" element={<AlarmingEmotions />} />
         <Route path="/admin/students" element={<Students />} />
+        <Route path="/admin/student-progress/:id" element={<StudentProgress />} />
 
         {/* Parent Pages */}
         <Route path="/parent-homepage" element={<ParentHomepage />} />

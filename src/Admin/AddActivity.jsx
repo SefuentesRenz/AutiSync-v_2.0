@@ -5,7 +5,6 @@ import { AcademicCapIcon, PlusIcon, PhotoIcon, TrashIcon, CheckCircleIcon, Video
 const AddActivity = () => {
   const navigate = useNavigate();
 
-  const [activityName, setActivityName] = useState('');
   const [activityType, setActivityType] = useState('');
   const [category, setCategory] = useState('');
   const [difficulty, setDifficulty] = useState('');
@@ -25,7 +24,6 @@ const AddActivity = () => {
     e.preventDefault();
     // Here you can handle the form submission (e.g., send the data to an API)
     console.log({ 
-      activityName, 
       activityType, 
       question, 
       category, 
@@ -80,56 +78,56 @@ const AddActivity = () => {
   return (
     <div className="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
       {/* Header */}
-      <header className="bg-white shadow-lg border-b-4 border-blue-500">
-                    <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-                      <div className="flex justify-between items-center py-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="bg-blue-600 text-white p-2 rounded-xl">
-                            <AcademicCapIcon className="w-8 h-8" />
-                          </div>
-                          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            AutiSync
-                          </h1>
-                        </div>
-                        
-                        <nav className="hidden md:flex space-x-8">
-                          <a href="/tracking" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
+            <header className="bg-white shadow-lg border-b-4 border-blue-500">
+              <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between items-center py-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-blue-600 text-white  rounded-xl">
+                      <AcademicCapIcon className="w-6 h-6" />
+                    </div>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      AutiSync
+                    </h1>
+                  </div>
+                  
+                  <nav className="hidden md:flex space-x-8">
+                          <a href="/tracking" className="text-gray-600 text-lg hover:text-blue-600 font-semibold  transition-colors">
                             Dashboard
                           </a>
-                          <a href="/activities" className="text-blue-600 font-semibold border-b-2 border-blue-600 pb-1 transition-colors">
+                          <a href="/activities" className="text-gray-600 text-lg hover:text-blue-600 font-semibold  transition-colors">
                             Activities
                           </a>
-                          <a href="/alarmingemotions" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">
+                          <a href="/alarmingemotions" className="text-gray-600 text-lg hover:text-blue-600 font-semibold transition-colors">
                             Expression Wall
                           </a>
                         </nav>
-                        
-                        <div className="flex items-center space-x-4">
-                          <button
-                            onClick={AdminProfile}
-                            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-2 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
-                          >
-                            <img
-                              src="/src/assets/kidprofile1.jpg"
-                              alt="Profile"
-                              className="h-10 w-10 rounded-full object-cover"
-                            />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-          </header>
+                  
+                  <div className="flex items-center space-x-4">
+                    <button
+                      onClick={AdminProfile}
+                      className="cursor-pointer -my-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-1 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                    >
+                      <img
+                        src="/src/assets/kidprofile1.jpg"
+                        alt="Profile"
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </header>
 
-      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">Create New Flashcard</h1>
-            <p className="text-lg text-gray-600">Design interactive flashcard activities for autism-friendly learning</p>
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
+          <div className="mb-6 lg:mb-0">
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">Create New Activity</h1>
+            <p className="text-lg text-gray-600">Design interactive learning activities for autism-friendly education</p>
           </div>
           <button
             onClick={() => navigate('/activities')}
-            className="bg-blue-500 cursor-pointer hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 transition-all duration-200"
+            className="bg-blue-500 hover:bg-blue-800 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 transition-all duration-200 transform hover:scale-105 cursor-pointer"
           >
             <span>← Back to Activities</span>
           </button>
@@ -143,79 +141,60 @@ const AddActivity = () => {
                 <AcademicCapIcon className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">Flashcard Activity Setup</h2>
-                <p className="text-gray-600">Create an engaging flashcard with question and answer choices</p>
+                <h2 className="text-2xl font-bold text-gray-800">Activity Setup</h2>
+                <p className="text-gray-600">Create an engaging learning activity with questions and answer choices</p>
               </div>
             </div>
 
             <div className="space-y-8">
               {/* Basic Settings */}
-              <div className="bg-gray-50 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">📋 Basic Settings</h3>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6">
+                <div className="flex items-center space-x-2 mb-6">
+                  <span className="text-2xl">📋</span>
+                  <h3 className="text-xl font-bold text-gray-800">Basic Settings</h3>
+                </div>
                 <div className="space-y-6">
-                  {/* Activity Name and Type - Full width */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Activity Name</label>
-                      <input
-                        type="text"
-                        value={activityName}
-                        onChange={(e) => setActivityName(e.target.value)}
-                        className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
-                        placeholder="Enter a descriptive name for this flashcard..."
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Activity Type</label>
-                      <select
-                        value={activityType}
-                        onChange={(e) => setActivityType(e.target.value)}
-                        className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
-                        required
-                      >
-                        <option value="">Select activity type</option>
-                        <option value="Identification">🔍 Identification (What is this?)</option>
-                        <option value="Matching">🔗 Matching (Match items)</option>
-                        <option value="Counting">🔢 Counting (How many?)</option>
-                        <option value="Colors">🎨 Colors (Color recognition)</option>
-                        <option value="Shapes">📐 Shapes (Shape recognition)</option>
-                        <option value="Letters">📝 Letters (Letter learning)</option>
-                        <option value="Numbers">🔢 Numbers (Number learning)</option>
-                        <option value="Daily Life">🏠 Daily Life Skills</option>
-                        <option value="Emotions">😊 Emotions (Feeling recognition)</option>
-                        <option value="Social">👥 Social Skills</option>
-                        <option value="Sequence">📋 Sequencing (Order activities)</option>
-                        <option value="Memory">🧠 Memory Games</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Category and Difficulty */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
+                  {/* Activity Type - Full width */}
+                  <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
                       <select
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
-                        className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
+                        className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 bg-white shadow-sm"
                         required
                       >
                         <option value="">Select a category</option>
                         <option value="Academic">📚 Academic Skills</option>
-                        <option value="Social/Daily Life">👥 Social & Daily Life</option>
-                        <option value="Objects">🧸 Object Recognition</option>
-                        <option value="Creative">🎨 Creative Activities</option>
+                        <option value="Social/Daily Life">👥 Social & Daily Life Skills</option>
                       </select>
                     </div>
+                 
+
+                  {/* Category and Difficulty */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Activity Type</label>
+                    <select
+                      value={activityType}
+                      onChange={(e) => setActivityType(e.target.value)}
+                      className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 bg-white shadow-sm"
+                      required
+                    >
+                      <option value="">Select activity type</option>
+                      <option value="Identification">🔍 Identification (What is this?)</option>
+                      <option value="Numbers">🔢 Numbers (Number learning)</option>
+                      <option value="Colors">🎨 Colors (Color recognition)</option>
+                      <option value="Shapes">📐 Shapes (Shape recognition)</option>
+                     
+                    </select>
+                  </div>
 
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Difficulty Level</label>
                       <select
                         value={difficulty}
                         onChange={(e) => setDifficulty(e.target.value)}
-                        className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
+                        className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 bg-white shadow-sm"
                         required
                       >
                         <option value="">Select difficulty level</option>
@@ -229,15 +208,18 @@ const AddActivity = () => {
               </div>
 
               {/* Question Content */}
-              <div className="bg-green-50 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">❓ Question Content</h3>
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6">
+                <div className="flex items-center space-x-2 mb-6">
+                  <span className="text-2xl">❓</span>
+                  <h3 className="text-xl font-bold text-gray-800">Question Content</h3>
+                </div>
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Question Text</label>
                     <textarea
                       value={question}
                       onChange={(e) => setQuestion(e.target.value)}
-                      className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 resize-none"
+                      className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 resize-none bg-white shadow-sm"
                       placeholder="What question do you want to ask the students?"
                       rows="3"
                       required
@@ -246,7 +228,7 @@ const AddActivity = () => {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Visual Support (Optional)</label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors bg-white">
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors bg-white shadow-sm">
                       {preview ? (
                         <div className="space-y-4">
                           {mediaType === 'image' ? (
@@ -293,7 +275,7 @@ const AddActivity = () => {
                             />
                             <label
                               htmlFor="image-upload"
-                              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg cursor-pointer font-semibold transition-colors inline-flex items-center space-x-2"
+                              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg cursor-pointer font-semibold transition-all duration-200 transform hover:scale-105 inline-flex items-center space-x-2 shadow-lg"
                             >
                               <PhotoIcon className="w-5 h-5" />
                               <span>Choose Image</span>
@@ -310,7 +292,7 @@ const AddActivity = () => {
                             />
                             <label
                               htmlFor="video-upload"
-                              className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg cursor-pointer font-semibold transition-colors inline-flex items-center space-x-2"
+                              className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg cursor-pointer font-semibold transition-all duration-200 transform hover:scale-105 inline-flex items-center space-x-2 shadow-lg"
                             >
                               <VideoCameraIcon className="w-5 h-5" />
                               <span>Choose Video</span>
@@ -330,11 +312,14 @@ const AddActivity = () => {
               </div>
 
               {/* Answer Choices */}
-              <div className="bg-purple-50 rounded-xl p-6">
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-1">✅ Answer Choices</h3>
-                    <p className="text-gray-600 text-sm">Add possible answers and mark the correct ones</p>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-2xl">✅</span>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-800">Answer Choices</h3>
+                      <p className="text-gray-600 text-sm">Add possible answers and mark the correct ones</p>
+                    </div>
                   </div>
                   <button
                     type="button"
@@ -353,7 +338,7 @@ const AddActivity = () => {
 
                 <div className="space-y-4">
                   {choices.map((choice, index) => (
-                    <div key={index} className="bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-blue-300 transition-colors">
+                    <div key={index} className="bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-blue-300 transition-colors shadow-sm">
                       <div className="flex items-center space-x-4">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-2">
@@ -401,27 +386,25 @@ const AddActivity = () => {
                 </div>
 
                 {/* Action Buttons */}
-          <div className="flex gap-4 justify-end mt-10 x-4">
-            <button
-              type="button"
-              onClick={() => navigate('/activities')}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-xl font-semibold transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold flex items-center space-x-2 shadow-lg transition-all duration-200 transform hover:scale-105"
-            >
-              <CheckCircleIcon className="w-5 h-5" />
-              <span>Create Flashcard</span>
-            </button>
-          </div>
+                <div className="flex gap-4 justify-end mt-8 pt-6 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/activities')}
+                    className="bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold flex items-center space-x-2 shadow-lg transition-all duration-200 transform hover:scale-105"
+                  >
+                    <CheckCircleIcon className="w-5 h-5" />
+                    <span>Create Activity</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-
-        
         </form>
       </div>
     </div>

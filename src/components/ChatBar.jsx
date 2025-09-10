@@ -64,7 +64,7 @@ const ChatBar = () => {
           {/* Modern Exit Button */}
           <button 
             onClick={() => setShowChatBar(false)}
-            className="w-10 h-10 bg-red-500/90 hover:bg-red-600 text-white rounded-xl transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-110 hover:rotate-90 focus:outline-none focus:ring-2 focus:ring-white/50"
+            className="w-10 h-10 bg-red-500/90 hover:bg-red-600 text-white rounded-xl transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-110 hover:rotate-90 focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer"
             title="Close Chat"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
