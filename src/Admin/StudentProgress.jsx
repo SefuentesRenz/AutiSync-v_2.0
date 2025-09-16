@@ -1,11 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircleIcon, AcademicCapIcon, UsersIcon, StarIcon, FireIcon, ArrowLeftIcon } from '@heroicons/react/24/solid';
+import { getStudentProgressStats, getStudentProgress } from '../lib/progressApi';
+import { getStudentById } from '../lib/studentsApi';
+import { getActivities } from '../lib/activitiesApi';
 
 const StudentProgress = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [selectedTimeRange, setSelectedTimeRange] = useState('30');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [student, setStudent] = useState(null);
+  const [progressStats, setProgressStats] = useState(null);
+  const [recentProgress, setRecentProgress] = useState([]);
+  const [activities, setActivities] = useState([]);
+
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      if (!id) return;
+      
+      setLoading(true);
+      try {
+        const [studentResult, statsResult, progressResult, activitiesResult] = await Promise.all([
+          getStudentById(parseInt(id)),
+          getStudentProgressStats(parseInt(id)),
+          getStudentProgress(parseInt(id)),
+          getActivities()
+        ]);
+
+        if (studentResult.error) {
+          console.error('Error fetching student:', studentResult.error);
+          setError('Student not found');
+        } else {
+          setStudent(studentResult.data);
+        }
+
+        if (statsResult.error) {
+          console.error('Error fetching progress stats:', statsResult.error);
+        } else {
+          setProgressStats(statsResult.data);
+        }
+
+        if (progressResult.error) {
+          console.error('Error fetching progress:', progressResult.error);
+        } else {
+          setRecentProgress(progressResult.data || []);
+        }
+
+        if (activitiesResult.error) {
+          console.error('Error fetching activities:', activitiesResult.error);
+        } else {
+          setActivities(activitiesResult.data || []);
+        }
+      } catch (err) {
+        console.error('Error fetching student data:', err);
+        setError('Failed to load student data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudentData();
+  }, [id]);
 
   const AdminProfile = (e) => {
     e.preventDefault();
@@ -351,7 +408,7 @@ const StudentProgress = () => {
   };
 
   // Generate all dynamic data based on the current student
-  const metrics = generateStudentMetrics(currentStudent);
+  const metrics = generateStudentMetrics();
   const accuracyRates = generateAccuracyRates(currentStudent);
   const recentActivities = generateRecentActivities(currentStudent);
   const difficultyProgression = generateDifficultyProgression(currentStudent);
@@ -407,20 +464,44 @@ const StudentProgress = () => {
 
       {/* INDIVIDUAL STUDENT PROGRESS DASHBOARD */}
       <div className="max-w-full mx-auto sm:px-6 py-4">
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="text-xl text-gray-600 mb-4">Loading student progress...</div>
+            <div className="text-gray-500">Fetching data from backend APIs</div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <div className="text-xl text-red-600 mb-4">{error}</div>
+            <button 
+              onClick={handleBackToStudents}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              Back to Students
+            </button>
+          </div>
+        ) : (
+          <>
         {/* Page Header with Student Info */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div className="mb-4 md:mb-0">
             <div className="flex items-center space-x-4 mb-2">
               <img
-                src={currentStudent.profileImage}
+                src={currentStudent.profileImage || '/src/assets/kidprofile1.jpg'}
                 alt={currentStudent.name}
                 className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
               />
               <div>
-                <h1 className="text-4xl font-bold text-gray-800">{currentStudent.name}</h1>
-                <p className="text-lg text-gray-600">{currentStudent.grade} • Age {currentStudent.age} • Individual Progress</p>
-                <p className="text-sm text-gray-500">Parent: {currentStudent.parentEmail}</p>
-                <p className="text-sm text-gray-500">Status: <span className={`font-semibold ${currentStudent.status === 'Active' ? 'text-green-600' : 'text-red-600'}`}>{currentStudent.status}</span> • Joined: {currentStudent.joinDate}</p>
+                <h1 className="text-4xl font-bold text-gray-800">{student?.user_profiles?.username || currentStudent.name}</h1>
+                <p className="text-lg text-gray-600">
+                  {student?.user_profiles?.grade || 'Grade N/A'} • 
+                  Age {student?.user_profiles?.age || 'N/A'} • 
+                  Individual Progress
+                </p>
+                <p className="text-sm text-gray-500">Parent: {student?.user_profiles?.parents_email || 'N/A'}</p>
+                <p className="text-sm text-gray-500">
+                  Status: <span className="font-semibold text-green-600">Active</span> • 
+                  Progress Sessions: {displayStats.total_sessions}
+                </p>
               </div>
             </div>
           </div>
@@ -650,6 +731,8 @@ const StudentProgress = () => {
             </div>
           </div>
         </div>
+        </>
+        )}
       </div>
     </div>
   );

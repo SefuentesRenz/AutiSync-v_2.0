@@ -1,6 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AcademicCapIcon, PlusIcon, PhotoIcon, TrashIcon, CheckCircleIcon, VideoCameraIcon } from '@heroicons/react/24/solid';
+import { createActivity } from '../lib/activitiesApi';
+import { getCategories, getCategoryByName } from '../lib/categoriesApi';
+import { getDifficulties, getDifficultyByName } from '../lib/difficultiesApi';
+import { createQuestion } from '../lib/questionsApi';
+import { createChoice } from '../lib/choicesApi';
 
 const AddActivity = () => {
   const navigate = useNavigate();
@@ -9,9 +14,15 @@ const AddActivity = () => {
   const [category, setCategory] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [question, setQuestion] = useState('');
+  const [activityTitle, setActivityTitle] = useState('');
+  const [activityDescription, setActivityDescription] = useState('');
   const [media, setMedia] = useState(null);
   const [preview, setPreview] = useState(null);
   const [mediaType, setMediaType] = useState(null); // 'image' or 'video'
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [difficulties, setDifficulties] = useState([]);
 
   const [choices, setChoices] = useState([
     { title: '', isCorrect: false },
@@ -20,20 +31,125 @@ const AddActivity = () => {
     { title: '', isCorrect: false }
   ]);
 
-  const handleSubmit = (e) => {
+  // Fetch categories and difficulties on component mount
+  useEffect(() => {
+    fetchDropdownData();
+  }, []);
+
+  const fetchDropdownData = async () => {
+    try {
+      const { data: categoriesData } = await getCategories();
+      const { data: difficultiesData } = await getDifficulties();
+      
+      setCategories(categoriesData || []);
+      setDifficulties(difficultiesData || []);
+    } catch (err) {
+      console.error('Error fetching dropdown data:', err);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you can handle the form submission (e.g., send the data to an API)
-    console.log({ 
-      activityType, 
-      question, 
-      category, 
-      difficulty, 
-      choices, 
-      media, 
-      mediaType 
-    });
-    // Navigate back to activities page after successful submission
-    navigate('/activities');
+    setLoading(true);
+    setError('');
+
+    try {
+      // Get category and difficulty IDs
+      const { data: categoryData } = await getCategoryByName(category);
+      const { data: difficultyData } = await getDifficultyByName(difficulty);
+
+      if (!categoryData || !difficultyData) {
+        throw new Error('Invalid category or difficulty selection');
+      }
+
+      // Create the activity
+      const activityData = {
+        title: activityTitle,
+        description: activityDescription,
+        Categories_id: categoryData.id,
+        Difficulties_id: difficultyData.id,
+        points: 10, // Default points
+        image_url: null, // You can implement file upload later
+        is_activity: true,
+        duration: '10-15 min',
+        participants: 1,
+        icon: getActivityIcon(activityType),
+        color: getActivityColor(category)
+      };
+
+      const { data: activity, error: activityError } = await createActivity(activityData);
+      
+      if (activityError) {
+        throw new Error(activityError.message);
+      }
+
+      // Create the question for this activity
+      if (question && activity) {
+        const questionData = {
+          Activities_id: activity[0].id,
+          question_text: question,
+          media_url: null, // You can implement media upload later
+          media_type: mediaType
+        };
+
+        const { data: questionResult, error: questionError } = await createQuestion(questionData);
+        
+        if (questionError) {
+          console.warn('Question creation failed:', questionError);
+        }
+
+        // Create choices for the question
+        if (questionResult && questionResult[0]) {
+          for (const choice of choices) {
+            if (choice.title.trim()) {
+              const choiceData = {
+                Questions_id: questionResult[0].id,
+                choice_text: choice.title,
+                is_correct: choice.isCorrect
+              };
+              
+              const { error: choiceError } = await createChoice(choiceData);
+              if (choiceError) {
+                console.warn('Choice creation failed:', choiceError);
+              }
+            }
+          }
+        }
+      }
+
+      // Navigate back to activities page after successful submission
+      navigate('/activities');
+    } catch (err) {
+      console.error('Error creating activity:', err);
+      setError(err.message || 'Failed to create activity');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getActivityIcon = (type) => {
+    const icons = {
+      'Identification': '🔍',
+      'Numbers': '🔢',
+      'Colors': '🎨',
+      'Shapes': '📐',
+      'Letters': '📝',
+      'Matching': '🔗',
+      'Counting': '📊',
+      'Daily Life': '🏠',
+      'Emotions': '😊',
+      'Social': '👥'
+    };
+    return icons[type] || '📝';
+  };
+
+  const getActivityColor = (category) => {
+    const colors = {
+      'Academic': 'from-blue-400 to-blue-600',
+      'Social/Daily Life': 'from-green-400 to-green-600',
+      'Objects': 'from-purple-400 to-purple-600'
+    };
+    return colors[category] || 'from-gray-400 to-gray-600';
   };
 
   const handleMediaChange = (e) => {
@@ -133,6 +249,13 @@ const AddActivity = () => {
           </button>
         </div>
 
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <strong>Error:</strong> {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Activity Details Section */}
           <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
@@ -154,7 +277,33 @@ const AddActivity = () => {
                   <h3 className="text-xl font-bold text-gray-800">Basic Settings</h3>
                 </div>
                 <div className="space-y-6">
-                  {/* Activity Type - Full width */}
+                  {/* Activity Title and Description */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Activity Title</label>
+                      <input
+                        type="text"
+                        value={activityTitle}
+                        onChange={(e) => setActivityTitle(e.target.value)}
+                        placeholder="Enter activity title"
+                        className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 bg-white shadow-sm"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Activity Description</label>
+                      <input
+                        type="text"
+                        value={activityDescription}
+                        onChange={(e) => setActivityDescription(e.target.value)}
+                        placeholder="Brief description of the activity"
+                        className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 bg-white shadow-sm"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Category */}
                   <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
                       <select
@@ -164,8 +313,11 @@ const AddActivity = () => {
                         required
                       >
                         <option value="">Select a category</option>
-                        <option value="Academic">📚 Academic Skills</option>
-                        <option value="Social/Daily Life">👥 Social & Daily Life Skills</option>
+                        {categories.map(cat => (
+                          <option key={cat.id} value={cat.category_name}>
+                            {cat.icon} {cat.category_name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                  
@@ -198,9 +350,11 @@ const AddActivity = () => {
                         required
                       >
                         <option value="">Select difficulty level</option>
-                        <option value="Easy">🟢 Easy</option>
-                        <option value="Medium">🟡 Medium</option>
-                        <option value="Hard">🔴 Hard</option>
+                        {difficulties.map(diff => (
+                          <option key={diff.id} value={diff.difficulty}>
+                            {diff.difficulty === 'Easy' ? '🟢' : diff.difficulty === 'Medium' ? '🟡' : '🔴'} {diff.difficulty}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -396,10 +550,11 @@ const AddActivity = () => {
                   </button>
                   <button
                     type="submit"
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold flex items-center space-x-2 shadow-lg transition-all duration-200 transform hover:scale-105"
+                    disabled={loading}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-8 py-3 rounded-xl font-semibold flex items-center space-x-2 shadow-lg transition-all duration-200 transform hover:scale-105 disabled:cursor-not-allowed disabled:transform-none"
                   >
                     <CheckCircleIcon className="w-5 h-5" />
-                    <span>Create Activity</span>
+                    <span>{loading ? 'Creating...' : 'Create Activity'}</span>
                   </button>
                 </div>
               </div>
