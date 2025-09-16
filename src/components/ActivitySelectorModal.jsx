@@ -7,7 +7,8 @@ const activities = [
     icon: "🔍", 
     color: "from-blue-500 to-indigo-600",
     bgColor: "bg-blue-50",
-    hoverColor: "hover:bg-blue-100"
+    hoverColor: "hover:bg-blue-100",
+    category: "Academic"
   },
   { 
     id: 2, 
@@ -15,7 +16,8 @@ const activities = [
     icon: "🔢", 
     color: "from-green-500 to-emerald-600",
     bgColor: "bg-green-50",
-    hoverColor: "hover:bg-green-100"
+    hoverColor: "hover:bg-green-100",
+    category: "Academic"
   },
   { 
     id: 3, 
@@ -23,7 +25,8 @@ const activities = [
     icon: "🎨", 
     color: "from-purple-500 to-violet-600",
     bgColor: "bg-purple-50",
-    hoverColor: "hover:bg-purple-100"
+    hoverColor: "hover:bg-purple-100",
+    category: "Academic"
   },
   { 
     id: 4, 
@@ -31,7 +34,8 @@ const activities = [
     icon: "📐", 
     color: "from-orange-500 to-red-600",
     bgColor: "bg-orange-50",
-    hoverColor: "hover:bg-orange-100"
+    hoverColor: "hover:bg-orange-100",
+    category: "Academic"
   },
   { 
     id: 5, 
@@ -39,12 +43,54 @@ const activities = [
     icon: "📝", 
     color: "from-pink-500 to-rose-600",
     bgColor: "bg-pink-50",
-    hoverColor: "hover:bg-pink-100"
+    hoverColor: "hover:bg-pink-100",
+    category: "Academic"
+  },
+  { 
+    id: 6, 
+    name: "Cashier Game", 
+    icon: "🏪", 
+    color: "from-green-500 to-teal-600",
+    bgColor: "bg-green-50",
+    hoverColor: "hover:bg-green-100",
+    category: "Social / Daily Life Skill"
+  },
+  { 
+    id: 7, 
+    name: "Shopping Skills", 
+    icon: "🛒", 
+    color: "from-blue-500 to-cyan-600",
+    bgColor: "bg-blue-50",
+    hoverColor: "hover:bg-blue-100",
+    category: "Social / Daily Life Skill"
+  },
+  { 
+    id: 8, 
+    name: "Social Greetings", 
+    icon: "👋", 
+    color: "from-purple-500 to-pink-600",
+    bgColor: "bg-purple-50",
+    hoverColor: "hover:bg-purple-100",
+    category: "Social / Daily Life Skill"
+  },
+  { 
+    id: 9, 
+    name: "Hygiene Hero", 
+    icon: "🧼", 
+    color: "from-cyan-500 to-blue-600",
+    bgColor: "bg-cyan-50",
+    hoverColor: "hover:bg-cyan-100",
+    category: "Social / Daily Life Skill"
   },
 ];
 
-const ActivitySelectorModal = ({ isOpen, onClose, onSelect }) => {
+const ActivitySelectorModal = ({ isOpen, onClose, onSelect, selectedCategory }) => {
   if (!isOpen) return null;
+
+  // Filter activities based on selected category
+  const filteredActivities = activities.filter(activity => 
+    activity.category === selectedCategory
+  );
 
   return (
     <div className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -69,7 +115,7 @@ const ActivitySelectorModal = ({ isOpen, onClose, onSelect }) => {
         {/* Activities Grid - Single Row */}
         <div className="p-1">
           <div className="grid grid-cols-1 gap-1">
-            {activities.map((activity) => (
+            {filteredActivities.map((activity) => (
               <button
                 key={activity.id}
                 onClick={() => {

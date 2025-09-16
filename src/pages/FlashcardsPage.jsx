@@ -224,6 +224,7 @@ const FlashcardsPage = () => {
         isOpen={showActivityModal}
         onClose={() => setShowActivityModal(false)}
         onSelect={handleSelectActivity}
+        selectedCategory={selectedCategory}
       />
 
       {/* Enhanced Join Friend Modal */}
