@@ -2,12 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AcademicCapIcon, PlusIcon, PlayIcon, ClockIcon, StarIcon } from '@heroicons/react/24/solid';
 import ActivityDetailsModal from '../components/ActivityDetailsModal';
-<<<<<<< HEAD
 import EditActivityModal from '../components/EditActivityModal';
-=======
 import { getActivitiesWithDetails, searchActivities } from '../lib/activitiesApi';
 import { getCategories } from '../lib/categoriesApi';
->>>>>>> a3bfdb37aa1f1639f45bad00cccefa6372dee0bf
 
 const ActivitiesPage = ({ isOpen, onClose, activity }) => {
   const navigate = useNavigate();
@@ -15,14 +12,11 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-<<<<<<< HEAD
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false); 
-=======
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activities, setActivities] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
->>>>>>> a3bfdb37aa1f1639f45bad00cccefa6372dee0bf
 
   // Fetch activities and categories on component mount
   useEffect(() => {
