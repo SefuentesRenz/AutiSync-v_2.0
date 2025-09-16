@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AcademicCapIcon, PlusIcon, PlayIcon, ClockIcon, StarIcon } from '@heroicons/react/24/solid';
 import ActivityDetailsModal from '../components/ActivityDetailsModal';
+import EditActivityModal from '../components/EditActivityModal';
 
-const ActivitiesPage = () => {
+const ActivitiesPage = ({ isOpen, onClose, activity }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false); 
 
   const activities = [
     {
@@ -281,7 +283,9 @@ const ActivitiesPage = () => {
                   >
                     View Details
                   </button>
-                  <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-xl font-semibold transition-colors cursor-pointer">
+                  <button 
+                  onClick={() => { setSelectedActivity(activity); setIsEditModalOpen(true); }}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-xl font-semibold transition-colors cursor-pointer">
                     Edit
                   </button>
                 </div>
@@ -303,6 +307,12 @@ const ActivitiesPage = () => {
       <ActivityDetailsModal 
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+        activity={selectedActivity}
+      />
+      {/* Edit Activity Modal */}
+      <EditActivityModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
         activity={selectedActivity}
       />
     </div>

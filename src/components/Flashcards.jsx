@@ -25,6 +25,25 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   });
   const [showBadgePreview, setShowBadgePreview] = useState(false);
   const [previewBadge, setPreviewBadge] = useState(null);
+  
+  // Cashier game specific state
+  const [cashierScore, setCashierScore] = useState(0);
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [orderTotal, setOrderTotal] = useState(0);
+  const [gameStep, setGameStep] = useState(1); // 1: customer speaks, 2: cashier selects items, 3: complete
+  const [showThoughtBubble, setShowThoughtBubble] = useState(false);
+  const [currentSpeaker, setCurrentSpeaker] = useState('customer'); // 'customer' or 'cashier'
+  const [speechText, setSpeechText] = useState('');
+
+  // Hygiene game specific state
+  const [hygieneScore, setHygieneScore] = useState(0);
+  const [currentRound, setCurrentRound] = useState(1);
+  const [usedScenarios, setUsedScenarios] = useState([]);
+  const [showCharacter, setShowCharacter] = useState(true);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [successAnimationText, setSuccessAnimationText] = useState('');
+  const [currentScenario, setCurrentScenario] = useState(null);
+  const [isHygieneGameActive, setIsHygieneGameActive] = useState(false);
 
     const videoRef = useRef(null);
   const audioRef = useRef(null);
@@ -165,12 +184,388 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       }
     },
     "Social / Daily Life Skill": {
-      // Add social/daily life skill questions here
+      Easy: {
+        "Cashier Game": [
+          {
+            questionText: "I want a burger and fries, please!",
+            orderItems: ["Burger", "Fries"],
+            menuOptions: [
+              { name: "Burger", image: "🍔", price: "$3.99" },
+              { name: "Fries", image: "🍟", price: "$2.49" },
+              { name: "Pizza", image: "🍕", price: "$4.99" },
+              { name: "Hot Dog", image: "🌭", price: "$2.99" },
+              { name: "Drink", image: "🥤", price: "$1.99" },
+              { name: "Ice Cream", image: "🍦", price: "$2.99" }
+            ],
+            correctAnswer: ["Burger", "Fries"],
+            gameType: "cashier"
+          },
+          {
+            questionText: "Can I have a pizza slice and a drink?",
+            orderItems: ["Pizza", "Drink"],
+            menuOptions: [
+              { name: "Burger", image: "🍔", price: "$3.99" },
+              { name: "Fries", image: "🍟", price: "$2.49" },
+              { name: "Pizza", image: "🍕", price: "$4.99" },
+              { name: "Hot Dog", image: "🌭", price: "$2.99" },
+              { name: "Drink", image: "🥤", price: "$1.99" },
+              { name: "Ice Cream", image: "🍦", price: "$2.99" }
+            ],
+            correctAnswer: ["Pizza", "Drink"],
+            gameType: "cashier"
+          },
+          {
+            questionText: "I'll take a hot dog, please!",
+            orderItems: ["Hot Dog"],
+            menuOptions: [
+              { name: "Burger", image: "🍔", price: "$3.99" },
+              { name: "Fries", image: "🍟", price: "$2.49" },
+              { name: "Pizza", image: "🍕", price: "$4.99" },
+              { name: "Hot Dog", image: "🌭", price: "$2.99" },
+              { name: "Drink", image: "🥤", price: "$1.99" },
+              { name: "Ice Cream", image: "🍦", price: "$2.99" }
+            ],
+            correctAnswer: ["Hot Dog"],
+            gameType: "cashier"
+          },
+          {
+            questionText: "I want fries and ice cream, please!",
+            orderItems: ["Fries", "Ice Cream"],
+            menuOptions: [
+              { name: "Burger", image: "🍔", price: "$3.99" },
+              { name: "Fries", image: "🍟", price: "$2.49" },
+              { name: "Pizza", image: "🍕", price: "$4.99" },
+              { name: "Hot Dog", image: "🌭", price: "$2.99" },
+              { name: "Drink", image: "🥤", price: "$1.99" },
+              { name: "Ice Cream", image: "🍦", price: "$2.99" }
+            ],
+            correctAnswer: ["Fries", "Ice Cream"],
+            gameType: "cashier"
+          },
+          {
+            questionText: "Can I get a burger, fries, and a drink?",
+            orderItems: ["Burger", "Fries", "Drink"],
+            menuOptions: [
+              { name: "Burger", image: "🍔", price: "$3.99" },
+              { name: "Fries", image: "🍟", price: "$2.49" },
+              { name: "Pizza", image: "🍕", price: "$4.99" },
+              { name: "Hot Dog", image: "🌭", price: "$2.99" },
+              { name: "Drink", image: "🥤", price: "$1.99" },
+              { name: "Ice Cream", image: "🍦", price: "$2.99" }
+            ],
+            correctAnswer: ["Burger", "Fries", "Drink"],
+            gameType: "cashier"
+          }
+        ],
+        "Shopping Skills": [
+          {
+            questionText: "You need to buy milk. Where should you go?",
+            imageSrc: "/src/assets/flashcards/grocery_store.jpg",
+            answerChoices: ["Grocery Store", "Library", "Bank", "Post Office"],
+            correctAnswer: "Grocery Store"
+          }
+        ],
+        "Social Greetings": [
+          {
+            questionText: "When you meet someone in the morning, what do you say?",
+            answerChoices: ["Good Morning", "Good Night", "Goodbye", "See You Later"],
+            correctAnswer: "Good Morning"
+          }
+        ],
+        "Hygiene Hero": [
+          {
+            scenario: "dirty_hands",
+            questionText: "😰 Oh no! Your hands are dirty after playing!",
+            scenarioImage: "🤲",
+            backgroundImage: "🏠",
+            characterEmoji: "😟",
+            answerChoices: ["Wash my hands", "Brush my teeth", "Take a shower", "Cut my hair", "Wipe my nose", "Clean my ears", "Use tissue"],
+            correctAnswer: "Wash my hands",
+            gameType: "hygiene",
+            successAnimation: "🧼✨",
+            successMessage: "Great job! Clean hands are healthy hands!"
+          },
+          {
+            scenario: "messy_hair",
+            questionText: "😅 Your hair looks messy and needs styling!",
+            scenarioImage: "💇‍♂️",
+            backgroundImage: "🪞",
+            characterEmoji: "😵‍💫",
+            answerChoices: ["Cut my hair", "Wash my hands", "Take a shower", "Brush my teeth", "Wipe my nose", "Clean my ears", "Use tissue"],
+            correctAnswer: "Cut my hair",
+            gameType: "hygiene",
+            successAnimation: "✂️✨",
+            successMessage: "Perfect! You look great now!"
+          },
+          {
+            scenario: "runny_nose",
+            questionText: "🤧 Achoo! Your nose is running!",
+            scenarioImage: "👃",
+            backgroundImage: "🏠",
+            characterEmoji: "🤧",
+            answerChoices: ["Wipe my nose", "Wash my hands", "Take a shower", "Cut my hair", "Brush my teeth", "Clean my ears", "Use tissue"],
+            correctAnswer: "Wipe my nose",
+            gameType: "hygiene",
+            successAnimation: "🧻✨",
+            successMessage: "Good choice! Keep those germs away!"
+          },
+          {
+            scenario: "dirty_teeth",
+            questionText: "🦷 Time to take care of your teeth!",
+            scenarioImage: "🪥",
+            backgroundImage: "🚿",
+            characterEmoji: "😬",
+            answerChoices: ["Brush my teeth", "Wash my hands", "Take a shower", "Cut my hair", "Wipe my nose", "Clean my ears", "Use tissue"],
+            correctAnswer: "Brush my teeth",
+            gameType: "hygiene",
+            successAnimation: "🪥✨",
+            successMessage: "Fantastic! Healthy teeth make you smile!"
+          },
+          {
+            scenario: "dirty_ears",
+            questionText: "👂 Your ears need some gentle cleaning!",
+            scenarioImage: "🧽",
+            backgroundImage: "🚿",
+            characterEmoji: "😵",
+            answerChoices: ["Clean my ears", "Wash my hands", "Take a shower", "Cut my hair", "Wipe my nose", "Brush my teeth", "Use tissue"],
+            correctAnswer: "Clean my ears",
+            gameType: "hygiene",
+            successAnimation: "🧽✨",
+            successMessage: "Excellent! Now you can hear everything clearly!"
+          },
+          {
+            scenario: "sweaty_body",
+            questionText: "💦 After playing, you're all sweaty!",
+            scenarioImage: "🚿",
+            backgroundImage: "🛁",
+            characterEmoji: "😅",
+            answerChoices: ["Take a shower", "Wash my hands", "Brush my teeth", "Cut my hair", "Wipe my nose", "Clean my ears", "Use tissue"],
+            correctAnswer: "Take a shower",
+            gameType: "hygiene",
+            successAnimation: "🚿✨",
+            successMessage: "Amazing! You're fresh and clean now!"
+          },
+          {
+            scenario: "sticky_fingers",
+            questionText: "🍯 Your fingers are sticky after eating!",
+            scenarioImage: "🤲",
+            backgroundImage: "🍽️",
+            characterEmoji: "😝",
+            answerChoices: ["Wash my hands", "Brush my teeth", "Take a shower", "Cut my hair", "Wipe my nose", "Clean my ears", "Use tissue"],
+            correctAnswer: "Wash my hands",
+            gameType: "hygiene",
+            successAnimation: "🧼✨",
+            successMessage: "Perfect! No more sticky fingers!"
+          },
+          {
+            scenario: "after_sneezing",
+            questionText: "🤧 Achoo! You just sneezed!",
+            scenarioImage: "🤧",
+            backgroundImage: "🏠",
+            characterEmoji: "😷",
+            answerChoices: ["Use tissue", "Wash my hands", "Take a shower", "Cut my hair", "Wipe my nose", "Clean my ears", "Brush my teeth"],
+            correctAnswer: "Use tissue",
+            gameType: "hygiene",
+            successAnimation: "🧻✨",
+            successMessage: "Smart! Covering sneezes keeps everyone healthy!"
+          }
+        ]
+      },
+      Medium: {
+        "Cashier Game": [
+          {
+            questionText: "I want two burgers and one large drink!",
+            orderItems: ["Burger", "Burger", "Drink"],
+            menuOptions: [
+              { name: "Burger", image: "🍔", price: "$3.99" },
+              { name: "Fries", image: "🍟", price: "$2.49" },
+              { name: "Pizza", image: "🍕", price: "$4.99" },
+              { name: "Hot Dog", image: "🌭", price: "$2.99" },
+              { name: "Drink", image: "🥤", price: "$1.99" },
+              { name: "Ice Cream", image: "🍦", price: "$2.99" }
+            ],
+            correctAnswer: ["Burger", "Burger", "Drink"],
+            gameType: "cashier"
+          }
+        ]
+      },
+      Hard: {
+        "Cashier Game": [
+          {
+            questionText: "Family meal: 3 burgers, 2 large fries, 3 drinks, and 1 ice cream!",
+            orderItems: ["Burger", "Burger", "Burger", "Fries", "Fries", "Drink", "Drink", "Drink", "Ice Cream"],
+            menuOptions: [
+              { name: "Burger", image: "🍔", price: "$3.99" },
+              { name: "Fries", image: "🍟", price: "$2.49" },
+              { name: "Pizza", image: "🍕", price: "$4.99" },
+              { name: "Hot Dog", image: "🌭", price: "$2.99" },
+              { name: "Drink", image: "🥤", price: "$1.99" },
+              { name: "Ice Cream", image: "🍦", price: "$2.99" }
+            ],
+            correctAnswer: ["Burger", "Burger", "Burger", "Fries", "Fries", "Drink", "Drink", "Drink", "Ice Cream"],
+            gameType: "cashier"
+          }
+        ]
+      }
     }
   };
 
   const questions = questionsData[category]?.[difficulty]?.[activity] || [];
   const total = questions.length;
+  const currentQuestion = questions[currentQuestionIndex];
+  const isCashierGame = currentQuestion?.gameType === 'cashier';
+  const isHygieneGame = currentQuestion?.gameType === 'hygiene';
+
+  // Hygiene game functions
+  const getRandomScenario = () => {
+    const availableScenarios = questions.filter(q => !usedScenarios.includes(q.scenario));
+    if (availableScenarios.length === 0) return questions[0]; // Fallback
+    return availableScenarios[Math.floor(Math.random() * availableScenarios.length)];
+  };
+
+  const handleHygieneAnswer = (choice) => {
+    if (isAnswered) return;
+    
+    setSelectedAnswer(choice);
+    setIsAnswered(true);
+
+    if (choice === currentQuestion.correctAnswer) {
+      setHygieneScore(prev => prev + 1);
+      setScore(prev => prev + 1);
+      setShowSuccessAnimation(true);
+      setSuccessAnimationText(currentQuestion.successAnimation);
+      setShowCorrect(true);
+      
+      setTimeout(() => {
+        setShowSuccessAnimation(false);
+        setShowCorrect(false);
+      }, 2000);
+    } else {
+      setShowWrong(true);
+      setTimeout(() => setShowWrong(false), 1500);
+    }
+  };
+
+  const initializeHygieneGame = () => {
+    if (isHygieneGame && !isHygieneGameActive) {
+      setIsHygieneGameActive(true);
+      setCurrentRound(1);
+      setHygieneScore(0);
+      setUsedScenarios([]);
+      
+      // Set up first scenario
+      const firstScenario = getRandomScenario();
+      setCurrentScenario(firstScenario);
+      setUsedScenarios([firstScenario.scenario]);
+    }
+  };
+
+  const resetHygieneState = () => {
+    setHygieneScore(0);
+    setCurrentRound(1);
+    setUsedScenarios([]);
+    setShowCharacter(true);
+    setShowSuccessAnimation(false);
+    setSuccessAnimationText('');
+    setCurrentScenario(null);
+    setIsHygieneGameActive(false);
+  };
+
+  // Cashier game functions
+  const handleItemSelect = (item) => {
+    if (!isCashierGame) return;
+    
+    const newSelectedItems = [...selectedItems, item];
+    setSelectedItems(newSelectedItems);
+    
+    // Calculate total price
+    const newTotal = newSelectedItems.reduce((sum, selectedItem) => {
+      const menuItem = currentQuestion.menuOptions.find(option => option.name === selectedItem.name);
+      return sum + parseFloat(menuItem.price.replace('$', ''));
+    }, 0);
+    setOrderTotal(newTotal);
+  };
+
+  const handleRemoveItem = (index) => {
+    const newSelectedItems = selectedItems.filter((_, i) => i !== index);
+    setSelectedItems(newSelectedItems);
+    
+    // Recalculate total
+    const newTotal = newSelectedItems.reduce((sum, selectedItem) => {
+      const menuItem = currentQuestion.menuOptions.find(option => option.name === selectedItem.name);
+      return sum + parseFloat(menuItem.price.replace('$', ''));
+    }, 0);
+    setOrderTotal(newTotal);
+  };
+
+  const handleCashierSubmit = () => {
+    if (isAnswered) return;
+    
+    setIsAnswered(true);
+    setGameStep(3);
+    
+    // Check if order matches
+    const selectedItemNames = selectedItems.map(item => item.name).sort();
+    const correctItemNames = [...currentQuestion.correctAnswer].sort();
+    
+    const isCorrect = JSON.stringify(selectedItemNames) === JSON.stringify(correctItemNames);
+    
+    if (isCorrect) {
+      setCashierScore(prev => prev + 10);
+      setScore(prev => prev + 1);
+      setCurrentSpeaker('customer');
+      setSpeechText("Thank you! You got my food right! Good job!");
+      setShowThoughtBubble(true);
+      setShowCorrect(true);
+    } else {
+      setCurrentSpeaker('customer');
+      setSpeechText("That's not what I asked for. Try again next time!");
+      setShowThoughtBubble(true);
+      setShowWrong(true);
+    }
+  };
+
+  // Reset selected items when moving to next question
+  const resetCashierState = () => {
+    setSelectedItems([]);
+    setOrderTotal(0);
+    setGameStep(1);
+    setShowThoughtBubble(false);
+    setCurrentSpeaker('customer');
+    setSpeechText('');
+  };
+
+  // Initialize cashier game when question starts
+  useEffect(() => {
+    if (isCashierGame && gameStep === 1) {
+      setTimeout(() => {
+        setCurrentSpeaker('customer');
+        setSpeechText(currentQuestion.questionText);
+        setShowThoughtBubble(true);
+      }, 1000);
+    }
+  }, [currentQuestionIndex, isCashierGame]);
+
+  // Initialize hygiene game when activity starts
+  useEffect(() => {
+    if (isHygieneGame) {
+      initializeHygieneGame();
+    }
+  }, [currentQuestionIndex, isHygieneGame]);
+
+  // Handle moving to item selection step
+  const handleStartSelecting = () => {
+    // Do not hide the customer's thought bubble here; keep it visible until Next Question
+    setGameStep(2);
+    setTimeout(() => {
+      setCurrentSpeaker('cashier');
+      setSpeechText("Okay, I'll get your order");
+      setShowThoughtBubble(true);
+      setTimeout(() => {
+        setShowThoughtBubble(false);
+      }, 2000);
+    }, 500);
+  };
 
   // Handle answer selection
   const handleAnswerClick = (choice) => {
@@ -225,10 +620,33 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   };
 
   const handleNextClick = () => {
-    if (currentQuestionIndex < questions.length - 1) {
+    // Always hide overlays when moving to next question
+    setShowCorrect(false);
+    setShowWrong(false);
+    setShowThoughtBubble(false); // Hide the thought bubble only here
+    
+    // Handle hygiene game progression (5 rounds max)
+    if (isHygieneGame && currentRound < 5) {
+      setCurrentRound(prev => prev + 1);
+      setSelectedAnswer(null);
+      setIsAnswered(false);
+      
+      // Get next scenario that hasn't been used
+      const nextScenario = getRandomScenario();
+      setCurrentScenario(nextScenario);
+      setUsedScenarios(prev => [...prev, nextScenario.scenario]);
+      
+      // Update current question index to show the new scenario
+      const nextIndex = questions.findIndex(q => q.scenario === nextScenario.scenario);
+      setCurrentQuestionIndex(nextIndex);
+    } else if (isHygieneGame && currentRound >= 5) {
+      // End hygiene game after 5 rounds
+      setShowModal(true);
+    } else if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedAnswer(null);
       setIsAnswered(false);
+      resetCashierState(); // Reset cashier game state
     } else {
       setShowModal(true);
     }
@@ -259,7 +677,76 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     setShowModal(false);
     
     // Calculate earned badges with enhanced statistics
-    const badges = calculateSessionBadges(score, total);
+    let badges = calculateSessionBadges(score, total);
+    
+    // Add special cashier game badges
+    if (activity === "Cashier Game") {
+      if (cashierScore >= 80) {
+        badges.push({
+          name: "Master Cashier",
+          description: "Earned 80+ points as a cashier!",
+          icon: "🏆",
+          rarity: "gold",
+          category: "Social Skills"
+        });
+      } else if (cashierScore >= 60) {
+        badges.push({
+          name: "Senior Cashier",
+          description: "Earned 60+ points as a cashier!",
+          icon: "🥈",
+          rarity: "silver",
+          category: "Social Skills"
+        });
+      } else if (cashierScore >= 40) {
+        badges.push({
+          name: "Junior Cashier",
+          description: "Earned 40+ points as a cashier!",
+          icon: "🥉",
+          rarity: "bronze",
+          category: "Social Skills"
+        });
+      }
+    }
+
+    // Add special hygiene hero badges
+    if (activity === "Hygiene Hero") {
+      // Always award the Hygiene Hero badge for completing the game
+      badges.push({
+        name: "Hygiene Hero",
+        description: "Completed the hygiene game and learned healthy habits!",
+        icon: "🧼",
+        rarity: "gold",
+        category: "Daily Life Skills"
+      });
+
+      // Award additional badges based on performance
+      if (hygieneScore >= 5) {
+        badges.push({
+          name: "Perfect Hygiene Master",
+          description: "Got all 5 hygiene scenarios correct!",
+          icon: "✨",
+          rarity: "legendary",
+          category: "Daily Life Skills"
+        });
+      } else if (hygieneScore >= 4) {
+        badges.push({
+          name: "Hygiene Expert",
+          description: "Excellent hygiene knowledge!",
+          icon: "🌟",
+          rarity: "gold",
+          category: "Daily Life Skills"
+        });
+      } else if (hygieneScore >= 3) {
+        badges.push({
+          name: "Clean & Healthy",
+          description: "Good hygiene habits!",
+          icon: "🧽",
+          rarity: "silver",
+          category: "Daily Life Skills"
+        });
+      }
+    }
+    
     setEarnedBadges(badges);
     
     // Save badges to storage (for future persistence)
@@ -305,14 +792,21 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           {/* Question Counter with modern design */}
           <div className="-mt-20 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl px-6 py-1 border border-blue-200/30 inline-block">
             <div className="text-base font-bold text-gray-700 flex items-center justify-center space-x-2">
-              <span className="text-2xl animate-bounce-gentle">📝</span>
-              <span>Question {currentQuestionIndex + 1} of {total}</span>
+              <span className="text-2xl animate-bounce-gentle">
+                {isHygieneGame ? "🧼" : "📝"}
+              </span>
+              <span>
+                {isHygieneGame 
+                  ? `Round ${currentRound} of 5` 
+                  : `Question ${currentQuestionIndex + 1} of ${total}`
+                }
+              </span>
               <span className="text-2xl animate-pulse-gentle">✨</span>
             </div>
           </div>
 
           {/* Question with improved typography */}
-          <h3 className="text-3xl font-bold text-gray-800 mb-2 leading-relaxed px-4">
+          <h3 className="text-3xl font-bold text-gray-800  leading-relaxed px-4">
             {questions[currentQuestionIndex].questionText}
           </h3>
 
@@ -345,6 +839,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           </div>
 
           {/* Answer Choices with autism-friendly design */}
+          {!isCashierGame && !isHygieneGame ? (
             <div className="grid grid-cols-2 gap-6">
             {questions[currentQuestionIndex].answerChoices.map((choice, index) => (
               <button
@@ -370,6 +865,274 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               </button>
             ))}
           </div>
+          ) : isHygieneGame ? (
+            /* Modern Interactive Hygiene Game UI */
+            <div className="space-y-8">
+              {/* Round Indicator */}
+              <div className="text-center mb-6">
+                <div className="inline-flex bg-gradient-to-r from-blue-100 to-green-100 rounded-full px-8 py-4 border-3 border-blue-300 shadow-lg">
+                  <span className="text-2xl font-bold text-blue-800 flex items-center space-x-3">
+                    <span className="text-3xl animate-bounce-gentle">🧼</span>
+                    <span>Round {currentRound} of 5</span>
+                    <span className="text-3xl animate-pulse-gentle">✨</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Main Scenario Area */}
+              <div className="bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 rounded-3xl p-8 border-4 border-blue-200 relative overflow-hidden">
+                {/* Background Character */}
+                <div className="absolute top-4 right-4 text-6xl opacity-20 animate-float">
+                  {currentQuestion?.backgroundImage || "🏠"}
+                </div>
+
+                {/* Character Display */}
+                <div className="flex flex-col items-center mb-8 relative">
+                  {/* Success Animation Overlay */}
+                  {showSuccessAnimation && (
+                    <div className="absolute inset-0 flex items-center justify-center z-20">
+                      <div className="text-8xl animate-bounce-gentle">
+                        {successAnimationText}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Main Character */}
+                  <div className={`text-[12rem] mb-4 transition-all duration-500 ${showSuccessAnimation ? 'scale-110' : ''}`}>
+                    {currentQuestion?.characterEmoji || "😊"}
+                  </div>
+
+                  {/* Scenario Visual */}
+                  <div className="bg-white rounded-2xl p-6 border-3 border-blue-300 shadow-xl mb-6">
+                    <div className="text-6xl mb-4">{currentQuestion?.scenarioImage}</div>
+                    <div className="text-xl font-bold text-gray-800 leading-relaxed">
+                      {currentQuestion?.questionText}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Choices */}
+                <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto">
+                  {currentQuestion?.answerChoices.map((choice, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleHygieneAnswer(choice)}
+                      disabled={isAnswered}
+                      className={`
+                        ${
+                          choice === currentQuestion.correctAnswer && isAnswered
+                            ? "bg-gradient-to-r from-green-400 to-green-500 text-white border-green-300 scale-105 shadow-2xl animate-success-pulse"
+                            : selectedAnswer === choice && choice !== currentQuestion.correctAnswer
+                            ? "bg-gradient-to-r from-red-400 to-red-500 text-white border-red-300 scale-105 shadow-2xl"
+                            : "bg-white hover:bg-blue-50 text-gray-800 border-blue-200 hover:border-blue-400"
+                        } 
+                        text-xl font-bold py-6 px-8 rounded-2xl cursor-pointer transition-all duration-300 border-3 backdrop-blur-sm transform
+                        focus:outline-none focus:ring-4 focus:ring-blue-300
+                        ${!isAnswered ? 'hover:scale-105 hover:shadow-xl' : ''}
+                        min-h-[5rem] flex items-center justify-center shadow-lg
+                      `}
+                    >
+                      <span className="relative z-10 text-center">{choice}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Score Display */}
+                <div className="mt-8 text-center">
+                  <div className="inline-flex bg-purple-100 rounded-full px-6 py-3 border-2 border-purple-300">
+                    <span className="text-xl font-bold text-purple-800 flex items-center space-x-2">
+                      <span className="text-2xl">🏆</span>
+                      <span>Score: {hygieneScore}/5</span>
+                      <span className="text-2xl animate-pulse-gentle">⭐</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Simple Cashier Game UI - Scrollable */
+            <div className="space-y-6">
+              {/* Step Indicator */}
+              {/* <div className="text-center mb-6">
+                <div className="inline-flex bg-blue-100 rounded-full px-8 py-3 border-3 border-blue-300">
+                  <span className="text-2xl font-bold text-blue-800">
+                    Step {gameStep} of 3: {
+                      gameStep === 1 ? "🗣️ Listen" :
+                      gameStep === 2 ? "🍽️ Find Food" :
+                      "✅ Done"
+                    }
+                  </span>
+                </div>
+              </div> */}
+
+              {/* Main Game Area */}
+              <div className="bg-gradient-to-b from-blue-50 to-green-50 rounded-3xl p-4 -mt-2 border-4 border-blue-200 relative">
+                
+                {/* Characters with simplified design */}
+                <div className="flex justify-between items-center relative min-h-[300px]">
+                  
+                  {/* Customer Character */}
+                  <div className="flex flex-col items-center relative">
+                    {/* Thought Bubble for Customer */}
+                    {showThoughtBubble && currentSpeaker === 'customer' && (
+                      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white rounded-3xl p-3 border-4 border-pink-300 shadow-2xl w-[250px] z-10 animate-bounce-gentle">
+                        <div className="text-xl font-bold text-gray-800 text-center leading-relaxed">
+                          {speechText}
+                        </div>
+                        {/* Bubble pointer */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
+                          <div className="w-0 h-0 border-l-8 border-r-8 border-t-16 border-l-transparent border-r-transparent border-t-white"></div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Customer - Head only */}
+                    <div className="text-center">
+                      {/* Head - larger */}
+                      <div className="text-[12rem] mb-4">👩‍🦱</div>
+                      
+                      {/* Label */}
+                      <div className="bg-pink-500 text-white px-8 py-4 rounded-full text-2xl font-bold shadow-lg">
+                        Customer
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Restaurant Counter */}
+                  <div className="flex-1 mx-16 mt-20">
+                    <div className="h-32 bg-gradient-to-t from-amber-400 to-amber-200 rounded-2xl border-4 border-amber-500 relative flex items-center justify-center shadow-lg">
+                      <span className="text-2xl font-bold text-amber-900">🏪 Restaurant Counter 🏪</span>
+                    </div>
+                  </div>
+
+                  {/* Cashier Character (You) */}
+                  <div className="flex flex-col items-center relative">
+                    {/* Thought Bubble for Cashier */}
+                    {showThoughtBubble && currentSpeaker === 'cashier' && (
+                      <div className="absolute -top-32 left-1/2 transform -translate-x-1/2 bg-white rounded-3xl p-8 border-4 border-blue-300 shadow-2xl max-w-lg z-10 animate-bounce-gentle">
+                        <div className="text-xl font-bold text-gray-800 text-center leading-relaxed">
+                          {speechText}
+                        </div>
+                        {/* Bubble pointer */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
+                          <div className="w-0 h-0 border-l-8 border-r-8 border-t-16 border-l-transparent border-r-transparent border-t-white"></div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Cashier - Head only */}
+                    <div className="text-center">
+                      {/* Head - larger */}
+                      <div className="text-[12rem] mb-4">👨‍💼</div>
+                      
+                      {/* Label */}
+                      <div className="bg-blue-500 text-white px-8 py-4 rounded-full text-2xl font-bold shadow-lg">
+                        You (Cashier)
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Area */}
+              <div className="mt-8 space-y-6">
+                {/* Step 1: Customer speaks */}
+                {gameStep === 1 && (
+                  <div className="text-center">
+                    
+                    {showThoughtBubble && (
+                      <button
+                        onClick={handleStartSelecting}
+                        className="bg-green-500 hover:bg-green-600 text-white py-6 px-12 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg"
+                      >
+                        ✅ GET ORDER
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Step 2: Select items */}
+                {gameStep === 2 && (
+                  <div>
+                    <div className="bg-blue-100 border-4 border-blue-300 rounded-2xl p-6 mb-6 text-center">
+                      <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                        🍽️ Find the food the customer wants
+                      </h3>
+                      {/* <p className="text-xl text-gray-700 leading-relaxed">
+                        Click on the food from the menu. Pick what the customer said!
+                      </p> */}
+                    </div>
+
+                    {/* Food Menu - Simple Grid */}
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                      {currentQuestion.menuOptions.map((item, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleItemSelect(item)}
+                          disabled={isAnswered}
+                          className="bg-white hover:bg-blue-50 border-4 border-gray-300 hover:border-blue-400 rounded-2xl p-6 transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg"
+                        >
+                          <div className="text-5xl mb-3">{item.image}</div>
+                          <div className="font-bold text-gray-800 text-lg">{item.name}</div>
+                          <div className="text-green-600 font-semibold text-lg">{item.price}</div>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Selected Items Display */}
+                    {selectedItems.length > 0 && (
+                      <div className="bg-green-100 border-4 border-green-300 rounded-2xl p-6 mb-6">
+                        <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">
+                          ✅ Food I picked:
+                        </h3>
+                        <div className="flex flex-wrap gap-3 justify-center">
+                          {selectedItems.map((item, index) => (
+                            <div key={index} className="bg-white border-3 border-green-400 rounded-xl p-4 flex items-center space-x-3 shadow-md">
+                              <span className="text-3xl">{item.image}</span>
+                              <span className="font-semibold text-lg">{item.name}</span>
+                              <button
+                                onClick={() => handleRemoveItem(index)}
+                                disabled={isAnswered}
+                                className="bg-red-100 hover:bg-red-200 text-red-600 px-3 py-2 rounded-lg text-lg cursor-pointer font-bold"
+                              >
+                                ❌
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Submit Button */}
+                    {selectedItems.length > 0 && !isAnswered && (
+                      <div className="text-center">
+                        <button
+                          onClick={handleCashierSubmit}
+                          className="bg-purple-500 hover:bg-purple-600 text-white py-6 px-12 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg"
+                        >
+                          🎯 Give food to customer
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Step 3: Complete */}
+                {gameStep === 3 && (
+                  <div className="text-center">
+                    <div className="bg-purple-100 border-4 border-purple-300 rounded-2xl p-6">
+                      <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                        🏆 Good job helping the customer!
+                      </h3>
+                      <div className="text-xl font-bold text-purple-600">
+                        You got {cashierScore} points! 🌟
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Correct Overlay */}
@@ -446,12 +1209,29 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 </h2>
                 <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-purple-100">
                   <p className="text-2xl font-bold text-gray-800 mb-2">
-                    You scored <span className="text-3xl text-purple-600">{score}</span> out of <span className="text-3xl text-pink-600">{total}</span>!
+                    You scored <span className="text-3xl text-purple-600">{score}</span> out of <span className="text-3xl text-pink-600">{isHygieneGame ? 5 : total}</span>!
                   </p>
+                  {activity === "Cashier Game" && (
+                    <p className="text-xl font-bold text-green-600 mb-2">
+                      Cashier Points: <span className="text-2xl">{cashierScore}</span> 🏪
+                    </p>
+                  )}
+                  {activity === "Hygiene Hero" && (
+                    <p className="text-xl font-bold text-blue-600 mb-2">
+                      Hygiene Score: <span className="text-2xl">{hygieneScore}</span>/5 🧼✨
+                    </p>
+                  )}
                   <div className="flex justify-center items-center space-x-2 mt-3">
                     <span className="text-2xl animate-bounce-gentle">🏆</span>
                     <span className="text-lg font-semibold text-gray-700">
-                      {score === total ? "Perfect Score!" : score >= total * 0.8 ? "Excellent!" : score >= total * 0.6 ? "Great Job!" : "Keep Learning!"}
+                      {isHygieneGame ? 
+                        (hygieneScore === 5 ? "Perfect Hygiene Hero!" : 
+                         hygieneScore >= 4 ? "Excellent Hygiene!" : 
+                         hygieneScore >= 3 ? "Great Job Learning!" : "Keep Practicing!") :
+                        (score === total ? "Perfect Score!" : 
+                         score >= total * 0.8 ? "Excellent!" : 
+                         score >= total * 0.6 ? "Great Job!" : "Keep Learning!")
+                      }
                     </span>
                     <span className="text-2xl animate-bounce-gentle">🌟</span>
                   </div>
@@ -820,6 +1600,20 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         .animate-shine {
           animation: shine 2s ease-in-out infinite;
           animation-delay: 1s;
+        }
+        
+        /* Slide across animation for menu items */
+        @keyframes slide-across {
+          from {
+            transform: translateX(-100%);
+          }
+          to {
+            transform: translateX(100%);
+          }
+        }
+        
+        .animate-slide-across {
+          animation: slide-across 0.6s ease-in-out;
         }
         
         /* Accessibility: Reduce motion for users who prefer it */
