@@ -1,22 +1,75 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { getAdminByUserId } from '../lib/adminsApi';
+import { getUserProfileById, updateUserProfile } from '../lib/userProfilesApi';
+import { useAuth } from '../contexts/AuthContext';
 import { AcademicCapIcon, PencilIcon, CheckIcon, XMarkIcon, UserCircleIcon, CalendarIcon, MapPinIcon, IdentificationIcon, ArrowRightOnRectangleIcon, PhoneIcon } from '@heroicons/react/24/solid';
 
 export default function AdminProfile() {
   const [showProfile, setShowProfile] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const { user } = useAuth();
 
-  // Default profile information for teacher/admin
+  // Profile information that will be loaded from API
   const [userInfo, setUserInfo] = useState({
-    fullName: "Maria Leonora Theresa",
-    email: "maria.theresa@autisync.edu",
-    phone: "+63 912 345 6789",
-    birthday: "June 8, 1985",
-    address: "Sinto Dos, Bajada, Davao City",
-    gender: "Female",
+    fullName: "",
+    email: "",
+    phone: "",
+    birthday: "",
+    address: "",
+    gender: "",
+    username: "",
     profileImage: "/src/assets/kidprofile1.jpg"
   });
+
+  const [originalUserInfo, setOriginalUserInfo] = useState({});
+
+  useEffect(() => {
+    const fetchAdminProfile = async () => {
+      if (!user) return;
+      
+      setLoading(true);
+      try {
+        // First get user profile
+        const { data: profileData, error: profileError } = await getUserProfileById(user.id);
+        
+        if (profileError) {
+          console.error('Error fetching user profile:', profileError);
+          setError('Failed to load profile data');
+        } else if (profileData) {
+          const formattedProfile = {
+            fullName: profileData.full_name || user.user_metadata?.full_name || "",
+            email: profileData.email || user.email || "",
+            phone: profileData.phone || "",
+            birthday: profileData.age ? `Age: ${profileData.age}` : "",
+            address: profileData.address || "",
+            gender: profileData.gender || "",
+            username: profileData.username || user.user_metadata?.username || "",
+            profileImage: "/src/assets/kidprofile1.jpg"
+          };
+          setUserInfo(formattedProfile);
+          setOriginalUserInfo(formattedProfile);
+        }
+
+        // Also check if user is admin
+        const { data: adminData, error: adminError } = await getAdminByUserId(user.id);
+        if (adminError) {
+          console.log('User may not be admin, continuing with regular profile');
+        }
+      } catch (err) {
+        console.error('Error fetching admin profile:', err);
+        setError('Failed to load profile data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAdminProfile();
+  }, [user]);
 
   const navigate = useNavigate();
 
@@ -45,15 +98,52 @@ export default function AdminProfile() {
   };
 
   // Handle save button click
-  const handleSaveClick = () => {
-    setIsEditing(false);
-    // Here you could add API call to save the profile data
+  const handleSaveClick = async () => {
+    if (!user) return;
+    
+    setSaving(true);
+    setError(null); // Clear any previous errors
+    
+    try {
+      // Prepare update data - only include fields that exist in the database
+      const updateData = {
+        full_name: userInfo.fullName,
+        username: userInfo.username,
+        gender: userInfo.gender,
+        address: userInfo.address,
+        phone: userInfo.phone
+        // Note: email updates need special handling with Supabase auth
+      };
+
+      console.log('Updating profile with user_id:', user.id);
+      console.log('Update data:', updateData);
+
+      const { data, error } = await updateUserProfile(user.id, updateData);
+      
+      if (error) {
+        console.error('Error updating profile:', error);
+        setError(`Database error: ${error.message}`);
+        // Revert to original data
+        setUserInfo(originalUserInfo);
+      } else {
+        console.log('Profile updated successfully:', data);
+        setOriginalUserInfo(userInfo); // Update the baseline
+        setIsEditing(false);
+        setError(null);
+      }
+    } catch (err) {
+      console.error('Unexpected error saving profile:', err);
+      setError(`Failed to save profile changes: ${err.message}`);
+      setUserInfo(originalUserInfo);
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Handle cancel edit
   const handleCancelEdit = () => {
     setIsEditing(false);
-    // Reset any unsaved changes if needed
+    setUserInfo(originalUserInfo); // Reset to original data
   };
 
   // Handle input change
@@ -134,6 +224,23 @@ export default function AdminProfile() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
               
+              {loading ? (
+                <div className="p-12 text-center">
+                  <div className="text-xl text-gray-600 mb-4">Loading profile...</div>
+                  <div className="text-gray-500">Fetching admin data from backend</div>
+                </div>
+              ) : error ? (
+                <div className="p-12 text-center">
+                  <div className="text-xl text-red-600 mb-4">{error}</div>
+                  <button 
+                    onClick={() => setShowProfile(false)}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <>
               {/* Header Section */}
               <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8 rounded-t-3xl relative">
                 <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
@@ -352,8 +459,9 @@ export default function AdminProfile() {
                     <button
                       onClick={backToHome}
                       className="cursor-pointer bg-green-600 hover:bg-green-800 text-white px-8 py-3 rounded-xl font-semibold transition-colors flex items-center space-x-2"
+                      disabled={saving}
                     >
-                      <span>← Back to Dashboard</span>
+                      <span>{saving ? 'Saving...' : '← Back to Dashboard'}</span>
                     </button>
                     
                     <div className="text-sm text-gray-500">
@@ -362,6 +470,8 @@ export default function AdminProfile() {
                   </div>
                 </div>
               </div>
+              </>
+              )}
             </div>
           </div>
         </>

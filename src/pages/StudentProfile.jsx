@@ -118,7 +118,7 @@ export default function StudentProfile() {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('user_id', user.id)  // Fixed: use user_id instead of id
         .maybeSingle(); 
 
       if (error) {
@@ -129,21 +129,24 @@ export default function StudentProfile() {
 
       if (data) {
         console.log('Profile data found:', data);
+        // Map database fields to UI state
+        const fullNameParts = (data.full_name || '').split(' ');
         setUserInfo({
-          username: data.username || `${data.first_name} ${data.last_name}`.trim(),
-          first_name: data.first_name || '',
-          last_name: data.last_name || '',
-          birthday: data.birthday || '',
+          username: data.username || user.user_metadata?.username || user.email?.split('@')[0] || 'student',
+          first_name: fullNameParts[0] || '',
+          last_name: fullNameParts.slice(1).join(' ') || '',
+          birthday: data.birthday || data.age ? `Age: ${data.age}` : '',
           address: data.address || '',
           gender: data.gender || '',
           grade: data.grade || '',
-          interests: data.interests || ["Drawing", "Animals", "Music", "Numbers"],
-          achievements: data.achievements || 0,
+          // Set default values for UI fields that don't exist in database
+          interests: ["Drawing", "Animals", "Music", "Numbers"],
+          achievements: data.activities_done || 0,
           day_streak: data.day_streak || 0,
           activities_done: data.activities_done || 0,
-          accuracy_rate: data.accuracy_rate || 83,
-          favoriteColor: data.favorite_color || "#3B82F6",
-          learning_style: data.learning_style || {
+          accuracy_rate: 83, // Default value
+          favoriteColor: "#3B82F6",
+          learning_style: {
             visual: true,
             goal_oriented: true,
             routine_loving: true,
@@ -164,28 +167,26 @@ export default function StudentProfile() {
 
   const createUserProfile = async () => {
     try {
+      // Only include fields that exist in your database schema
       const defaultProfile = {
-        id: user.id,
-        username: user.email?.split('@')[0] || 'student',
-        first_name: '',
-        last_name: '',
-        birthday: '',
-        address: '',
-        gender: '',
-        grade: '',
-        interests: ["Drawing", "Animals", "Music", "Numbers"],
-        achievements: 0,
-        day_streak: 0,
-        activities_done: 0,
-        accuracy_rate: 0,
-        favorite_color: "#3B82F6",
-        learning_style: {
-          visual: true,
-          goal_oriented: true,
-          routine_loving: true,
-          step_by_step: true
-        }
+        user_id: user.id,  // Fixed: use user_id instead of id
+        username: user.user_metadata?.username || user.user_metadata?.full_name || user.email?.split('@')[0] || 'student',
+        full_name: user.user_metadata?.full_name || '',
+        email: user.email || '',
+        gender: user.user_metadata?.gender || '',
+        address: user.user_metadata?.address || '',
+        grade: user.user_metadata?.grade || '',
+        // Remove fields that don't exist in database
+        // interests: ["Drawing", "Animals", "Music", "Numbers"],
+        // achievements: 0,
+        // day_streak: 0,
+        // activities_done: 0,
+        // accuracy_rate: 0,
+        // favorite_color: "#3B82F6",
+        // learning_style: {...}
       };
+
+      console.log('Creating profile with data:', defaultProfile);
 
       const { data, error } = await supabase
         .from('user_profiles')
@@ -249,28 +250,34 @@ export default function StudentProfile() {
       setError("");
       setSuccess("");
 
+      // Only include fields that exist in your database schema
       const updateData = {
         username: userInfo.username,
-        first_name: userInfo.first_name,
-        last_name: userInfo.last_name,
-        birthday: userInfo.birthday,
-        address: userInfo.address,
+        full_name: `${userInfo.first_name} ${userInfo.last_name}`.trim(),
         gender: userInfo.gender,
+        address: userInfo.address,
         grade: userInfo.grade,
-        interests: userInfo.interests,
-        achievements: userInfo.achievements,
-        day_streak: userInfo.day_streak,
-        activities_done: userInfo.activities_done,
-        accuracy_rate: userInfo.accuracy_rate,
-        favorite_color: userInfo.favoriteColor,
-        learning_style: userInfo.learning_style,
+        // Remove fields that don't exist in database
+        // first_name: userInfo.first_name,
+        // last_name: userInfo.last_name,
+        // birthday: userInfo.birthday,
+        // interests: userInfo.interests,
+        // achievements: userInfo.achievements,
+        // day_streak: userInfo.day_streak,
+        // activities_done: userInfo.activities_done,
+        // accuracy_rate: userInfo.accuracy_rate,
+        // favorite_color: userInfo.favoriteColor,
+        // learning_style: userInfo.learning_style,
         updated_at: new Date().toISOString()
       };
+
+      console.log('Updating student profile with user_id:', user.id);
+      console.log('Update data:', updateData);
 
       const { data, error } = await supabase
         .from('user_profiles')
         .update(updateData)
-        .eq('id', user.id)
+        .eq('user_id', user.id)  // Fixed: use user_id instead of id
         .select()
         .single();
 
