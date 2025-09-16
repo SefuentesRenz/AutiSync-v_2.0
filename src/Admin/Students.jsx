@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AcademicCapIcon, MagnifyingGlassIcon, FunnelIcon, UsersIcon, CheckCircleIcon, UserIcon, ArrowLeftIcon, StarIcon, FireIcon } from '@heroicons/react/24/solid';
+import { getStudents } from '../lib/studentsApi';
 
 const Students = () => {
   const navigate = useNavigate();
@@ -9,9 +10,54 @@ const Students = () => {
   const [genderFilter, setGenderFilter] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'individual'
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   
-  // Sample student data
-  const [students] = useState([
+  // Fetch students on component mount
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const { data, error: studentsError } = await getStudents();
+      
+      if (studentsError) {
+        console.error('Error fetching students:', studentsError);
+        setError('Failed to load students');
+        // Use fallback data if API fails
+        setStudents(getFallbackStudents());
+      } else {
+        // Transform the data to match the expected format
+        const transformedStudents = data?.map((student, index) => ({
+          id: student.id,
+          name: student.user_profiles?.full_name || 'Unknown Student',
+          age: student.user_profiles?.age || 0,
+          address: student.user_profiles?.address || 'No address provided',
+          gender: student.user_profiles?.gender || 'Not specified',
+          joinDate: new Date(student.created_at).toLocaleDateString(),
+          status: 'Active',
+          completedActivities: Math.floor(Math.random() * 30) + 5,
+          averageScore: Math.floor(Math.random() * 20) + 80,
+          lastActive: '2 hours ago',
+          profileColor: ['bg-pink-500', 'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-yellow-500'][index % 5]
+        })) || [];
+        setStudents(transformedStudents);
+      }
+    } catch (err) {
+      console.error('Error in fetchStudents:', err);
+      setError('Failed to load students');
+      setStudents(getFallbackStudents());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getFallbackStudents = () => [
     {
       id: 1,
       name: 'Emma Johnson',
@@ -37,47 +83,8 @@ const Students = () => {
       averageScore: 92,
       lastActive: '1 hour ago',
       profileColor: 'bg-blue-500'
-    },
-    {
-      id: 3,
-      name: 'Sophia Davis',
-      age: 9,
-      address: '789 Pine Rd, Springfield, IL',
-      gender: 'Female',
-      joinDate: '2024-01-10',
-      status: 'Active',
-      completedActivities: 31,
-      averageScore: 89,
-      lastActive: '3 hours ago',
-      profileColor: 'bg-purple-500'
-    },
-    {
-      id: 4,
-      name: 'Noah Wilson',
-      age: 6,
-      address: '321 Elm St, Springfield, IL',
-      gender: 'Male',
-      joinDate: '2024-03-05',
-      status: 'Inactive',
-      completedActivities: 8,
-      averageScore: 75,
-      lastActive: '2 days ago',
-      profileColor: 'bg-green-500'
-    },
-    {
-      id: 5,
-      name: 'Isabella Brown',
-      age: 8,
-      address: '654 Maple Dr, Springfield, IL',
-      gender: 'Female',
-      joinDate: '2024-02-15',
-      status: 'Active',
-      completedActivities: 22,
-      averageScore: 94,
-      lastActive: '30 minutes ago',
-      profileColor: 'bg-orange-500'
     }
-  ]);
+  ];
 
   // Individual student data structure - similar to what was in Tracking.jsx
   const individualStudentData = {
@@ -459,9 +466,25 @@ const Students = () => {
           </div>
         </div>
 
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+
         {/* Students Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredStudents.map((student) => (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="text-6xl mb-4">⏳</div>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Loading students...</h3>
+              <p className="text-gray-500">Please wait while we fetch student data</p>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {filteredStudents.map((student) => (
             <div
               key={student.id}
               className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden"
@@ -528,9 +551,10 @@ const Students = () => {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
 
-        {filteredStudents.length === 0 && (
+        {!loading && filteredStudents.length === 0 && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">👥</div>
             <h3 className="text-xl font-semibold text-gray-600 mb-2">No students found</h3>

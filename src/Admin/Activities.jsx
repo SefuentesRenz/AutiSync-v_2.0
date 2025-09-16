@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AcademicCapIcon, PlusIcon, PlayIcon, ClockIcon, StarIcon } from '@heroicons/react/24/solid';
 import ActivityDetailsModal from '../components/ActivityDetailsModal';
+<<<<<<< HEAD
 import EditActivityModal from '../components/EditActivityModal';
+=======
+import { getActivitiesWithDetails, searchActivities } from '../lib/activitiesApi';
+import { getCategories } from '../lib/categoriesApi';
+>>>>>>> a3bfdb37aa1f1639f45bad00cccefa6372dee0bf
 
 const ActivitiesPage = ({ isOpen, onClose, activity }) => {
   const navigate = useNavigate();
@@ -10,61 +15,101 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+<<<<<<< HEAD
   const [isEditModalOpen, setIsEditModalOpen] = useState(false); 
+=======
+  const [activities, setActivities] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+>>>>>>> a3bfdb37aa1f1639f45bad00cccefa6372dee0bf
 
-  const activities = [
-    {
-      id: 1,
-      title: 'Counting Adventures',
-      description: 'Fun counting activities with colorful numbers!',
-      category: 'Academic',
-      difficulty: 'Easy',
-      duration: '10-15 min',
-      participants: 24,
-      icon: '🔢',
-      color: 'from-blue-400 to-blue-600'
-    },
-    {
-      id: 2,
-      title: 'Shape Detective',
-      description: 'Identify and match different shapes and patterns',
-      category: 'Academic', 
-      difficulty: 'Medium',
-      duration: '15-20 min',
-      participants: 18,
-      icon: '🔺',
-      color: 'from-green-400 to-green-600'
-    },
-    {
-      id: 3,
-      title: 'Grocery Shopping Helper',
-      description: 'Practice daily life skills at the virtual store',
-      category: 'Social/Daily Life',
-      difficulty: 'Medium',
-      duration: '20-25 min', 
-      participants: 15,
-      icon: '🛒',
-      color: 'from-purple-400 to-purple-600'
-    },
-    {
-      id: 4,
-      title: 'Object Explorer',
-      description: 'Discover and categorize everyday objects',
-      category: 'Objects',
-      difficulty: 'Easy',
-      duration: '10-15 min',
-      participants: 22,
-      icon: '🧸',
-      color: 'from-orange-400 to-orange-600'
+  // Fetch activities and categories on component mount
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Fetch activities with details
+      const { data: activitiesData, error: activitiesError } = await getActivitiesWithDetails();
+      if (activitiesError) {
+        console.error('Error fetching activities:', activitiesError);
+        setError('Failed to load activities');
+      } else {
+        // Transform the data to match the expected format
+        const transformedActivities = activitiesData?.map(activity => ({
+          id: activity.id,
+          title: activity.title,
+          description: activity.description,
+          category: activity.Categories?.category_name || 'Unknown',
+          difficulty: activity.Difficulties?.difficulty || 'Medium',
+          duration: activity.duration || '10-15 min',
+          participants: activity.participants || 0,
+          icon: activity.icon || '📝',
+          color: activity.color || 'from-blue-400 to-blue-600',
+          points: activity.points || 10
+        })) || [];
+        setActivities(transformedActivities);
+      }
+
+      // Fetch categories
+      const { data: categoriesData, error: categoriesError } = await getCategories();
+      if (categoriesError) {
+        console.error('Error fetching categories:', categoriesError);
+      } else {
+        const transformedCategories = [
+          { value: 'all', label: 'All Activities', icon: '📚' },
+          ...(categoriesData?.map(cat => ({
+            value: cat.category_name,
+            label: cat.category_name,
+            icon: cat.icon || '📖'
+          })) || [])
+        ];
+        setCategories(transformedCategories);
+      }
+    } catch (err) {
+      console.error('Error in fetchData:', err);
+      setError('Failed to load data');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const categories = [
-    { value: 'all', label: 'All Activities', icon: '📚' },
-    { value: 'Academic', label: 'Academic Skills', icon: '📖' },
-    { value: 'Social/Daily Life', label: 'Social & Daily Life', icon: '👥' },
-    { value: 'Objects', label: 'Object Recognition', icon: '🧩' }
-  ];
+  // Handle search with backend API
+  const handleSearch = async (term) => {
+    setSearchTerm(term);
+    if (term.trim()) {
+      try {
+        const { data, error } = await searchActivities(term);
+        if (error) {
+          console.error('Search error:', error);
+        } else {
+          const transformedActivities = data?.map(activity => ({
+            id: activity.id,
+            title: activity.title,
+            description: activity.description,
+            category: 'Academic', // You might want to join with Categories table
+            difficulty: 'Medium', // You might want to join with Difficulties table
+            duration: activity.duration || '10-15 min',
+            participants: activity.participants || 0,
+            icon: activity.icon || '�',
+            color: activity.color || 'from-blue-400 to-blue-600',
+            points: activity.points || 10
+          })) || [];
+          setActivities(transformedActivities);
+        }
+      } catch (err) {
+        console.error('Search error:', err);
+      }
+    } else {
+      // If search is empty, reload all activities
+      fetchData();
+    }
+  };
 
   const filteredActivities = activities.filter(activity => {
     const matchesSearch = activity.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -171,7 +216,7 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
                 type="text"
                 placeholder="Search activities..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearch(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
               />
               <div className="absolute left-4 top-3.5">
@@ -241,8 +286,23 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
         </div>
 
         {/* Activities Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredActivities.map((activity) => (
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+        
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="text-6xl mb-4">⏳</div>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Loading activities...</h3>
+              <p className="text-gray-500">Please wait while we fetch your activities</p>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {filteredActivities.map((activity) => (
             <div
               key={activity.id}
               className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-gray-100 overflow-hidden"
@@ -292,9 +352,10 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
 
-        {filteredActivities.length === 0 && (
+        {!loading && filteredActivities.length === 0 && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🔍</div>
             <h3 className="text-xl font-semibold text-gray-600 mb-2">No activities found</h3>

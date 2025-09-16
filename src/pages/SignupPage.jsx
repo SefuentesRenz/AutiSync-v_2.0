@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { createUserProfile } from '../lib/userProfilesApi';
+import { createStudent } from '../lib/studentsApi';
+import { createParent } from '../lib/parentsApi';
+import { createAdmin } from '../lib/adminsApi';
 
 function SignupPage() {
   const navigate = useNavigate();
@@ -69,13 +73,6 @@ function SignupPage() {
       return;
     }
 
-    // Validate passwords match (only for admin and parent accounts)
-    if ((userType === 'admin' || userType === 'parent') && formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match!");
-      setLoading(false);
-      return;
-    }
-
     // Validate password length
     if (formData.password.length < 6) {
       setError("Password must be at least 6 characters long!");
@@ -84,21 +81,14 @@ function SignupPage() {
     }
 
     try {
-      // Sign up the user
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      // Step 1: Sign up the user in Supabase Auth
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
             full_name: formData.fullName,
-            username: userType === 'student' ? formData.username : null,
-            age: userType === 'student' ? parseInt(formData.age) : null,
-            grade: userType === 'student' ? formData.grade : null,
-            parent_email: userType === 'student' ? formData.parentEmail : null,
-            address: formData.address,
-            gender: formData.gender, // Gender for all user types
-            phone_number: (userType === 'admin' || userType === 'parent') ? formData.phoneNumber : null,
-            user_type: userType // Store the user type
+            user_type: userType
           }
         }
       });
@@ -109,9 +99,98 @@ function SignupPage() {
         return;
       }
 
+      const userId = authData.user?.id;
+      if (!userId) {
+        setError("Failed to create user account. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: Create records based on user type
+      if (userType === 'student') {
+        // For students: Create user_profile AND student record
+        const profileData = {
+          user_id: userId,
+          full_name: formData.fullName,
+          username: formData.username,
+          gender: formData.gender,
+          email: formData.email,
+          age: parseInt(formData.age) || null,
+          parents_email: formData.parentEmail,
+          address: formData.address,
+          grade: formData.grade,
+          school: null // Can be added later
+        };
+
+        console.log('Creating student profile with data:', profileData);
+        const { data: profileResult, error: profileError } = await createUserProfile(profileData);
+        
+        if (profileError) {
+          console.error('Error creating user profile:', profileError);
+          setError(`Failed to create student profile: ${profileError.message}`);
+          setLoading(false);
+          return;
+        }
+
+        // Get the profile ID from the created profile record
+        const profileId = profileResult?.[0]?.id;
+        if (!profileId) {
+          setError("Failed to get profile ID after creating student profile.");
+          setLoading(false);
+          return;
+        }
+
+        console.log('Creating student record for profile ID:', profileId);
+        const { error: studentError } = await createStudent({ profile_id: profileId });
+        if (studentError) {
+          console.error('Error creating student record:', studentError);
+          setError(`Failed to create student record: ${studentError.message}`);
+          setLoading(false);
+          return;
+        }
+
+      } else if (userType === 'parent') {
+        // For parents: Create parent record directly (no user_profile)
+        const parentData = {
+          user_id: userId, // Direct reference to auth user
+          full_name: formData.fullName,
+          email: formData.email,
+          phone_number: formData.phoneNumber,
+          address: formData.address
+        };
+
+        console.log('Creating parent record with data:', parentData);
+        const { error: parentError } = await createParent(parentData);
+        if (parentError) {
+          console.error('Error creating parent record:', parentError);
+          setError(`Failed to create parent account: ${parentError.message}`);
+          setLoading(false);
+          return;
+        }
+
+      } else if (userType === 'admin') {
+        // For admins: Create admin record directly (no user_profile)
+        const adminData = {
+          user_id: userId, // Direct reference to auth user
+          full_name: formData.fullName,
+          email: formData.email,
+          phone_number: formData.phoneNumber,
+          address: formData.address
+        };
+
+        console.log('Creating admin record with data:', adminData);
+        const { error: adminError } = await createAdmin(adminData);
+        if (adminError) {
+          console.error('Error creating admin record:', adminError);
+          setError(`Failed to create admin account: ${adminError.message}`);
+          setLoading(false);
+          return;
+        }
+      }
+
       // Success
       setSuccess("Account created successfully! Please check your email to verify your account.");
-      console.log('Signup successful:', data);
+      console.log('Signup successful - all records created:', authData);
       
       // Optionally redirect after a delay
       setTimeout(() => {
@@ -484,34 +563,32 @@ function SignupPage() {
             </div>
           </div>
 
-          {/* Confirm Password Field - Show for admins and parents */}
-          {(userType === 'admin' || userType === 'parent') && (
-            <div>
-              <label htmlFor="confirmPassword" className="flex items-center text-sm font-bold text-gray-700 mb-2">
-                <span className="text-lg mr-2">🔒</span>
-                Confirm Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg transition-all duration-300"
-                  placeholder="Confirm your password"
-                  required={userType === 'admin' || userType === 'parent'}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors duration-200 cursor-pointer"
-                >
-                  <span className="text-lg">{showConfirmPassword ? "🙈" : "👀"}</span>
-                </button>
-              </div>
+          {/* Confirm Password Field - Show for all user types */}
+          <div>
+            <label htmlFor="confirmPassword" className="flex items-center text-sm font-bold text-gray-700 mb-2">
+              <span className="text-lg mr-2">🔒</span>
+              Confirm Password
+            </label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg transition-all duration-300"
+                placeholder="Confirm your password"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors duration-200 cursor-pointer"
+              >
+                <span className="text-lg">{showConfirmPassword ? "🙈" : "👀"}</span>
+              </button>
             </div>
-          )}
+          </div>
 
           {/* Submit Button */}
           <button
