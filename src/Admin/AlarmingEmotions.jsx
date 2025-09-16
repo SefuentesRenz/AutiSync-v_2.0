@@ -1,15 +1,102 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { AcademicCapIcon, ExclamationTriangleIcon, ClockIcon, UserIcon } from '@heroicons/react/24/solid';
+import { getExpressions, getExpressionsBySeverity, getRecentExpressionsByUserProfile } from '../lib/expressionsApi';
+import { getUserEmotions, getUserEmotionsByIntensityRange } from '../lib/userEmotionApi';
+import { getStudents } from '../lib/studentsApi';
 
 const AlarmingEmotions = () => {
   const navigate = useNavigate();
   const [emotions, setEmotions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [students, setStudents] = useState([]);
 
   // Fetch data from backend API
   useEffect(() => {
-    // Mock data for development with more detailed emotion information
-    const mockEmotions = [
+    const fetchEmotionData = async () => {
+      setLoading(true);
+      try {
+        const [expressionsResult, studentsResult, userEmotionsResult] = await Promise.all([
+          getExpressions(),
+          getStudents(),
+          getUserEmotions()
+        ]);
+
+        if (expressionsResult.error) {
+          console.error('Error fetching expressions:', expressionsResult.error);
+        }
+
+        if (studentsResult.error) {
+          console.error('Error fetching students:', studentsResult.error);
+        } else {
+          setStudents(studentsResult.data || []);
+        }
+
+        if (userEmotionsResult.error) {
+          console.error('Error fetching user emotions:', userEmotionsResult.error);
+        }
+
+        // Process and merge expression data
+        const processedEmotions = [];
+        
+        if (expressionsResult.data) {
+          expressionsResult.data.forEach(expression => {
+            const student = studentsResult.data?.find(s => s.id === expression.user_profiles_id);
+            const studentName = student?.user_profiles?.username || 'Unknown Student';
+            
+            // Determine priority based on severity
+            let priority = 'Low';
+            let type = 'normal';
+            
+            if (expression.severity >= 4) {
+              priority = 'Critical';
+              type = 'alarming';
+            } else if (expression.severity >= 3) {
+              priority = 'High';
+              type = 'alarming';
+            } else if (expression.severity >= 2) {
+              priority = 'Medium';
+              type = 'concerning';
+            }
+
+            processedEmotions.push({
+              studentName,
+              time: new Date(expression.created_at).toLocaleString(),
+              emotion: expression.emotion || 'Unknown',
+              level: expression.severity || 1,
+              emoji: expression.emoji || '😐',
+              priority,
+              type,
+              note: expression.note || '',
+              id: expression.id
+            });
+          });
+        }
+
+        // Add some fallback data if no expressions found
+        if (processedEmotions.length === 0) {
+          processedEmotions.push(
+            { 
+              studentName: "Emma Johnson", 
+              time: "2 hours ago", 
+              emotion: "Angry", 
+              level: 4, 
+              emoji: "😠",
+              priority: "High",
+              type: "alarming",
+              note: "Sample data - no real expressions found"
+            }
+          );
+        }
+
+        setEmotions(processedEmotions);
+      } catch (err) {
+        console.error('Error fetching emotion data:', err);
+        setError('Failed to load emotion data');
+        
+        // Fallback to mock data
+        const mockEmotions = [
       // Alarming emotions
       { 
         studentName: "Emma Johnson", 
@@ -110,9 +197,15 @@ const AlarmingEmotions = () => {
         image: "src/assets/calm.png",
         priority: "Positive",
         type: "positive"
-      },
-    ];
-    setEmotions(mockEmotions);
+      }
+        ];
+        setEmotions(mockEmotions);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmotionData();
   }, []);
 
   const AdminProfile = (e) => {
@@ -301,7 +394,17 @@ const AlarmingEmotions = () => {
             </div>
           </div>
 
-          {emotions.filter(e => e.type === 'alarming').length > 0 ? (
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="text-xl text-gray-600">Loading emotional expressions...</div>
+              <div className="mt-4 text-gray-500">Fetching data from backend APIs</div>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <div className="text-xl text-red-600">{error}</div>
+              <div className="mt-4 text-gray-500">Using fallback data for demonstration</div>
+            </div>
+          ) : emotions.filter(e => e.type === 'alarming').length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {emotions.filter(e => e.type === 'alarming').map((emotion, index) => (
                 <div
@@ -321,30 +424,29 @@ const AlarmingEmotions = () => {
                     <div className="bg-red-600 text-white w-12 h-12 flex items-center justify-center rounded-xl text-sm font-bold">
                       {emotion.studentName.split(' ').map(n => n[0]).join('')}
                     </div>
-                    <div>
-                      <h3 className="font-bold text-gray-800 text-lg">{emotion.studentName}</h3>
-                      <p className="text-sm text-gray-600">Needs Attention</p>
-                    </div>
+                  <div>
+                    <h3 className="font-bold text-gray-800 text-lg">{emotion.studentName}</h3>
+                    <p className="text-sm text-gray-600">Needs Attention</p>
                   </div>
+                </div>
 
-                  {/* Emotion Display */}
-                  <div className="bg-white rounded-xl p-4 mb-4 shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <img 
-                          src={emotion.image} 
-                          alt={emotion.emotion}
-                          className="w-10 h-10 object-contain"
-                        />
-                        <div>
-                          <p className="font-bold text-gray-800">{emotion.emotion}</p>
-                          <p className="text-sm text-gray-600">Level {emotion.level}/5</p>
-                        </div>
+                {/* Emotion Display */}
+                <div className="bg-white rounded-xl p-4 mb-4 shadow-sm border border-gray-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 flex items-center justify-center text-2xl">
+                        {emotion.emoji || getLevelEmoji(emotion.level, emotion.emotion)}
                       </div>
-                      <div className="text-3xl">{getLevelEmoji(emotion.level, emotion.emotion)}</div>
+                      <div>
+                        <p className="font-bold text-gray-800">{emotion.emotion}</p>
+                        <p className="text-sm text-gray-600">Level {emotion.level}/5</p>
+                        {emotion.note && (
+                          <p className="text-xs text-gray-500 mt-1">{emotion.note}</p>
+                        )}
+                      </div>
                     </div>
-                    
-                    {/* Level Indicator */}
+                    <div className="text-3xl">{emotion.emoji || getLevelEmoji(emotion.level, emotion.emotion)}</div>
+                  </div>                    {/* Level Indicator */}
                     <div className="w-full bg-gray-200 rounded-full h-3 mb-3">
                       <div
                         className={`${getLevelColor(emotion.level, emotion.type)} h-3 rounded-full transition-all duration-500`}

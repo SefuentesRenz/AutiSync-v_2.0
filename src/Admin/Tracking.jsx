@@ -1,130 +1,286 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CheckCircleIcon, AcademicCapIcon, UsersIcon, StarIcon, FireIcon } from '@heroicons/react/24/solid';
 import { useNavigate } from 'react-router-dom';
+import { getAllStudentsProgress } from '../lib/progressApi';
+import { getActivities } from '../lib/activitiesApi';
+import { getStudents } from '../lib/studentsApi';
 
 const Tracking = () => {
   const [selectedTimeRange, setSelectedTimeRange] = useState('30');
-  
-  const metrics = [
-    {
-      title: 'TOTAL ACTIVITIES',
-      value: 20,
-      change: 'System total',
-      icon: <AcademicCapIcon className="w-8 h-8 text-blue-600" />,
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-600'
-    },
-    {
-      title: 'COMPLETION RATE',
-      value: '85%',
-      change: '+8% from last month',
-      icon: <div className="w-8 h-8 text-green-600 text-2xl">🎯</div>,
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-600'
-    },
-    {
-      title: 'AVERAGE ACCURACY',
-      value: '82.5%',
-      change: '+5.2% from last month',
-      icon: <div className="w-8 h-8 text-purple-600 text-2xl">🎯</div>,
-      bgColor: 'bg-purple-50',
-      textColor: 'text-purple-600'
-    },
-    {
-      title: 'AVERAGE SCORE',
-      value: '87.3',
-      change: '+4.1 from last month',
-      icon: <StarIcon className="w-8 h-8 text-yellow-600" />,
-      bgColor: 'bg-yellow-50',
-      textColor: 'text-yellow-600'
-    },
-    {
-      title: 'ACTIVE STUDENTS',
-      value: 24,
-      change: '+3 new students',
-      icon: <UsersIcon className="w-8 h-8 text-indigo-600" />,
-      bgColor: 'bg-indigo-50',
-      textColor: 'text-indigo-600'
-    },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [progressData, setProgressData] = useState(null);
+  const [activities, setActivities] = useState([]);
+  const [students, setStudents] = useState([]);
 
-  // Accuracy rates by category (based on actual system: 5 academic + 1 daily life category)
-  const accuracyRates = [
-    { category: 'Colors', accuracy: 85, completed: '18/24', icon: '🎨', color: 'bg-purple-500' },
-    { category: 'Shapes', accuracy: 78, completed: '20/24', icon: '🔷', color: 'bg-blue-500' },
-    { category: 'Numbers', accuracy: 82, completed: '19/24', icon: '🔢', color: 'bg-green-500' },
-    { category: 'Letters', accuracy: 74, completed: '17/24', icon: '�', color: 'bg-indigo-500' },
-    { category: 'Patterns', accuracy: 69, completed: '16/24', icon: '🧩', color: 'bg-pink-500' },
-    { category: 'Daily Life', accuracy: 77, completed: '22/24', icon: '🏠', color: 'bg-orange-500' }
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [progressResult, activitiesResult, studentsResult] = await Promise.all([
+          getAllStudentsProgress(),
+          getActivities(),
+          getStudents()
+        ]);
 
-  // Difficulty level progression (across all 20 activities: 15 academic + 5 daily life)
-  const difficultyProgression = [
-    { level: 'Easy', progress: 85, completed: '20/24', icon: '🌱', color: 'bg-green-500', bgColor: 'bg-green-50' },
-    { level: 'Medium', progress: 72, completed: '17/24', icon: '🔥', color: 'bg-orange-500', bgColor: 'bg-orange-50' },
-    { level: 'Hard', progress: 63, completed: '15/24', icon: '💎', color: 'bg-red-500', bgColor: 'bg-red-50' }
-  ];
+        if (progressResult.error) {
+          console.error('Error fetching progress:', progressResult.error);
+        } else {
+          setProgressData(progressResult.data);
+        }
 
-  
+        if (activitiesResult.error) {
+          console.error('Error fetching activities:', activitiesResult.error);
+        } else {
+          setActivities(activitiesResult.data || []);
+        }
+
+        if (studentsResult.error) {
+          console.error('Error fetching students:', studentsResult.error);
+        } else {
+          setStudents(studentsResult.data || []);
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Failed to load tracking data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Calculate metrics from real data
+  const calculateMetrics = () => {
+    if (!progressData || !activities.length || !students.length) {
+      // Return default metrics if no data
+      return [
+        {
+          title: 'TOTAL ACTIVITIES',
+          value: 0,
+          change: 'Loading...',
+          icon: <AcademicCapIcon className="w-8 h-8 text-blue-600" />,
+          bgColor: 'bg-blue-50',
+          textColor: 'text-blue-600'
+        },
+        {
+          title: 'COMPLETION RATE',
+          value: '0%',
+          change: 'No data yet',
+          icon: <div className="w-8 h-8 text-green-600 text-2xl">🎯</div>,
+          bgColor: 'bg-green-50',
+          textColor: 'text-green-600'
+        },
+        {
+          title: 'AVERAGE SCORE',
+          value: '0',
+          change: 'No scores yet',
+          icon: <StarIcon className="w-8 h-8 text-yellow-600" />,
+          bgColor: 'bg-yellow-50',
+          textColor: 'text-yellow-600'
+        },
+        {
+          title: 'ACTIVE STUDENTS',
+          value: 0,
+          change: 'Loading...',
+          icon: <UsersIcon className="w-8 h-8 text-indigo-600" />,
+          bgColor: 'bg-indigo-50',
+          textColor: 'text-indigo-600'
+        }
+      ];
+    }
+
+    const totalActivities = activities.length;
+    const activeStudents = students.length;
+    
+    let totalSessions = 0;
+    let totalScore = 0;
+    let scoresCount = 0;
+    let completedActivities = 0;
+
+    progressData.forEach(student => {
+      if (student.stats) {
+        totalSessions += student.stats.total_sessions || 0;
+        if (student.stats.average_score !== null) {
+          totalScore += student.stats.average_score;
+          scoresCount++;
+        }
+        completedActivities += student.stats.activities_completed || 0;
+      }
+    });
+
+    const averageScore = scoresCount > 0 ? (totalScore / scoresCount).toFixed(1) : '0';
+    const completionRate = activeStudents > 0 && totalActivities > 0 
+      ? Math.round((completedActivities / (activeStudents * totalActivities)) * 100)
+      : 0;
+
+    return [
+      {
+        title: 'TOTAL ACTIVITIES',
+        value: totalActivities,
+        change: 'System total',
+        icon: <AcademicCapIcon className="w-8 h-8 text-blue-600" />,
+        bgColor: 'bg-blue-50',
+        textColor: 'text-blue-600'
+      },
+      {
+        title: 'COMPLETION RATE',
+        value: `${completionRate}%`,
+        change: `${totalSessions} total sessions`,
+        icon: <div className="w-8 h-8 text-green-600 text-2xl">🎯</div>,
+        bgColor: 'bg-green-50',
+        textColor: 'text-green-600'
+      },
+      {
+        title: 'AVERAGE SCORE',
+        value: averageScore,
+        change: scoresCount > 0 ? `Based on ${scoresCount} students` : 'No scores yet',
+        icon: <StarIcon className="w-8 h-8 text-yellow-600" />,
+        bgColor: 'bg-yellow-50',
+        textColor: 'text-yellow-600'
+      },
+      {
+        title: 'ACTIVE STUDENTS',
+        value: activeStudents,
+        change: `${progressData ? progressData.length : 0} with progress`,
+        icon: <UsersIcon className="w-8 h-8 text-indigo-600" />,
+        bgColor: 'bg-indigo-50',
+        textColor: 'text-indigo-600'
+      },
+    ];
+  };
+
+  const calculatedMetrics = calculateMetrics();
+
+  // Calculate category progress from real data
+  const calculateCategoryProgress = () => {
+    if (!progressData || !activities.length) return [];
+    
+    const categoryStats = {};
+    
+    // Initialize categories
+    activities.forEach(activity => {
+      const category = activity.category || 'Other';
+      if (!categoryStats[category]) {
+        categoryStats[category] = {
+          total: 0,
+          completed: 0,
+          sessions: 0,
+          totalScore: 0,
+          scoreCount: 0
+        };
+      }
+      categoryStats[category].total++;
+    });
+
+    // Calculate completion stats
+    progressData.forEach(student => {
+      if (student.recent_activities) {
+        student.recent_activities.forEach(activity => {
+          const category = activity.Activities?.category || 'Other';
+          if (categoryStats[category]) {
+            categoryStats[category].sessions++;
+            if (activity.score !== null) {
+              categoryStats[category].totalScore += activity.score;
+              categoryStats[category].scoreCount++;
+            }
+          }
+        });
+      }
+    });
+
+    return Object.entries(categoryStats).map(([name, stats]) => ({
+      category: name,
+      accuracy: stats.scoreCount > 0 ? Math.round(stats.totalScore / stats.scoreCount) : 0,
+      completed: `${stats.sessions}/${stats.total * students.length}`,
+      icon: name.toLowerCase().includes('color') ? '🎨' : 
+            name.toLowerCase().includes('shape') ? '🔷' :
+            name.toLowerCase().includes('number') ? '🔢' :
+            name.toLowerCase().includes('letter') ? '📝' :
+            name.toLowerCase().includes('pattern') ? '🧩' :
+            name.toLowerCase().includes('daily') ? '🏠' : '📚',
+      color: `bg-${['purple', 'blue', 'green', 'indigo', 'pink', 'orange'][Math.floor(Math.random() * 6)]}-500`
+    }));
+  };
+
+  const accuracyRates = loading ? [] : calculateCategoryProgress();
+
+  // Calculate difficulty progression from real data
+  const calculateDifficultyProgression = () => {
+    if (!progressData || !activities.length) return [];
+    
+    const difficultyStats = {
+      'Easy': { total: 0, completed: 0 },
+      'Medium': { total: 0, completed: 0 },
+      'Hard': { total: 0, completed: 0 }
+    };
+
+    activities.forEach(activity => {
+      const difficulty = activity.difficulty || 'Easy';
+      if (difficultyStats[difficulty]) {
+        difficultyStats[difficulty].total++;
+      }
+    });
+
+    progressData.forEach(student => {
+      if (student.recent_activities) {
+        student.recent_activities.forEach(activity => {
+          const difficulty = activity.Activities?.difficulty || 'Easy';
+          if (difficultyStats[difficulty]) {
+            difficultyStats[difficulty].completed++;
+          }
+        });
+      }
+    });
+
+    return Object.entries(difficultyStats).map(([level, stats]) => ({
+      level,
+      progress: stats.total > 0 ? Math.round((stats.completed / (stats.total * students.length)) * 100) : 0,
+      completed: `${stats.completed}/${stats.total * students.length}`,
+      icon: level === 'Easy' ? '🌱' : level === 'Medium' ? '🔥' : '💎',
+      color: level === 'Easy' ? 'bg-green-500' : level === 'Medium' ? 'bg-orange-500' : 'bg-red-500',
+      bgColor: level === 'Easy' ? 'bg-green-50' : level === 'Medium' ? 'bg-orange-50' : 'bg-red-50'
+    }));
+  };
+
+  const difficultyProgression = loading ? [] : calculateDifficultyProgression();
+
+  // Get recent activities from real data
+  const getRecentActivities = () => {
+    if (!progressData) return [];
+    
+    const recentActivities = [];
+    progressData.forEach(student => {
+      if (student.recent_activities && student.recent_activities.length > 0) {
+        student.recent_activities.slice(0, 2).forEach(activity => {
+          recentActivities.push({
+            title: activity.Activities?.title || 'Unknown Activity',
+            user: student.student?.user_profiles?.username || 'Unknown Student',
+            category: activity.Activities?.category || 'Other',
+            time: new Date(activity.completed_at).toLocaleString(),
+            difficulty: activity.Activities?.difficulty || 'Easy',
+            score: activity.score ? `${activity.score}%` : 'No score',
+            difficultyColor: activity.Activities?.difficulty === 'Easy' ? 'bg-green-100 text-green-800' :
+                            activity.Activities?.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800',
+            avatar: (student.student?.user_profiles?.username || 'U').substring(0, 2).toUpperCase()
+          });
+        });
+      }
+    });
+    
+    return recentActivities.slice(0, 6); // Show latest 6 activities
+  };
+
+  const recentActivitiesData = loading ? [] : getRecentActivities();
 
   const categories = [
     { name: 'Academic Skills', percent: 73, count: '15/20', icon: '📚', color: 'bg-blue-500' },
     { name: 'Daily Life Skills', percent: 77, count: '5/5', icon: '🏠', color: 'bg-orange-500' }
   ];
 
-  const recentActivities = [
-    {
-      title: 'Numbers - Easy Level',
-      user: 'Emma Johnson',
-      category: 'Academic',
-      time: '2 hours ago',
-      difficulty: 'Easy',
-      score: '95%',
-      difficultyColor: 'bg-green-100 text-green-800',
-      avatar: 'EJ'
-    },
-    {
-      title: 'Daily Life Skills Activity',
-      user: 'Michael Chen',
-      category: 'Daily Life',
-      time: '4 hours ago',
-      difficulty: 'Medium',
-      score: '87%',
-      difficultyColor: 'bg-yellow-100 text-yellow-800',
-      avatar: 'MC'
-    },
-    {
-      title: 'Shapes - Hard Level',
-      user: 'Sarah Williams',
-      category: 'Academic',
-      time: '6 hours ago',
-      difficulty: 'Hard',
-      score: '78%',
-      difficultyColor: 'bg-red-100 text-red-800',
-      avatar: 'SW'
-    },
-    {
-      title: 'Color Recognition - Medium',
-      user: 'Alex Rodriguez',
-      category: 'Academic',
-      time: '1 day ago',
-      difficulty: 'Medium',
-      score: '92%',
-      difficultyColor: 'bg-yellow-100 text-yellow-800',
-      avatar: 'AR'
-    },
-    {
-      title: 'Matching Type - Easy',
-      user: 'Lisa Park',
-      category: 'Academic',
-      time: '1 day ago',
-      difficulty: 'Easy',
-      score: '88%',
-      difficultyColor: 'bg-green-100 text-green-800',
-      avatar: 'LP'
-    }
-  ];
-
+  const navigate = useNavigate();
   const milestones = [
     {
       title: 'First Steps',
@@ -240,8 +396,6 @@ const Tracking = () => {
     }
   ];
 
-  const navigate = useNavigate();
-
   const AdminProfile = (e) => {
     e.preventDefault();
     navigate("/adminprofile");
@@ -322,16 +476,26 @@ const Tracking = () => {
 
           {/* Metrics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          {metrics.map((metric, index) => (
-            <div key={index} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
-              <div className={`${metric.bgColor} rounded-xl p-3 w-fit mb-4`}>
-                {metric.icon}
-              </div>
-              <p className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-1">{metric.title}</p>
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">{metric.value}</h2>
-              <p className="text-sm text-green-600 font-medium">{metric.change}</p>
+          {loading ? (
+            <div className="col-span-full text-center py-8">
+              <div className="text-lg text-gray-600">Loading metrics...</div>
             </div>
-          ))}
+          ) : error ? (
+            <div className="col-span-full text-center py-8">
+              <div className="text-lg text-red-600">{error}</div>
+            </div>
+          ) : (
+            calculatedMetrics.map((metric, index) => (
+              <div key={index} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
+                <div className={`${metric.bgColor} rounded-xl p-3 w-fit mb-4`}>
+                  {metric.icon}
+                </div>
+                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-1">{metric.title}</p>
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">{metric.value}</h2>
+                <p className="text-sm text-green-600 font-medium">{metric.change}</p>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Main Content Grid */}
@@ -378,7 +542,12 @@ const Tracking = () => {
               </div>
             </div>
             <div className="space-y-4">
-              {recentActivities.map((activity, i) => (
+              {loading ? (
+                <div className="text-center py-4 text-gray-600">Loading recent activities...</div>
+              ) : recentActivitiesData.length === 0 ? (
+                <div className="text-center py-4 text-gray-600">No recent activities found</div>
+              ) : (
+                recentActivitiesData.map((activity, i) => (
                 <div
                   key={i}
                   className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 hover:shadow-md transition-all duration-200"
@@ -403,7 +572,8 @@ const Tracking = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+              ))
+              )}
             </div>
           </div>
         </div>
