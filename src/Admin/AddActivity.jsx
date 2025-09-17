@@ -277,33 +277,7 @@ const AddActivity = () => {
                   <h3 className="text-xl font-bold text-gray-800">Basic Settings</h3>
                 </div>
                 <div className="space-y-6">
-                  {/* Activity Title and Description */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Activity Title</label>
-                      <input
-                        type="text"
-                        value={activityTitle}
-                        onChange={(e) => setActivityTitle(e.target.value)}
-                        placeholder="Enter activity title"
-                        className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 bg-white shadow-sm"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Activity Description</label>
-                      <input
-                        type="text"
-                        value={activityDescription}
-                        onChange={(e) => setActivityDescription(e.target.value)}
-                        placeholder="Brief description of the activity"
-                        className="w-full p-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 bg-white shadow-sm"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Category */}
+                  {/* Activity Type - Full width */}
                   <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
                       <select
@@ -313,11 +287,8 @@ const AddActivity = () => {
                         required
                       >
                         <option value="">Select a category</option>
-                        {categories.map(cat => (
-                          <option key={cat.id} value={cat.category_name}>
-                            {cat.icon} {cat.category_name}
-                          </option>
-                        ))}
+                        <option value="Academic">📚 Academic Skills</option>
+                        <option value="Social/Daily Life">👥 Social & Daily Life Skills</option>
                       </select>
                     </div>
                  
@@ -350,11 +321,9 @@ const AddActivity = () => {
                         required
                       >
                         <option value="">Select difficulty level</option>
-                        {difficulties.map(diff => (
-                          <option key={diff.id} value={diff.difficulty}>
-                            {diff.difficulty === 'Easy' ? '🟢' : diff.difficulty === 'Medium' ? '🟡' : '🔴'} {diff.difficulty}
-                          </option>
-                        ))}
+                        <option value="Easy">🟢 Easy</option>
+                        <option value="Medium">🟡 Medium</option>
+                        <option value="Hard">🔴 Hard</option>
                       </select>
                     </div>
                   </div>
@@ -550,11 +519,10 @@ const AddActivity = () => {
                   </button>
                   <button
                     type="submit"
-                    disabled={loading}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-8 py-3 rounded-xl font-semibold flex items-center space-x-2 shadow-lg transition-all duration-200 transform hover:scale-105 disabled:cursor-not-allowed disabled:transform-none"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold flex items-center space-x-2 shadow-lg transition-all duration-200 transform hover:scale-105"
                   >
                     <CheckCircleIcon className="w-5 h-5" />
-                    <span>{loading ? 'Creating...' : 'Create Activity'}</span>
+                    <span>Create Activity</span>
                   </button>
                 </div>
               </div>
