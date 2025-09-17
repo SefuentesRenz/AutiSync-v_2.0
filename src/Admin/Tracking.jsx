@@ -73,6 +73,14 @@ const Tracking = () => {
           textColor: 'text-green-600'
         },
         {
+          title: 'AVERAGE ACCURACY',
+          value: '0%',
+          change: 'No data yet',
+          icon: <div className="w-8 h-8 text-purple-600 text-2xl">🎯</div>,
+          bgColor: 'bg-purple-50',
+          textColor: 'text-purple-600'
+        },
+        {
           title: 'AVERAGE SCORE',
           value: '0',
           change: 'No scores yet',
@@ -131,6 +139,14 @@ const Tracking = () => {
         icon: <div className="w-8 h-8 text-green-600 text-2xl">🎯</div>,
         bgColor: 'bg-green-50',
         textColor: 'text-green-600'
+      },
+      {
+        title: 'AVERAGE ACCURACY',
+        value: '82.5%',
+        change: '+5.2% from last month',
+        icon: <div className="w-8 h-8 text-purple-600 text-2xl">🎯</div>,
+        bgColor: 'bg-purple-50',
+        textColor: 'text-purple-600'
       },
       {
         title: 'AVERAGE SCORE',
@@ -501,7 +517,7 @@ const Tracking = () => {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
           {/* Accuracy Rates by Category */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="bg-red rounded-2xl p-6 shadow-lg border border-gray-100">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-800">Accuracy Rates by Category</h3>
               <div className="bg-purple-100 p-2 rounded-lg">
