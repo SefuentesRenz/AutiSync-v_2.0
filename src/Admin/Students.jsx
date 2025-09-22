@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AcademicCapIcon, MagnifyingGlassIcon, FunnelIcon, UsersIcon, CheckCircleIcon, UserIcon, ArrowLeftIcon, StarIcon, FireIcon } from '@heroicons/react/24/solid';
-import { getStudents } from '../lib/studentsApi';
+import { supabase } from '../lib/supabase';
 
 const Students = () => {
   const navigate = useNavigate();
@@ -24,33 +24,66 @@ const Students = () => {
       setLoading(true);
       setError('');
       
-      const { data, error: studentsError } = await getStudents();
+      console.log('Fetching students from database...');
+      
+      // Alternative approach: Get students and profiles separately to avoid join issues
+      const { data: studentsData, error: studentsError } = await supabase
+        .from('students')
+        .select('*');
       
       if (studentsError) {
         console.error('Error fetching students:', studentsError);
-        setError('Failed to load students');
-        // Use fallback data if API fails
+        setError('Failed to load students: ' + studentsError.message);
         setStudents(getFallbackStudents());
-      } else {
-        // Transform the data to match the expected format
-        const transformedStudents = data?.map((student, index) => ({
+        return;
+      }
+      
+      if (!studentsData || studentsData.length === 0) {
+        console.log('No students found in database, using fallback data');
+        setStudents(getFallbackStudents());
+        return;
+      }
+      
+      // Get profile data for each student
+      const profileIds = studentsData.map(student => student.profile_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .in('id', profileIds);
+      
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        // Continue with student data but without profile details
+      }
+      
+      console.log('Students data:', studentsData);
+      console.log('Profiles data:', profilesData);
+      
+      // Combine student and profile data
+      const transformedStudents = studentsData.map((student, index) => {
+        const profile = profilesData?.find(p => p.id === student.profile_id);
+        return {
           id: student.id,
-          name: student.user_profiles?.full_name || 'Unknown Student',
-          age: student.user_profiles?.age || 0,
-          address: student.user_profiles?.address || 'No address provided',
-          gender: student.user_profiles?.gender || 'Not specified',
+          name: profile?.full_name || 'Unknown Student',
+          age: profile?.age || 0,
+          address: profile?.address || 'No address provided',
+          gender: profile?.gender || 'Not specified',
+          email: profile?.email || '',
+          phone: profile?.phone_number || '',
           joinDate: new Date(student.created_at).toLocaleDateString(),
           status: 'Active',
           completedActivities: Math.floor(Math.random() * 30) + 5,
           averageScore: Math.floor(Math.random() * 20) + 80,
           lastActive: '2 hours ago',
           profileColor: ['bg-pink-500', 'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-yellow-500'][index % 5]
-        })) || [];
-        setStudents(transformedStudents);
-      }
+        };
+      });
+      
+      console.log('Transformed students:', transformedStudents);
+      setStudents(transformedStudents);
     } catch (err) {
       console.error('Error in fetchStudents:', err);
-      setError('Failed to load students');
+      setError('Failed to load students: ' + err.message);
       setStudents(getFallbackStudents());
     } finally {
       setLoading(false);

@@ -33,36 +33,53 @@ export default function AdminProfile() {
       if (!user) return;
       
       setLoading(true);
+      setError(null);
+      
       try {
-        // First get user profile
+        console.log('Fetching profile for user:', user.id);
+        
+        // Try to get user profile first
         const { data: profileData, error: profileError } = await getUserProfileById(user.id);
         
-        if (profileError) {
+        if (profileError && profileError.code !== 'PGRST116') { // PGRST116 = no rows returned
           console.error('Error fetching user profile:', profileError);
           setError('Failed to load profile data');
-        } else if (profileData) {
-          const formattedProfile = {
-            fullName: profileData.full_name || user.user_metadata?.full_name || "",
-            email: profileData.email || user.email || "",
-            phone: profileData.phone || "",
-            birthday: profileData.age ? `Age: ${profileData.age}` : "",
-            address: profileData.address || "",
-            gender: profileData.gender || "",
-            username: profileData.username || user.user_metadata?.username || "",
-            profileImage: "/src/assets/kidprofile1.jpg"
-          };
-          setUserInfo(formattedProfile);
-          setOriginalUserInfo(formattedProfile);
+          setLoading(false);
+          return;
         }
 
-        // Also check if user is admin
-        const { data: adminData, error: adminError } = await getAdminByUserId(user.id);
-        if (adminError) {
-          console.log('User may not be admin, continuing with regular profile');
+        // If profile exists, use it; otherwise use auth user data
+        const formattedProfile = {
+          fullName: profileData?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || "Admin User",
+          email: profileData?.email || user.email || "",
+          phone: profileData?.phone_number || profileData?.phone || "",
+          birthday: profileData?.age ? `Age: ${profileData.age}` : "",
+          address: profileData?.address || "",
+          gender: profileData?.gender || "",
+          username: profileData?.username || user.user_metadata?.username || user.email?.split('@')[0] || "",
+          profileImage: "/src/assets/kidprofile1.jpg"
+        };
+        
+        console.log('Profile data loaded:', formattedProfile);
+        setUserInfo(formattedProfile);
+        setOriginalUserInfo(formattedProfile);
+
+        // Check if user is admin (optional verification)
+        const { data: adminData, error: adminError } = await supabase
+          .from('admins')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+          
+        if (adminError && adminError.code !== 'PGRST116') {
+          console.log('Admin verification failed, but continuing with profile');
+        } else if (adminData) {
+          console.log('Admin verified:', adminData);
         }
+        
       } catch (err) {
         console.error('Error fetching admin profile:', err);
-        setError('Failed to load profile data');
+        setError('Failed to load profile data: ' + err.message);
       } finally {
         setLoading(false);
       }

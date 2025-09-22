@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AcademicCapIcon, PlusIcon, PhotoIcon, TrashIcon, CheckCircleIcon, VideoCameraIcon } from '@heroicons/react/24/solid';
+import { supabase } from '../lib/supabase';
 import { createActivity } from '../lib/activitiesApi';
 import { getCategories, getCategoryByName } from '../lib/categoriesApi';
 import { getDifficulties, getDifficultyByName } from '../lib/difficultiesApi';
@@ -38,13 +39,103 @@ const AddActivity = () => {
 
   const fetchDropdownData = async () => {
     try {
-      const { data: categoriesData } = await getCategories();
-      const { data: difficultiesData } = await getDifficulties();
+      console.log('Fetching categories and difficulties...');
       
-      setCategories(categoriesData || []);
-      setDifficulties(difficultiesData || []);
+      // Fetch categories directly from Supabase
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('Categories')
+        .select('*')
+        .order('category_name', { ascending: true });
+      
+      // Fetch difficulties directly from Supabase
+      const { data: difficultiesData, error: difficultiesError } = await supabase
+        .from('Difficulties')
+        .select('*')
+        .order('difficulty', { ascending: true });
+      
+      if (categoriesError) {
+        console.error('Error fetching categories:', categoriesError);
+        // Create default categories if none exist
+        await createDefaultCategories();
+      } else {
+        console.log('Categories fetched:', categoriesData);
+        setCategories(categoriesData || []);
+      }
+      
+      if (difficultiesError) {
+        console.error('Error fetching difficulties:', difficultiesError);
+        // Create default difficulties if none exist
+        await createDefaultDifficulties();
+      } else {
+        console.log('Difficulties fetched:', difficultiesData);
+        setDifficulties(difficultiesData || []);
+      }
     } catch (err) {
       console.error('Error fetching dropdown data:', err);
+      setError('Failed to load categories and difficulties');
+    }
+  };
+
+  const createDefaultCategories = async () => {
+    try {
+      const defaultCategories = [
+        { category_name: 'Academic Skills', icon: '🎓', description: 'Academic learning activities' },
+        { category_name: 'Social & Daily Life Skills', icon: '🏠', description: 'Social and daily living skills' }
+      ];
+      
+      for (const category of defaultCategories) {
+        const { data, error } = await supabase
+          .from('Categories')
+          .insert([category])
+          .select();
+        
+        if (error) {
+          console.error('Error creating default category:', error);
+        } else {
+          console.log('Created default category:', data);
+        }
+      }
+      
+      // Refresh categories
+      const { data: newCategories } = await supabase
+        .from('Categories')
+        .select('*')
+        .order('category_name', { ascending: true });
+      setCategories(newCategories || []);
+    } catch (err) {
+      console.error('Error creating default categories:', err);
+    }
+  };
+
+  const createDefaultDifficulties = async () => {
+    try {
+      const defaultDifficulties = [
+        { difficulty: 'Easy' },
+        { difficulty: 'Medium' },
+        { difficulty: 'Hard' }
+      ];
+      
+      for (const diff of defaultDifficulties) {
+        const { data, error } = await supabase
+          .from('Difficulties')
+          .insert([diff])
+          .select();
+        
+        if (error) {
+          console.error('Error creating default difficulty:', error);
+        } else {
+          console.log('Created default difficulty:', data);
+        }
+      }
+      
+      // Refresh difficulties
+      const { data: newDifficulties } = await supabase
+        .from('Difficulties')
+        .select('*')
+        .order('difficulty', { ascending: true });
+      setDifficulties(newDifficulties || []);
+    } catch (err) {
+      console.error('Error creating default difficulties:', err);
     }
   };
 
