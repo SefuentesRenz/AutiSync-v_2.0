@@ -40,6 +40,109 @@ const HomePage = () => {
     return date.toLocaleDateString();
   };
 
+  // Function to create an alert for high-intensity negative emotions
+  const createAlert = async (studentId, emotion, intensity, expressionId, note) => {
+    try {
+      // Get student's parent (assuming parent_id is in students table)
+      const { data: studentWithParent, error: parentError } = await supabase
+        .from('students')
+        .select('parent_id')
+        .eq('id', studentId)
+        .single();
+
+      // Get all admins to notify them
+      const { data: admins, error: adminError } = await supabase
+        .from('admins')
+        .select('id')
+        .limit(1); // Get first admin or adjust logic as needed
+
+      if (parentError) {
+        console.error('Error fetching parent:', parentError);
+      }
+
+      if (adminError) {
+        console.error('Error fetching admin:', adminError);
+      }
+
+      // Create alert with available IDs
+      const alertData = {
+        student_id: studentId,
+        profile_id: userProfile?.id,
+        emotion_id: expressionId, // Using expression ID as emotion reference
+        intensity: intensity,
+        status: 'priority',
+        created_at: new Date().toISOString(),
+        ...(studentWithParent?.parent_id && { parent_id: studentWithParent.parent_id }),
+        ...(admins && admins.length > 0 && { admin_id: admins[0].id })
+      };
+
+      const { data: alertResult, error: alertError } = await supabase
+        .from('alert')
+        .insert([alertData])
+        .select();
+
+      if (alertError) {
+        console.error('Error creating alert:', alertError);
+      } else {
+        console.log('Alert created successfully:', alertResult);
+        
+        // Create notification for admin and parent
+        await createNotifications(studentId, emotion, intensity, note, studentWithParent?.parent_id, admins?.[0]?.id);
+      }
+    } catch (error) {
+      console.error('Error in createAlert:', error);
+    }
+  };
+
+  // Function to create notifications for admin and parent
+  const createNotifications = async (studentId, emotion, intensity, note, parentId, adminId) => {
+    try {
+      const studentName = userProfile?.full_name || userProfile?.username || 'Student';
+      const message = `🚨 HIGH PRIORITY ALERT: ${studentName} submitted "${emotion}" with intensity level ${intensity}${note ? `. Note: "${note}"` : ''}. Please check on the student.`;
+
+      const notifications = [];
+
+      // Create notification for parent if exists
+      if (parentId) {
+        notifications.push({
+          profile_id: userProfile?.id,
+          message: message,
+          type: 'alert',
+          priority: 'high',
+          is_read: false,
+          created_at: new Date().toISOString()
+        });
+      }
+
+      // Create notification for admin if exists
+      if (adminId) {
+        notifications.push({
+          profile_id: userProfile?.id,
+          message: message,
+          type: 'alert',
+          priority: 'high',
+          is_read: false,
+          created_at: new Date().toISOString()
+        });
+      }
+
+      if (notifications.length > 0) {
+        const { data: notificationResult, error: notificationError } = await supabase
+          .from('notifications')
+          .insert(notifications)
+          .select();
+
+        if (notificationError) {
+          console.error('Error creating notifications:', notificationError);
+        } else {
+          console.log('Notifications created successfully:', notificationResult);
+        }
+      }
+    } catch (error) {
+      console.error('Error in createNotifications:', error);
+    }
+  };
+
   // Fetch user profile data
   useEffect(() => {
     if (user) {
@@ -182,6 +285,12 @@ const HomePage = () => {
         alert(`Error saving expression: ${expressionError.message || expressionError.code || 'Unknown error'}`);
       } else {
         console.log('Expression saved successfully:', expressionData);
+        
+        // Check if this is a high-intensity negative emotion that needs an alert
+        if (isNegativeHigh) {
+          await createAlert(studentData.id, selectedEmotion, selectedLevel, expressionData[0].id, note);
+        }
+        
         // Add to local state for immediate display
         setExpressions((prev) => [newExpression, ...prev]);
         // Refresh expressions from database
