@@ -165,51 +165,109 @@ const ParentDashboard = () => {
       setLoading(true);
       setError('');
       
-      // Fetch children whose parent_email matches the logged-in parent's email
-      const { data, error } = await supabase
+      console.log('Fetching children for parent auth ID:', user.id);
+      
+      // First, get the parent's profile to find their integer user_id
+      let parentProfile;
+      const { data: parentProfileData, error: parentError } = await supabase
         .from('user_profiles')
-        .select('*')
-        .eq('parent_email', user.email)
-        .eq('user_type', 'student');
+        .select('user_id')
+        .eq('user_id', user.id)
+        .single();
+        
+      if (parentError) {
+        console.error('Error fetching parent profile:', parentError);
+        // Try to find by email as fallback
+        const { data: parentByEmail, error: emailError } = await supabase
+          .from('user_profiles')
+          .select('user_id')
+          .eq('email', user.email)
+          .single();
+          
+        if (emailError) {
+          console.log('Parent profile not found - showing demo data...');
+          setChildrenData(mockChildrenData);
+          setSelectedChild(mockChildrenData[0]);
+          setError('');
+          setLoading(false);
+          return;
+        }
+        
+        parentProfile = parentByEmail;
+      } else {
+        parentProfile = parentProfileData;
+      }
+      
+      console.log('Parent profile found, user_id:', parentProfile.user_id);
+      
+      // Fetch children linked to this parent through the parent_child_relations table
+      const { data: relations, error: relationsError } = await supabase
+        .from('parent_child_relations')
+        .select(`
+          id,
+          child_user_id,
+          child_email,
+          linked_at,
+          user_profiles!parent_child_relations_child_user_id_fkey (
+            id,
+            user_id,
+            username,
+            first_name,
+            last_name,
+            email,
+            age,
+            grade,
+            gender
+          )
+        `)
+        .eq('parent_user_id', parentProfile.user_id); // Use integer user_id instead of UUID
 
-      if (error) {
-        console.error('Error fetching children:', error);
-        console.error('Error details:', error.message);
+      if (relationsError) {
+        console.error('Error fetching parent-child relations:', relationsError);
+        console.error('Error details:', relationsError.message);
         // Show demo data instead of error for better UX
         console.log('Database error - showing default demo data...');
         setChildrenData(mockChildrenData);
         setSelectedChild(mockChildrenData[0]);
         setError(''); // Clear error since we're showing demo data
-      } else if (data && data.length > 0) {
+      } else if (relations && relations.length > 0) {
         // Transform database data to match expected format
-        const transformedData = data.map(child => ({
-          id: child.id,
-          name: `${child.first_name} ${child.last_name}`.trim() || child.username,
-          username: child.username,
-          age: child.age,
-          email: child.email || 'No email provided',
-          profilePicture: "/src/assets/kidprofile1.jpg",
-          // Add mock activity data for now
-          recentActivities: [
-            {
-              id: 1,
-              title: "Numbers - Easy Level",
-              category: "Academic", 
-              difficulty: "Easy",
-              completedAt: "2 hours ago",
-              score: 95,
-              timeSpent: "15 min",
-              emotion: "happy"
-            }
-          ],
-          // Add mock progress data
-          progress: mockChildrenData[0].progress,
-          emotions: mockChildrenData[0].emotions.map(emotion => ({
-            ...emotion,
-            username: child.username
-          })),
-          badges: mockChildrenData[0].badges
-        }));
+        const transformedData = relations.map(relation => {
+          const child = relation.user_profiles;
+          return {
+            id: child.id,
+            user_id: child.user_id,
+            name: `${child.first_name || ''} ${child.last_name || ''}`.trim() || child.username,
+            username: child.username,
+            age: child.age,
+            email: child.email || 'No email provided',
+            grade: child.grade,
+            gender: child.gender,
+            profilePicture: "/src/assets/kidprofile1.jpg",
+            relation_id: relation.id,
+            linked_at: relation.linked_at,
+            // Add mock activity data for now
+            recentActivities: [
+              {
+                id: 1,
+                title: "Numbers - Easy Level",
+                category: "Academic", 
+                difficulty: "Easy",
+                completedAt: "2 hours ago",
+                score: 95,
+                timeSpent: "15 min",
+                emotion: "happy"
+              }
+            ],
+            // Add mock progress data
+            progress: mockChildrenData[0].progress,
+            emotions: mockChildrenData[0].emotions.map(emotion => ({
+              ...emotion,
+              username: child.username
+            })),
+            badges: mockChildrenData[0].badges
+          };
+        });
         
         setChildrenData(transformedData);
         setSelectedChild(transformedData[0]);
@@ -356,18 +414,27 @@ const ParentDashboard = () => {
                   <UsersIcon className="w-6 h-6 mr-2 text-blue-600" />
                   My Children
                 </h2>
-                <button
-                  onClick={() => {
-                    console.log('Add Child button clicked!');
-                    console.log('Current showAddChild state:', showAddChild);
-                    setShowAddChild(true);
-                    console.log('After setting state to true');
-                  }}
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center space-x-2 cursor-pointer"
-                >
-                  <UserIcon className="w-5 h-5" />
-                  <span>Add Child</span>
-                </button>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowLinkChild(true)}
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center space-x-2 cursor-pointer"
+                  >
+                    <ChevronRightIcon className="w-5 h-5" />
+                    <span>Link Child</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      console.log('Add Child button clicked!');
+                      console.log('Current showAddChild state:', showAddChild);
+                      setShowAddChild(true);
+                      console.log('After setting state to true');
+                    }}
+                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center space-x-2 cursor-pointer"
+                  >
+                    <UserIcon className="w-5 h-5" />
+                    <span>Add Child</span>
+                  </button>
+                </div>
               </div>
               
               {childrenData.length === 0 ? (
@@ -538,6 +605,12 @@ const ParentDashboard = () => {
                 Overview
               </button>
               <button 
+                onClick={() => setCurrentView('children')}
+                className={`text-lg font-semibold cursor-pointer transition-colors ${currentView === 'children' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
+              >
+                Children
+              </button>
+              <button 
                 onClick={() => setCurrentView('emotions')}
                 className={`text-lg font-semibold cursor-pointer transition-colors ${currentView === 'emotions' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
               >
@@ -622,6 +695,110 @@ const ParentDashboard = () => {
         </div>
 
        
+
+        {currentView === 'children' && (
+          <div className="space-y-8">
+            {/* Children Management Header */}
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                  <UsersIcon className="w-6 h-6 mr-2 text-blue-600" />
+                  Manage Children
+                </h2>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowLinkChild(true)}
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center space-x-2 cursor-pointer"
+                  >
+                    <ChevronRightIcon className="w-5 h-5" />
+                    <span>Link Child</span>
+                  </button>
+                  <button
+                    onClick={() => setShowAddChild(true)}
+                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center space-x-2 cursor-pointer"
+                  >
+                    <UserIcon className="w-5 h-5" />
+                    <span>Add Child</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Children List */}
+              {childrenData.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
+                    <UsersIcon className="w-12 h-12 text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-4">No Children Linked Yet</h3>
+                  <p className="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+                    Start by linking an existing child account or creating a new one to begin tracking their learning progress.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-green-100">
+                      <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-green-500 rounded-full">
+                        <ChevronRightIcon className="w-8 h-8 text-white" />
+                      </div>
+                      <h4 className="text-xl font-bold text-green-800 mb-3">Link Existing Account</h4>
+                      <p className="text-green-700 mb-4">Connect your child's existing student account</p>
+                      <button
+                        onClick={() => setShowLinkChild(true)}
+                        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                      >
+                        Link Account
+                      </button>
+                    </div>
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border-2 border-blue-100">
+                      <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-blue-500 rounded-full">
+                        <UserIcon className="w-8 h-8 text-white" />
+                      </div>
+                      <h4 className="text-xl font-bold text-blue-800 mb-3">Create New Account</h4>
+                      <p className="text-blue-700 mb-4">Set up a brand new student account</p>
+                      <button
+                        onClick={() => setShowAddChild(true)}
+                        className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                      >
+                        Create Account
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {childrenData.map((child) => (
+                    <div key={child.id} className="bg-gray-50 rounded-xl p-6 hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <img 
+                            src={child.profilePicture} 
+                            alt={child.name}
+                            className="w-16 h-16 rounded-full object-cover"
+                          />
+                          <div>
+                            <h3 className="text-xl font-bold text-gray-800">{child.name}</h3>
+                            <p className="text-gray-600">{child.email}</p>
+                            <p className="text-sm text-gray-500">Username: {child.username}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-blue-600">
+                            {child.progress?.overallAccuracy || 0}%
+                          </div>
+                          <div className="text-sm text-gray-500">Overall Accuracy</div>
+                          <button
+                            onClick={() => setSelectedChild(child)}
+                            className="mt-2 text-blue-600 hover:text-blue-800 font-semibold"
+                          >
+                            View Details
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {currentView === 'overview' && (
           <div className="space-y-8">

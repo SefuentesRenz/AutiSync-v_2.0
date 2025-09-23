@@ -128,7 +128,8 @@ export default function AdminProfile() {
         username: userInfo.username,
         gender: userInfo.gender,
         address: userInfo.address,
-        phone: userInfo.phone
+        phone_number: userInfo.phone, // Map to correct field name
+        age: userInfo.birthday ? parseInt(userInfo.birthday.replace('Age: ', '')) || null : null
         // Note: email updates need special handling with Supabase auth
       };
 

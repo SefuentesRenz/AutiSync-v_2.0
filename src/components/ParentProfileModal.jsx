@@ -107,6 +107,79 @@ const ParentProfileModal = ({ isOpen, onClose }) => {
         return;
       }
 
+      // Now create or update the profile in user_profiles table
+      // Generate a unique integer user_id since database uses int4
+      const timestamp = Date.now();
+      const randomSuffix = Math.floor(Math.random() * 1000);
+      const integerUserId = parseInt(`${timestamp.toString().slice(-8)}${randomSuffix}`.slice(0, 9));
+      
+      const profileData = {
+        user_id: integerUserId, // Use generated integer instead of UUID
+        username: formData.fullName || user.email?.split('@')[0] || 'parent',
+        first_name: formData.fullName?.split(' ')[0] || '',
+        last_name: formData.fullName?.split(' ').slice(1).join(' ') || '',
+        email: user.email,
+        gender: formData.gender,
+        address: formData.address,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('Creating/updating parent profile:', profileData);
+
+      // Try to find existing profile first by email (since user_id might not match)
+      const { data: existingProfile, error: findError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('email', user.email)
+        .maybeSingle();
+
+      if (findError && findError.code !== 'PGRST116') {
+        console.error('Error checking for existing profile:', findError);
+        // Continue anyway, might be a table access issue
+      }
+
+      if (existingProfile) {
+        // Update existing profile (keep the same user_id)
+        const updateData = {
+          username: formData.fullName || user.email?.split('@')[0] || 'parent',
+          first_name: formData.fullName?.split(' ')[0] || '',
+          last_name: formData.fullName?.split(' ').slice(1).join(' ') || '',
+          email: user.email,
+          gender: formData.gender,
+          address: formData.address,
+          updated_at: new Date().toISOString()
+        };
+        
+        const { error: profileUpdateError } = await supabase
+          .from('user_profiles')
+          .update(updateData)
+          .eq('email', user.email);
+
+        if (profileUpdateError) {
+          console.error('Error updating profile in user_profiles:', profileUpdateError);
+          setError('Profile metadata updated, but failed to update database profile: ' + profileUpdateError.message);
+          setLoading(false);
+          return;
+        }
+        
+        console.log('Parent profile updated successfully');
+      } else {
+        // Create new profile
+        const { error: profileCreateError } = await supabase
+          .from('user_profiles')
+          .insert([profileData]);
+
+        if (profileCreateError) {
+          console.error('Error creating profile in user_profiles:', profileCreateError);
+          setError('Profile metadata updated, but failed to create database profile: ' + profileCreateError.message);
+          setLoading(false);
+          return;
+        }
+        
+        console.log('Parent profile created successfully');
+      }
+
       setSuccess('Profile updated successfully!');
       setIsEditing(false);
       

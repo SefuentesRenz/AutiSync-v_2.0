@@ -21,78 +21,71 @@ const AlarmingEmotions = () => {
   const fetchAlertsAndNotifications = async () => {
     setLoading(true);
     try {
-      // Instead of relying on the alert table, get high-priority alerts directly from Expressions
-      // This ensures we capture all negative emotions level 4-5, even if alert creation failed
+      // Fetch high priority emotions (angry/sad level 4-5) directly
       const { data: highPriorityData, error: highPriorityError } = await supabase
         .from('Expressions')
-        .select(`
-          *,
-          students!Expressions_student_id_fkey (
-            id,
-            user_profiles!students_profile_id_fkey (
-              full_name,
-              username
-            )
-          )
-        `)
+        .select('*')
         .in('emotion', ['angry', 'sad'])
         .gte('intensity', 4)
         .order('created_at', { ascending: false });
 
       if (highPriorityError) {
         console.error('Error fetching high priority emotions:', highPriorityError);
-        console.error('Error details:', JSON.stringify(highPriorityError, null, 2));
-        
-        // Try simpler query without joins if foreign keys fail
-        const { data: simpleHighPriorityData, error: simpleError } = await supabase
-          .from('Expressions')
-          .select('*')
-          .in('emotion', ['angry', 'sad'])
-          .gte('intensity', 4)
-          .order('created_at', { ascending: false });
-        
-        if (simpleError) {
-          console.error('Simple high priority query also failed:', simpleError);
-          setError(`Failed to fetch priority alerts: ${simpleError.message || 'Unknown database error'}`);
-        } else {
-          console.log('Simple high priority emotions data:', simpleHighPriorityData);
-          
-          // Process simple data without student names
-          const processedSimpleAlerts = (simpleHighPriorityData || []).map(expression => ({
-            id: expression.id,
-            studentName: 'Student', // Will need to fetch separately if needed
-            emotion: expression.emotion,
-            intensity: expression.intensity,
-            note: expression.note || '',
-            timestamp: new Date(expression.created_at),
-            status: 'priority',
-            priority: 'High'
-          }));
-          
-          setAlerts(processedSimpleAlerts);
-        }
+        setError(`Failed to fetch priority alerts: ${highPriorityError.message || 'Unknown database error'}`);
       } else {
-        console.log('Raw high priority emotions data:', highPriorityData);
+        console.log('High priority emotions data:', highPriorityData);
         
-        // Process high priority emotions as alerts
-        const processedAlerts = (highPriorityData || []).map(expression => ({
-          id: expression.id,
-          studentName: expression.students?.user_profiles?.full_name || 
-                      expression.students?.user_profiles?.username || 
-                      'Unknown Student',
-          emotion: expression.emotion,
-          intensity: expression.intensity,
-          note: expression.note || '',
-          timestamp: new Date(expression.created_at),
-          status: 'priority',
-          priority: 'High'
-        }));
+        // Get student names for priority alerts
+        let alertsWithNames = [];
+        if (highPriorityData && highPriorityData.length > 0) {
+          const studentIds = [...new Set(highPriorityData.map(exp => exp.student_id).filter(Boolean))];
+          
+          let studentsData = [];
+          if (studentIds.length > 0) {
+            const { data: students, error: studentsError } = await supabase
+              .from('students')
+              .select(`
+                id,
+                profile_id,
+                user_profiles!students_profile_id_fkey (
+                  full_name,
+                  username
+                )
+              `)
+              .in('id', studentIds);
+
+            if (!studentsError && students) {
+              studentsData = students;
+            }
+          }
+          
+          // Process high priority emotions as alerts with student names
+          alertsWithNames = highPriorityData.map(expression => {
+            const student = studentsData.find(s => s.id === expression.student_id);
+            const studentName = student?.user_profiles?.full_name || 
+                               student?.user_profiles?.username || 
+                               student?.full_name || 
+                               student?.username || 
+                               'Unknown Student';
+            
+            return {
+              id: expression.id,
+              studentName: studentName,
+              emotion: expression.emotion,
+              intensity: expression.intensity,
+              note: expression.note || 'No additional note provided by student',
+              timestamp: new Date(expression.created_at),
+              status: 'priority',
+              priority: 'High'
+            };
+          });
+        }
         
-        console.log('Processed high priority alerts:', processedAlerts);
-        setAlerts(processedAlerts);
+        console.log('Processed high priority alerts:', alertsWithNames);
+        setAlerts(alertsWithNames);
         
         // Debug: Log the count for verification
-        console.log(`Found ${processedAlerts.length} high priority alerts (angry/sad level 4-5)`);
+        console.log(`Found ${alertsWithNames.length} high priority alerts (angry/sad level 4-5)`);
       }
 
       // Fetch notifications
@@ -121,74 +114,91 @@ const AlarmingEmotions = () => {
   // Function to fetch ALL student emotions (positive and negative)
   const fetchAllEmotions = async () => {
     try {
-      // Fetch all expressions with student information
+      // Fetch all expressions first
       const { data: expressionsData, error: expressionsError } = await supabase
         .from('Expressions')
-        .select(`
-          *,
-          students!Expressions_student_id_fkey (
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (expressionsError) {
+        console.error('Error fetching expressions:', expressionsError);
+        return;
+      }
+
+      console.log('Expressions data:', expressionsData);
+
+      if (!expressionsData || expressionsData.length === 0) {
+        setAllEmotions([]);
+        return;
+      }
+
+      // Get unique student IDs
+      const studentIds = [...new Set(expressionsData.map(exp => exp.student_id).filter(Boolean))];
+      
+      // Fetch student information separately
+      let studentsData = [];
+      if (studentIds.length > 0) {
+        const { data: students, error: studentsError } = await supabase
+          .from('students')
+          .select(`
             id,
+            profile_id,
             user_profiles!students_profile_id_fkey (
               full_name,
               username
             )
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(50); // Limit to recent 50 emotions
+          `)
+          .in('id', studentIds);
 
-      if (expressionsError) {
-        console.error('Error fetching all emotions:', expressionsError);
-        // Try simpler query if foreign key names are wrong
-        const { data: simpleData, error: simpleError } = await supabase
-          .from('Expressions')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(50);
-        
-        if (simpleError) {
-          console.error('Simple query also failed:', simpleError);
+        if (studentsError) {
+          console.error('Error fetching students:', studentsError);
+          // Try alternative approach
+          const { data: profiles, error: profilesError } = await supabase
+            .from('user_profiles')
+            .select('id, full_name, username');
+          
+          if (!profilesError && profiles) {
+            studentsData = profiles;
+          }
         } else {
-          console.log('Simple expressions data:', simpleData);
-          // Process simple data without joins
-          const processedSimple = (simpleData || []).map(expression => ({
-            id: expression.id,
-            studentName: 'Student', // Will need to fetch separately
-            emotion: expression.emotion,
-            intensity: expression.intensity,
-            note: expression.note || '',
-            timestamp: new Date(expression.created_at),
-            isHighPriority: (expression.emotion === 'angry' || expression.emotion === 'sad') && expression.intensity >= 4,
-            emotionType: ['happy', 'excited', 'calm'].includes(expression.emotion) ? 'positive' : 'negative'
-          }));
-          setAllEmotions(processedSimple);
+          studentsData = students || [];
         }
-      } else {
-        console.log('All emotions data:', expressionsData);
-        
-        // Process emotions data
-        const processedEmotions = (expressionsData || []).map(expression => ({
+      }
+
+      console.log('Students data:', studentsData);
+
+      // Process emotions data with student names
+      const processedEmotions = expressionsData.map(expression => {
+        // Find student info
+        const student = studentsData.find(s => s.id === expression.student_id);
+        const studentName = student?.user_profiles?.full_name || 
+                           student?.user_profiles?.username || 
+                           student?.full_name || 
+                           student?.username || 
+                           'Unknown Student';
+
+        return {
           id: expression.id,
-          studentName: expression.students?.user_profiles?.full_name || 
-                      expression.students?.user_profiles?.username || 
-                      'Unknown Student',
+          studentName: studentName,
           emotion: expression.emotion,
           intensity: expression.intensity,
-          note: expression.note || '',
+          note: expression.note || 'No additional note provided by student',
           timestamp: new Date(expression.created_at),
           isHighPriority: (expression.emotion === 'angry' || expression.emotion === 'sad') && expression.intensity >= 4,
           emotionType: ['happy', 'excited', 'calm'].includes(expression.emotion) ? 'positive' : 'negative'
-        }));
-        
-        console.log('Processed emotions:', processedEmotions);
-        setAllEmotions(processedEmotions);
-        
-        // Debug: Log emotion breakdown
-        const positiveCount = processedEmotions.filter(e => e.emotionType === 'positive').length;
-        const negativeCount = processedEmotions.filter(e => e.emotionType === 'negative').length;
-        const highPriorityCount = processedEmotions.filter(e => e.isHighPriority).length;
-        console.log(`Emotion breakdown: ${positiveCount} positive, ${negativeCount} negative, ${highPriorityCount} high priority`);
-      }
+        };
+      });
+
+      console.log('Processed all emotions:', processedEmotions);
+      setAllEmotions(processedEmotions);
+      
+      // Debug: Log emotion breakdown
+      const positiveCount = processedEmotions.filter(e => e.emotionType === 'positive').length;
+      const negativeCount = processedEmotions.filter(e => e.emotionType === 'negative').length;
+      const highPriorityCount = processedEmotions.filter(e => e.isHighPriority).length;
+      console.log(`Emotion breakdown: ${positiveCount} positive, ${negativeCount} negative, ${highPriorityCount} high priority`);
+      
     } catch (error) {
       console.error('Error in fetchAllEmotions:', error);
     }
