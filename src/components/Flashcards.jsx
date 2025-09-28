@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Confetti from 'react-confetti';
 import { 
@@ -44,6 +44,45 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const [successAnimationText, setSuccessAnimationText] = useState('');
   const [currentScenario, setCurrentScenario] = useState(null);
   const [isHygieneGameActive, setIsHygieneGameActive] = useState(false);
+
+  // Safe Street Crossing game specific state
+  const [streetScore, setStreetScore] = useState(0);
+  const [streetRound, setStreetRound] = useState(1);
+  const [streetScenario, setStreetScenario] = useState(null);
+  const [isStreetGameActive, setIsStreetGameActive] = useState(false);
+  const [showWalkingAnimation, setShowWalkingAnimation] = useState(false);
+  const [showStreetFeedback, setShowStreetFeedback] = useState(false);
+  const [streetFeedbackMessage, setStreetFeedbackMessage] = useState('');
+  const [streetFeedbackType, setStreetFeedbackType] = useState(''); // 'safe' or 'unsafe'
+
+  // Social Greetings game specific state
+  const [greetingsScore, setGreetingsScore] = useState(0);
+  const [greetingsRound, setGreetingsRound] = useState(1);
+  const [currentGreetingScenario, setCurrentGreetingScenario] = useState(null);
+  const [isGreetingsGameActive, setIsGreetingsGameActive] = useState(false);
+  const [showGreetingAnimation, setShowGreetingAnimation] = useState(false);
+  const [showGreetingFeedback, setShowGreetingFeedback] = useState(false);
+  const [greetingFeedbackMessage, setGreetingFeedbackMessage] = useState('');
+  const [greetingFeedbackType, setGreetingFeedbackType] = useState(''); // 'correct' or 'incorrect'
+  const [characterSpeech, setCharacterSpeech] = useState('');
+  const [showCharacterThought, setShowCharacterThought] = useState(false);
+  const [greetingAnswered, setGreetingAnswered] = useState(false);
+  const [greetingSelectedChoice, setGreetingSelectedChoice] = useState(null);
+
+  // Money Value Game specific state
+  const [moneyScore, setMoneyScore] = useState(0);
+  const [moneyRound, setMoneyRound] = useState(1);
+  const [currentBudget, setCurrentBudget] = useState(0);
+  const [currentMoneyItems, setCurrentMoneyItems] = useState([]);
+  const [isMoneyGameActive, setIsMoneyGameActive] = useState(false);
+  const [selectedPurchases, setSelectedPurchases] = useState([]);
+  const [moneyFeedbackMessage, setMoneyFeedbackMessage] = useState('');
+  const [showMoneyFeedback, setShowMoneyFeedback] = useState(false);
+  const [moneyFeedbackType, setMoneyFeedbackType] = useState(''); // 'correct' or 'wrong'
+  const [showPurchaseAnimation, setShowPurchaseAnimation] = useState(false);
+  const [totalSpent, setTotalSpent] = useState(0);
+  const [showBadgeCompletion, setShowBadgeCompletion] = useState(false);
+  const [isRoundComplete, setIsRoundComplete] = useState(false);
 
     const videoRef = useRef(null);
   const audioRef = useRef(null);
@@ -267,9 +306,189 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         ],
         "Social Greetings": [
           {
-            questionText: "When you meet someone in the morning, what do you say?",
-            answerChoices: ["Good Morning", "Good Night", "Goodbye", "See You Later"],
-            correctAnswer: "Good Morning"
+            id: 1,
+            title: "Morning Greeting to Parents",
+            situation: "You just woke up and see your parent in the kitchen making breakfast",
+            context: "morning",
+            background: "🏠 Home Kitchen",
+            character: "👩‍🍳",
+            characterType: "Parent",
+            studentThought: "I should greet my parent nicely!",
+            otherCharacterSpeech: "Good morning, sweetheart! Did you sleep well?",
+            choices: [
+              {
+                text: "Good morning, Mom!",
+                emoji: "🌅",
+                correct: true,
+                feedback: "Perfect! Starting the day with a nice greeting makes everyone happy!"
+              },
+              {
+                text: "Good night!",
+                emoji: "🌙", 
+                correct: false,
+                feedback: "That's for bedtime! Try a morning greeting instead."
+              },
+              {
+                text: "Goodbye!",
+                emoji: "👋",
+                correct: false,
+                feedback: "That's for when you're leaving. Try a greeting for when you wake up!"
+              },
+              {
+                text: "See you later!",
+                emoji: "👀",
+                correct: false,
+                feedback: "That's for when you're going away. What would you say when you first see someone?"
+              }
+            ]
+          },
+          {
+            id: 2,
+            title: "Morning Greeting to Teacher",
+            situation: "You arrive at school and your teacher smiles at you in the classroom",
+            context: "morning",
+            background: "🏫 School Classroom",
+            character: "👩‍🏫",
+            characterType: "Teacher",
+            studentThought: "I should be polite to my teacher!",
+            otherCharacterSpeech: "Hello! Welcome to class today!",
+            choices: [
+              {
+                text: "Good morning, Teacher!",
+                emoji: "📚",
+                correct: true,
+                feedback: "Excellent! Polite greetings show respect to your teacher!"
+              },
+              {
+                text: "Hi Mom!",
+                emoji: "👩",
+                correct: false,
+                feedback: "That's not your mom - it's your teacher! Try again."
+              },
+              {
+                text: "Bye!",
+                emoji: "👋",
+                correct: false,
+                feedback: "That's for leaving, not arriving! What would you say when you first get to school?"
+              },
+              {
+                text: "Good night!",
+                emoji: "🌙",
+                correct: false,
+                feedback: "That's for bedtime! Try a morning greeting instead."
+              }
+            ]
+          },
+          {
+            id: 3,
+            title: "Greeting a Friend at Recess",
+            situation: "Your friend is playing on the playground and notices you approaching",
+            context: "afternoon",
+            background: "🛝 School Playground",
+            character: "👦",
+            characterType: "Friend",
+            studentThought: "My friend looks like they're having fun!",
+            otherCharacterSpeech: "Hey! Want to play with me?",
+            choices: [
+              {
+                text: "Hi! That looks fun!",
+                emoji: "😊",
+                correct: true,
+                feedback: "Great! Friendly greetings help make strong friendships!"
+              },
+              {
+                text: "Good morning!",
+                emoji: "🌅",
+                correct: false,
+                feedback: "It's recess time, not morning! Try a more casual greeting."
+              },
+              {
+                text: "Goodbye!",
+                emoji: "👋",
+                correct: false,
+                feedback: "That's for leaving, but you just arrived! Try saying hello instead."
+              },
+              {
+                text: "Good night!",
+                emoji: "🌙",
+                correct: false,
+                feedback: "That's for bedtime! What would you say to a friend during playtime?"
+              }
+            ]
+          },
+          {
+            id: 4,
+            title: "Saying Goodbye After School",
+            situation: "The school bell rings and it's time to say goodbye to everyone",
+            context: "afternoon",
+            background: "🎒 School Classroom",
+            character: "👩‍🏫",
+            characterType: "Teacher",
+            studentThought: "The day is ending, I should say goodbye nicely!",
+            otherCharacterSpeech: "Have a wonderful day everyone! See you tomorrow!",
+            choices: [
+              {
+                text: "Goodbye Teacher! See you tomorrow!",
+                emoji: "👋",
+                correct: true,
+                feedback: "Wonderful! Saying goodbye nicely ends the day on a positive note!"
+              },
+              {
+                text: "Good morning!",
+                emoji: "🌅",
+                correct: false,
+                feedback: "The day is ending, not starting! Try a goodbye greeting."
+              },
+              {
+                text: "Hi!",
+                emoji: "😊",
+                correct: false,
+                feedback: "That's for when you arrive! What do you say when you're leaving?"
+              },
+              {
+                text: "Thank you for breakfast!",
+                emoji: "🍳",
+                correct: false,
+                feedback: "That's for your parent at home! What would you say to your teacher when leaving?"
+              }
+            ]
+          },
+          {
+            id: 5,
+            title: "Evening Greeting to Neighbor",
+            situation: "You're walking outside and meet a friendly neighbor in their garden",
+            context: "evening",
+            background: "🏡 Neighborhood Garden",
+            character: "👴",
+            characterType: "Neighbor",
+            studentThought: "I should be friendly to my neighbor!",
+            otherCharacterSpeech: "Good evening! How was your day?",
+            choices: [
+              {
+                text: "Good evening! It was great, thank you!",
+                emoji: "�",
+                correct: true,
+                feedback: "Perfect! Evening greetings show you're polite and friendly!"
+              },
+              {
+                text: "Good morning!",
+                emoji: "🌅",
+                correct: false,
+                feedback: "It's evening time, not morning! Look at the sky for a clue."
+              },
+              {
+                text: "Good night!",
+                emoji: "�",
+                correct: false,
+                feedback: "That's for when you're going to sleep! Try an evening greeting."
+              },
+              {
+                text: "Hello teacher!",
+                emoji: "👩‍🏫",
+                correct: false,
+                feedback: "That's not your teacher - it's your neighbor! Try again."
+              }
+            ]
           }
         ],
         "Hygiene Hero": [
@@ -369,6 +588,136 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             successAnimation: "🧻✨",
             successMessage: "Smart! Covering sneezes keeps everyone healthy!"
           }
+        ],
+        "Safe Street Crossing": [
+          {
+            scenario: "green_walk_signal",
+            questionText: "🚦 Look! What should you do?",
+            scenarioImage: "🚶‍♂️",
+            backgroundImage: "🛣️",
+            characterEmoji: "😊",
+            trafficLight: "🟢",
+            lightStatus: "walk",
+            safetyLevel: "safe",
+            answerChoices: ["CROSS", "WAIT"],
+            correctAnswer: "CROSS",
+            gameType: "street",
+            successAnimation: "🚶‍♂️➡️",
+            successMessage: "Great! Green means GO!",
+            feedbackMessage: "Perfect choice! The walk signal is green!"
+          },
+          {
+            scenario: "red_traffic_light",
+            questionText: "🚦 Stop and look! What should you do?",
+            scenarioImage: "🛑",
+            backgroundImage: "🛣️",
+            characterEmoji: "🤔",
+            trafficLight: "🔴",
+            lightStatus: "stop",
+            safetyLevel: "unsafe",
+            answerChoices: ["CROSS", "WAIT"],
+            correctAnswer: "WAIT",
+            gameType: "street",
+            successAnimation: "⏰✋",
+            successMessage: "Smart waiting! Red means STOP!",
+            feedbackMessage: "Excellent! Always wait for red lights!"
+          },
+          {
+            scenario: "approaching_car",
+            questionText: "🚗 A car is coming! What should you do?",
+            scenarioImage: "🚗💨",
+            backgroundImage: "🛣️",
+            characterEmoji: "😨",
+            trafficLight: "🟡",
+            lightStatus: "caution",
+            safetyLevel: "unsafe",
+            answerChoices: ["CROSS", "WAIT"],
+            correctAnswer: "WAIT",
+            gameType: "street",
+            successAnimation: "⏰🛡️",
+            successMessage: "Very safe choice! Let cars pass first!",
+            feedbackMessage: "Great thinking! Always let cars pass safely!"
+          },
+          {
+            scenario: "clear_street",
+            questionText: "👀 The street is empty and clear! What should you do?",
+            scenarioImage: "🛣️",
+            backgroundImage: "🏙️",
+            characterEmoji: "😄",
+            trafficLight: "🟢",
+            lightStatus: "clear",
+            safetyLevel: "safe",
+            answerChoices: ["CROSS", "WAIT"],
+            correctAnswer: "CROSS",
+            gameType: "street",
+            successAnimation: "🚶‍♂️✨",
+            successMessage: "Perfect! Safe to cross now!",
+            feedbackMessage: "Wonderful! You checked and it's safe!"
+          },
+          {
+            scenario: "yellow_light_warning",
+            questionText: "🚦 Yellow light means be careful! What should you do?",
+            scenarioImage: "⚠️",
+            backgroundImage: "🛣️",
+            characterEmoji: "🤨",
+            trafficLight: "🟡",
+            lightStatus: "caution",
+            safetyLevel: "unsafe",
+            answerChoices: ["CROSS", "WAIT"],
+            correctAnswer: "WAIT",
+            gameType: "street",
+            successAnimation: "⏰⚠️",
+            successMessage: "Good choice! Yellow means be careful!",
+            feedbackMessage: "Smart! Yellow means slow down and wait!"
+          },
+          {
+            scenario: "busy_intersection",
+            questionText: "🚧 Lots of cars and people! What should you do?",
+            scenarioImage: "🚗🚶‍♀️🚌",
+            backgroundImage: "🏙️",
+            characterEmoji: "😰",
+            trafficLight: "🔴",
+            lightStatus: "busy",
+            safetyLevel: "unsafe",
+            answerChoices: ["CROSS", "WAIT"],
+            correctAnswer: "WAIT",
+            gameType: "street",
+            successAnimation: "⏰👥",
+            successMessage: "Wise decision! Wait for a safe moment!",
+            feedbackMessage: "Excellent patience! Busy times need extra care!"
+          },
+          {
+            scenario: "crosswalk_signal",
+            questionText: "🚶‍♂️ The crosswalk shows a walking person! What should you do?",
+            scenarioImage: "🚶‍♂️",
+            backgroundImage: "🛣️",
+            characterEmoji: "😊",
+            trafficLight: "🟢",
+            lightStatus: "walk",
+            safetyLevel: "safe",
+            answerChoices: ["CROSS", "WAIT"],
+            correctAnswer: "CROSS",
+            gameType: "street",
+            successAnimation: "🚶‍♂️🎉",
+            successMessage: "Perfect timing! Cross safely now!",
+            feedbackMessage: "Great job reading the crosswalk signal!"
+          },
+          {
+            scenario: "emergency_vehicle",
+            questionText: "🚑 An ambulance is coming with sirens! What should you do?",
+            scenarioImage: "🚑🔊",
+            backgroundImage: "🛣️",
+            characterEmoji: "😮",
+            trafficLight: "🟢",
+            lightStatus: "emergency",
+            safetyLevel: "unsafe",
+            answerChoices: ["CROSS", "WAIT"],
+            correctAnswer: "WAIT",
+            gameType: "street",
+            successAnimation: "⏰🚑",
+            successMessage: "Hero move! Let emergency vehicles go first!",
+            feedbackMessage: "Amazing! Emergency vehicles always have the right of way!"
+          }
         ]
       },
       Medium: {
@@ -386,6 +735,56 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             ],
             correctAnswer: ["Burger", "Burger", "Drink"],
             gameType: "cashier"
+          }
+        ],
+        "Money Value Game": [
+          {
+            gameId: 1,
+            gameName: "Money Value Adventure",
+            description: "Learn the value of Philippine Peso currency through interactive shopping!",
+            totalRounds: 3,
+            gameType: "money",
+            rounds: [
+              {
+                roundId: 1,
+                budget: 750,
+                items: [
+                  { id: 1, name: "Burger", image: "🍔", price: 70, category: "food", affordable: true },
+                  { id: 2, name: "Car", image: "🚗", price: 450000, category: "vehicle", affordable: false },
+                  { id: 3, name: "Laptop", image: "💻", price: 25000, category: "electronics", affordable: false },
+                  { id: 4, name: "Iced Coffee", image: "🧊☕", price: 120, category: "drink", affordable: true }
+                ]
+              },
+              {
+                roundId: 2,
+                budget: 2500,
+                items: [
+                  { id: 5, name: "School Bag", image: "🎒", price: 850, category: "school", affordable: true },
+                  { id: 6, name: "House", image: "🏠", price: 2500000, category: "property", affordable: false },
+                  { id: 7, name: "Bicycle", image: "🚲", price: 3500, category: "vehicle", affordable: false },
+                  { id: 8, name: "Pizza", image: "🍕", price: 280, category: "food", affordable: true }
+                ]
+              },
+              {
+                roundId: 3,
+                budget: 1200,
+                items: [
+                  { id: 9, name: "Video Game", image: "🎮", price: 2800, category: "entertainment", affordable: false },
+                  { id: 10, name: "Ice Cream", image: "🍦", price: 45, category: "dessert", affordable: true },
+                  { id: 11, name: "Smartphone", image: "📱", price: 25000, category: "electronics", affordable: false },
+                  { id: 12, name: "Book", image: "📚", price: 350, category: "education", affordable: true }
+                ]
+              }
+            ],
+            badges: {
+              completion: {
+                id: "money_master",
+                name: "Money Master",
+                description: "Completed all 3 rounds of Money Value Adventure!",
+                icon: "💰🏆",
+                points: 100
+              }
+            }
           }
         ]
       },
@@ -415,6 +814,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const currentQuestion = questions[currentQuestionIndex];
   const isCashierGame = currentQuestion?.gameType === 'cashier';
   const isHygieneGame = currentQuestion?.gameType === 'hygiene';
+  const isStreetGame = activity === "Safe Street Crossing";
+  const isGreetingsGame = activity === "Social Greetings";
+  const isMoneyGame = activity === "Money Value Game";
 
   // Hygiene game functions
   const getRandomScenario = () => {
@@ -469,6 +871,170 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     setSuccessAnimationText('');
     setCurrentScenario(null);
     setIsHygieneGameActive(false);
+  };
+
+  // Safe Street Crossing game functions
+  
+  const getRandomStreetScenario = () => {
+    const streetQuestions = questionsData[category]?.[difficulty]?.["Safe Street Crossing"] || [];
+    const availableScenarios = streetQuestions.filter(q => !usedScenarios.includes(q.scenario));
+    if (availableScenarios.length === 0) return streetQuestions[0]; // Fallback
+    return availableScenarios[Math.floor(Math.random() * availableScenarios.length)];
+  };
+
+  const handleStreetAnswer = (choice) => {
+    if (isAnswered) return;
+    
+    setSelectedAnswer(choice);
+    setIsAnswered(true);
+
+    const isCorrect = choice === currentScenario.correctAnswer;
+    const isSafeChoice = (choice === "CROSS" && currentScenario.safetyLevel === "safe") || 
+                        (choice === "WAIT" && currentScenario.safetyLevel === "unsafe");
+
+    if (isCorrect && isSafeChoice) {
+      setStreetScore(prev => prev + 1);
+      setScore(prev => prev + 1);
+      setStreetFeedbackType('safe');
+      setStreetFeedbackMessage(currentScenario.feedbackMessage);
+      
+      if (choice === "CROSS" && currentScenario.safetyLevel === "safe") {
+        setShowWalkingAnimation(true);
+        setTimeout(() => setShowWalkingAnimation(false), 2000);
+      }
+      
+      setShowCorrect(true);
+      setTimeout(() => setShowCorrect(false), 2000);
+    } else {
+      setStreetFeedbackType('unsafe');
+      setStreetFeedbackMessage("Not safe yet! Always check for safety first.");
+      setShowWrong(true);
+      setTimeout(() => setShowWrong(false), 2000);
+    }
+
+    setShowStreetFeedback(true);
+    setTimeout(() => {
+      setShowStreetFeedback(false);
+      if (streetRound < 5) {
+        // Move to next round
+        setStreetRound(prev => prev + 1);
+        const nextScenario = getRandomStreetScenario();
+        setCurrentScenario(nextScenario);
+        setUsedScenarios(prev => [...prev, nextScenario.scenario]);
+        setIsAnswered(false);
+        setSelectedAnswer(null);
+      } else {
+        // Game complete
+        setTimeout(() => {
+          setShowModal(true);
+        }, 1000);
+      }
+    }, 3000);
+  };
+
+  const initializeStreetGame = () => {
+    if (activity === "Safe Street Crossing" && !isStreetGameActive) {
+      setIsStreetGameActive(true);
+      setStreetRound(1);
+      setStreetScore(0);
+      setUsedScenarios([]);
+      
+      // Set up first scenario
+      const firstScenario = getRandomStreetScenario();
+      setStreetScenario(firstScenario);
+      setCurrentScenario(firstScenario);
+      if (firstScenario) {
+        setUsedScenarios([firstScenario.scenario]);
+      }
+    }
+  };
+
+  const resetStreetState = () => {
+    setStreetScore(0);
+    setStreetRound(1);
+    setStreetScenario(null);
+    setIsStreetGameActive(false);
+    setShowWalkingAnimation(false);
+    setShowStreetFeedback(false);
+    setStreetFeedbackMessage('');
+    setStreetFeedbackType('');
+  };
+
+  // Social Greetings game functions
+  const getRandomGreetingScenario = () => {
+    const greetingQuestions = questionsData[category]?.[difficulty]?.["Social Greetings"] || [];
+    const availableScenarios = greetingQuestions.filter(q => !usedScenarios.includes(q.id));
+    if (availableScenarios.length === 0) return greetingQuestions[0]; // Fallback
+    return availableScenarios[Math.floor(Math.random() * availableScenarios.length)];
+  };
+
+  const handleGreetingAnswer = (choice) => {
+    if (greetingAnswered) return;
+    
+    setGreetingSelectedChoice(choice);
+    setGreetingAnswered(true);
+
+    if (choice.correct) {
+      setGreetingsScore(prev => prev + 20);
+      setScore(prev => prev + 1);
+      setGreetingFeedbackType('correct');
+      setGreetingFeedbackMessage(choice.feedback);
+      setShowGreetingAnimation(true);
+      setShowGreetingFeedback(true);
+      setShowCorrect(true);
+      
+      setTimeout(() => {
+        setShowGreetingAnimation(false);
+        setShowGreetingFeedback(false);
+        setShowCorrect(false);
+      }, 3000);
+    } else {
+      setGreetingFeedbackType('incorrect');
+      setGreetingFeedbackMessage(choice.feedback);
+      setShowGreetingFeedback(true);
+      setShowWrong(true);
+      
+      setTimeout(() => {
+        setShowGreetingFeedback(false);
+        setShowWrong(false);
+      }, 2500);
+    }
+  };
+
+  const initializeGreetingsGame = () => {
+    if (isGreetingsGame && !isGreetingsGameActive) {
+      setIsGreetingsGameActive(true);
+      setGreetingsRound(1);
+      setGreetingsScore(0);
+      setUsedScenarios([]);
+      setGreetingAnswered(false);
+      setGreetingSelectedChoice(null);
+      
+      // Set up first scenario
+      const firstScenario = getRandomGreetingScenario();
+      setCurrentGreetingScenario(firstScenario);
+      if (firstScenario) {
+        setUsedScenarios([firstScenario.id]);
+        setCharacterSpeech(firstScenario.otherCharacterSpeech);
+        setShowCharacterThought(true);
+      }
+    }
+  };
+
+  const resetGreetingsState = () => {
+    setGreetingsScore(0);
+    setGreetingsRound(1);
+    setCurrentGreetingScenario(null);
+    setIsGreetingsGameActive(false);
+    setShowGreetingAnimation(false);
+    setShowGreetingFeedback(false);
+    setGreetingFeedbackMessage('');
+    setGreetingFeedbackType('');
+    setCharacterSpeech('');
+    setShowCharacterThought(false);
+    setGreetingAnswered(false);
+    setGreetingSelectedChoice(null);
+    setUsedScenarios([]);
   };
 
   // Cashier game functions
@@ -535,6 +1101,112 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     setSpeechText('');
   };
 
+  // Money Value Game functions
+  const initializeMoneyGame = () => {
+    if (isMoneyGame && !isMoneyGameActive) {
+      setIsMoneyGameActive(true);
+      setMoneyRound(1);
+      setMoneyScore(0);
+      setSelectedPurchases([]);
+      setTotalSpent(0);
+      setIsRoundComplete(false);
+      setShowBadgeCompletion(false);
+      
+      // Get first round data
+      const gameData = questions[0];
+      if (gameData && gameData.rounds) {
+        const firstRound = gameData.rounds[0];
+        setCurrentBudget(firstRound.budget);
+        setCurrentMoneyItems(firstRound.items);
+      }
+    }
+  };
+
+  const handlePurchaseItem = (item) => {
+    if (!isMoneyGameActive || isRoundComplete) return;
+
+    const isAffordable = item.price <= currentBudget;
+    
+    if (isAffordable) {
+      // Correct purchase
+      setSelectedPurchases(prev => [...prev, item]);
+      setTotalSpent(prev => prev + item.price);
+      setMoneyScore(prev => prev + 1);
+      setMoneyFeedbackType('correct');
+      setMoneyFeedbackMessage(`✔️ Correct! You can afford the ${item.name} for ₱${item.price.toLocaleString()}`);
+      setShowPurchaseAnimation(true);
+      setShowCorrect(true);
+      
+      setTimeout(() => {
+        setShowPurchaseAnimation(false);
+        setShowCorrect(false);
+      }, 2000);
+    } else {
+      // Wrong purchase - too expensive
+      setMoneyFeedbackType('wrong');
+      setMoneyFeedbackMessage(`❌ Sorry! The ${item.name} costs ₱${item.price.toLocaleString()}, but you only have ₱${currentBudget.toLocaleString()}`);
+      setShowWrong(true);
+      
+      setTimeout(() => {
+        setShowWrong(false);
+      }, 2500);
+    }
+    
+    setShowMoneyFeedback(true);
+    setTimeout(() => {
+      setShowMoneyFeedback(false);
+    }, 3000);
+  };
+
+  const proceedToNextMoneyRound = () => {
+    if (moneyRound < 3) {
+      // Move to next round
+      const nextRound = moneyRound + 1;
+      setMoneyRound(nextRound);
+      setSelectedPurchases([]);
+      setTotalSpent(0);
+      setIsRoundComplete(false);
+      
+      const gameData = questions[0];
+      if (gameData && gameData.rounds) {
+        const nextRoundData = gameData.rounds[nextRound - 1];
+        setCurrentBudget(nextRoundData.budget);
+        setCurrentMoneyItems(nextRoundData.items);
+      }
+    } else {
+      // Game completed - show badge
+      setShowBadgeCompletion(true);
+      setIsRoundComplete(true);
+      
+      // Play celebration sound
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play();
+      }
+    }
+  };
+
+  const resetMoneyGame = () => {
+    setIsMoneyGameActive(false);
+    setMoneyRound(1);
+    setMoneyScore(0);
+    setCurrentBudget(0);
+    setCurrentMoneyItems([]);
+    setSelectedPurchases([]);
+    setMoneyFeedbackMessage('');
+    setShowMoneyFeedback(false);
+    setMoneyFeedbackType('');
+    setShowPurchaseAnimation(false);
+    setTotalSpent(0);
+    setShowBadgeCompletion(false);
+    setIsRoundComplete(false);
+  };
+
+  const restartMoneyGame = () => {
+    resetMoneyGame();
+    initializeMoneyGame();
+  };
+
   // Initialize cashier game when question starts
   useEffect(() => {
     if (isCashierGame && gameStep === 1) {
@@ -552,6 +1224,27 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       initializeHygieneGame();
     }
   }, [currentQuestionIndex, isHygieneGame]);
+
+  // Initialize street crossing game when activity starts
+  useEffect(() => {
+    if (activity === "Safe Street Crossing") {
+      initializeStreetGame();
+    }
+  }, [currentQuestionIndex, activity]);
+
+  // Initialize social greetings game when activity starts
+  useEffect(() => {
+    if (isGreetingsGame) {
+      initializeGreetingsGame();
+    }
+  }, [currentQuestionIndex, isGreetingsGame]);
+
+  // Initialize money value game when activity starts
+  useEffect(() => {
+    if (isMoneyGame) {
+      initializeMoneyGame();
+    }
+  }, [currentQuestionIndex, isMoneyGame]);
 
   // Handle moving to item selection step
   const handleStartSelecting = () => {
@@ -642,11 +1335,15 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     } else if (isHygieneGame && currentRound >= 5) {
       // End hygiene game after 5 rounds
       setShowModal(true);
+    } else if (isStreetGame && streetRound >= 5) {
+      // End street game after 5 rounds (handled in handleStreetAnswer)
+      // Modal is shown automatically in handleStreetAnswer
     } else if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedAnswer(null);
       setIsAnswered(false);
       resetCashierState(); // Reset cashier game state
+      resetStreetState(); // Reset street game state
     } else {
       setShowModal(true);
     }
@@ -746,6 +1443,45 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         });
       }
     }
+
+    // Add special safe street crossing badges
+    if (activity === "Safe Street Crossing") {
+      // Always award the Brave Crosser badge for completing the game
+      badges.push({
+        name: "Brave Crosser",
+        description: "Completed the street safety game and learned safe crossing!",
+        icon: "🚦",
+        rarity: "gold",
+        category: "Daily Life Skills"
+      });
+
+      // Award additional badges based on performance
+      if (streetScore >= 5) {
+        badges.push({
+          name: "Safety Champion",
+          description: "Perfect score! You know all the street safety rules!",
+          icon: "🏆",
+          rarity: "legendary",
+          category: "Daily Life Skills"
+        });
+      } else if (streetScore >= 4) {
+        badges.push({
+          name: "Street Safety Expert",
+          description: "Excellent knowledge of crossing safely!",
+          icon: "🛡️",
+          rarity: "gold",
+          category: "Daily Life Skills"
+        });
+      } else if (streetScore >= 3) {
+        badges.push({
+          name: "Careful Walker",
+          description: "Good job learning to cross safely!",
+          icon: "🚶‍♂️",
+          rarity: "silver",
+          category: "Daily Life Skills"
+        });
+      }
+    }
     
     setEarnedBadges(badges);
     
@@ -781,9 +1517,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   }
 
   return (
-    <div className="relative">
-      {/* Flashcard Container */}
-      <div className="w-270 bg-white/90 backdrop-blur-xl rounded-3xl mx-auto shadow-2xl border border-white/20 p-6 text-center animate-fade-in-scale">
+  <div className="relative">
+  {/* Flashcard Container */}
+  <div className="w-270 bg-white/90 backdrop-blur-xl rounded-3xl mx-auto shadow-2xl border border-white/20 p-6 text-center animate-fade-in-scale">
         {/* Decorative background elements */}
         <div className="absolute top-0 left-0 w-3 h-32 bg-gradient-to-br from-blue-200/20 to-purple-200/20 rounded-full blur-2xl animate-float"></div>
         <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-bl from-pink-200/20 to-yellow-200/20 rounded-full blur-xl animate-float-delayed"></div>
@@ -839,37 +1575,37 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           </div>
 
           {/* Answer Choices with autism-friendly design */}
-          {!isCashierGame && !isHygieneGame ? (
+          {!isCashierGame && !isHygieneGame && !isStreetGame && !isGreetingsGame && !isMoneyGame ? (
             <div className="grid grid-cols-2 gap-6">
-            {questions[currentQuestionIndex].answerChoices.map((choice, index) => (
-              <button
-                key={index}
-                className={`
-                  w-[500px]
-                  ${
-                    choice === questions[currentQuestionIndex].correctAnswer && isAnswered
-                      ? "h-10 bg-gradient-to-r from-green-400 to-green-500 text-white border-green-300 scale-105 shadow-2xl animate-success-pulse"
-                      : selectedAnswer === choice && choice !== questions[currentQuestionIndex].correctAnswer
-                      ? "h-10 bg-gradient-to-r from-red-400 to-red-500 text-white border-red-300 scale-105 shadow-2xl"
-                      : "h-10 -mb-2 bg-blue-100 hover:bg-blue-200 text-gray-800 border-blue-200/50 hover:border-purple-300/70"
-                  } 
-                  text-xl font-bold py-6 px-4 rounded-2xl cursor-pointer transition-all duration-300 border-2 backdrop-blur-sm transform
-                  focus:outline-none focus:ring-4 focus:ring-purple-200/50
-                  ${!isAnswered ? 'hover:animate-bounce-gentle' : ''}
-                  min-h-[4rem] flex items-center justify-center
-                `}
-                onClick={() => handleAnswerClick(choice)}
-                disabled={isAnswered}
-              >
-                <span className="relative z-10">{choice}</span>
-              </button>
-            ))}
-          </div>
+              {questions[currentQuestionIndex].answerChoices.map((choice, index) => (
+                <button
+                  key={index}
+                  className={`
+                    w-[500px]
+                    ${
+                      choice === questions[currentQuestionIndex].correctAnswer && isAnswered
+                        ? "h-10 bg-gradient-to-r from-green-400 to-green-500 text-white border-green-300 scale-105 shadow-2xl animate-success-pulse"
+                        : selectedAnswer === choice && choice !== questions[currentQuestionIndex].correctAnswer
+                        ? "h-10 bg-gradient-to-r from-red-400 to-red-500 text-white border-red-300 scale-105 shadow-2xl"
+                        : "h-10 -mb-2 bg-blue-100 hover:bg-blue-200 text-gray-800 border-blue-200/50 hover:border-purple-300/70"
+                    } 
+                    text-xl font-bold py-6 px-4 rounded-2xl cursor-pointer transition-all duration-300 border-2 backdrop-blur-sm transform
+                    focus:outline-none focus:ring-4 focus:ring-purple-200/50
+                    ${!isAnswered ? 'hover:animate-bounce-gentle' : ''}
+                    min-h-[4rem] flex items-center justify-center
+                  `}
+                  onClick={() => handleAnswerClick(choice)}
+                  disabled={isAnswered}
+                >
+                  <span className="relative z-10">{choice}</span>
+                </button>
+              ))}
+            </div>
           ) : isHygieneGame ? (
             /* Modern Interactive Hygiene Game UI */
             <div className="space-y-8">
               {/* Round Indicator */}
-              <div className="text-center mb-6">
+              {/* <div className="text-center mb-6">
                 <div className="inline-flex bg-gradient-to-r from-blue-100 to-green-100 rounded-full px-8 py-4 border-3 border-blue-300 shadow-lg">
                   <span className="text-2xl font-bold text-blue-800 flex items-center space-x-3">
                     <span className="text-3xl animate-bounce-gentle">🧼</span>
@@ -877,7 +1613,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                     <span className="text-3xl animate-pulse-gentle">✨</span>
                   </span>
                 </div>
-              </div>
+              </div> */}
 
               {/* Main Scenario Area */}
               <div className="bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 rounded-3xl p-8 border-4 border-blue-200 relative overflow-hidden">
@@ -949,22 +1685,306 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 </div>
               </div>
             </div>
-          ) : (
-            /* Simple Cashier Game UI - Scrollable */
-            <div className="space-y-6">
-              {/* Step Indicator */}
+          ) : isStreetGame ? (
+            /* Interactive Safe Street Crossing Game UI */
+            <div className="space-y-8">
+              {/* Round Indicator */}
               {/* <div className="text-center mb-6">
-                <div className="inline-flex bg-blue-100 rounded-full px-8 py-3 border-3 border-blue-300">
-                  <span className="text-2xl font-bold text-blue-800">
-                    Step {gameStep} of 3: {
-                      gameStep === 1 ? "🗣️ Listen" :
-                      gameStep === 2 ? "🍽️ Find Food" :
-                      "✅ Done"
-                    }
+                <div className="inline-flex bg-gradient-to-r from-green-100 to-blue-100 rounded-full px-8 py-4 border-3 border-green-300 shadow-lg">
+                  <span className="text-2xl font-bold text-green-800 flex items-center space-x-3">
+                    <span className="text-3xl animate-bounce-gentle">🚦</span>
+                    <span>Round {streetRound} of 5</span>
+                    <span className="text-3xl animate-pulse-gentle">🚶‍♂️</span>
                   </span>
                 </div>
               </div> */}
 
+              {/* Main Street Scenario Area */}
+              <div className="bg-gradient-to-br from-blue-50 via-gray-50 to-green-50 rounded-3xl p-8 border-4 border-gray-300 relative overflow-hidden">
+                {/* Background Street */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                  <div className="text-[20rem]">🛣️</div>
+                </div>
+
+                {/* Street Scene */}
+                <div className="flex flex-col items-center mb-8 relative z-10">
+                  {/* Walking Animation */}
+                  {showWalkingAnimation && (
+                    <div className="absolute inset-0 flex items-center justify-center z-20">
+                      <div className="text-8xl animate-slide-right">
+                        🚶‍♂️➡️➡️➡️
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Traffic Light and Scenario */}
+                  <div className="flex items-center space-x-8 mb-6">
+                    {/* Traffic Light */}
+                    <div className="bg-gray-800 rounded-xl p-4 shadow-xl">
+                      <div className="text-8xl">{currentScenario?.trafficLight}</div>
+                    </div>
+
+                    {/* Scenario Image */}
+                    <div className="bg-white rounded-2xl p-6 border-3 border-gray-400 shadow-xl">
+                      <div className="text-6xl mb-2">{currentScenario?.scenarioImage}</div>
+                    </div>
+
+                    {/* Character */}
+                    <div className="text-[8rem]">
+                      {currentScenario?.characterEmoji}
+                    </div>
+                  </div>
+
+                  {/* Question */}
+                  <div className="bg-white rounded-2xl p-6 border-3 border-blue-300 shadow-xl mb-8 max-w-2xl">
+                    <div className="text-2xl font-bold text-gray-800 text-center leading-relaxed">
+                      {currentScenario?.questionText}
+                    </div>
+                  </div>
+
+                  {/* Feedback Message */}
+                  {showStreetFeedback && (
+                    <div className={`
+                      ${streetFeedbackType === 'safe' 
+                        ? 'bg-gradient-to-r from-green-100 to-blue-100 border-green-400' 
+                        : 'bg-gradient-to-r from-yellow-100 to-red-100 border-yellow-400'
+                      } 
+                      rounded-2xl p-6 border-3 shadow-xl mb-6 max-w-2xl animate-fade-in
+                    `}>
+                      <div className="text-xl font-bold text-center">
+                        {streetFeedbackType === 'safe' && <span className="text-4xl mr-3">✅</span>}
+                        {streetFeedbackType === 'unsafe' && <span className="text-4xl mr-3">⚠️</span>}
+                        {streetFeedbackMessage}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons - Large and Clear */}
+                <div className="flex justify-center space-x-8 mb-8">
+                  <button
+                    onClick={() => handleStreetAnswer('CROSS')}
+                    disabled={isAnswered}
+                    className={`
+                      ${
+                        selectedAnswer === 'CROSS' && currentScenario?.correctAnswer === 'CROSS'
+                          ? "bg-gradient-to-r from-green-400 to-green-500 text-white border-green-300 scale-110 shadow-2xl animate-success-pulse"
+                          : selectedAnswer === 'CROSS' && currentScenario?.correctAnswer !== 'CROSS'
+                          ? "bg-gradient-to-r from-red-400 to-red-500 text-white border-red-300 scale-110 shadow-2xl"
+                          : "bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white border-blue-300 hover:border-blue-400"
+                      } 
+                      text-3xl font-bold py-8 px-16 rounded-3xl cursor-pointer transition-all duration-300 border-4 shadow-2xl transform
+                      focus:outline-none focus:ring-6 focus:ring-blue-300
+                      ${!isAnswered ? 'hover:scale-110 hover:shadow-3xl' : ''}
+                      min-w-[200px] flex flex-col items-center justify-center
+                    `}
+                  >
+                    <span className="text-6xl mb-2">🚶‍♂️</span>
+                    <span>CROSS</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleStreetAnswer('WAIT')}
+                    disabled={isAnswered}
+                    className={`
+                      ${
+                        selectedAnswer === 'WAIT' && currentScenario?.correctAnswer === 'WAIT'
+                          ? "bg-gradient-to-r from-green-400 to-green-500 text-white border-green-300 scale-110 shadow-2xl animate-success-pulse"
+                          : selectedAnswer === 'WAIT' && currentScenario?.correctAnswer !== 'WAIT'
+                          ? "bg-gradient-to-r from-red-400 to-red-500 text-white border-red-300 scale-110 shadow-2xl"
+                          : "bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white border-orange-300 hover:border-orange-400"
+                      } 
+                      text-3xl font-bold py-8 px-16 rounded-3xl cursor-pointer transition-all duration-300 border-4 shadow-2xl transform
+                      focus:outline-none focus:ring-6 focus:ring-orange-300
+                      ${!isAnswered ? 'hover:scale-110 hover:shadow-3xl' : ''}
+                      min-w-[200px] flex flex-col items-center justify-center
+                    `}
+                  >
+                    <span className="text-6xl mb-2">✋</span>
+                    <span>WAIT</span>
+                  </button>
+                </div>
+
+                {/* Score Display */}
+                <div className="text-center">
+                  <div className="inline-flex bg-green-100 rounded-full px-6 py-3 border-2 border-green-300">
+                    <span className="text-xl font-bold text-green-800 flex items-center space-x-2">
+                      <span className="text-2xl">🏆</span>
+                      <span>Safety Score: {streetScore}/5</span>
+                      <span className="text-2xl animate-pulse-gentle">🚦</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : isCashierGame ? (
+            <div className="space-y-6">
+              {/* Main Game Area */}
+              <div className="bg-gradient-to-b from-blue-50 to-green-50 rounded-3xl p-4 -mt-2 border-4 border-blue-200 relative">
+                
+                {/* Characters with simplified design */}
+                <div className="flex justify-between items-center relative min-h-[300px]">
+                  
+                  {/* Customer Character */}
+                  <div className="flex flex-col items-center relative">
+                    {/* Thought Bubble for Customer */}
+                    {showThoughtBubble && currentSpeaker === 'customer' && (
+                      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white rounded-3xl p-3 border-4 border-pink-300 shadow-2xl w-[250px] z-10 animate-bounce-gentle">
+                        <div className="text-xl font-bold text-gray-800 text-center leading-relaxed">
+                          {speechText}
+                        </div>
+                        {/* Bubble pointer */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
+                          <div className="w-0 h-0 border-l-8 border-r-8 border-t-16 border-l-transparent border-r-transparent border-t-white"></div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Customer - Head only */}
+                    <div className="text-center">
+                      {/* Head - larger */}
+                      <div className="text-[12rem] mb-4">👩‍🦱</div>
+                      
+                      {/* Label */}
+                      <div className="bg-pink-500 text-white px-8 py-4 rounded-full text-2xl font-bold shadow-lg">
+                        Customer
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Restaurant Counter */}
+                  <div className="flex-1 mx-16 mt-20">
+                    <div className="h-32 bg-gradient-to-t from-amber-400 to-amber-200 rounded-2xl border-4 border-amber-500 relative flex items-center justify-center shadow-lg">
+                      <span className="text-2xl font-bold text-amber-900">🏪 Restaurant Counter 🏪</span>
+                    </div>
+                  </div>
+
+                  {/* Cashier Character (You) */}
+                  <div className="flex flex-col items-center relative">
+                    {/* Thought Bubble for Cashier */}
+                    {showThoughtBubble && currentSpeaker === 'cashier' && (
+                      <div className="absolute -top-32 left-1/2 transform -translate-x-1/2 bg-white rounded-3xl p-8 border-4 border-blue-300 shadow-2xl max-w-lg z-10 animate-bounce-gentle">
+                        <div className="text-xl font-bold text-gray-800 text-center leading-relaxed">
+                          {speechText}
+                        </div>
+                        {/* Bubble pointer */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
+                          <div className="w-0 h-0 border-l-8 border-r-8 border-t-16 border-l-transparent border-r-transparent border-t-white"></div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Cashier - Head only */}
+                    <div className="text-center">
+                      {/* Head - larger */}
+                      <div className="text-[12rem] mb-4">👨‍💼</div>
+                      
+                      {/* Label */}
+                      <div className="bg-blue-500 text-white px-8 py-4 rounded-full text-2xl font-bold shadow-lg">
+                        You (Cashier)
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Area */}
+              <div className="mt-8 space-y-6">
+                {/* Step 1: Customer speaks */}
+                {gameStep === 1 && (
+                  <div className="text-center">
+                    
+                    {showThoughtBubble && (
+                      <button
+                        onClick={handleStartSelecting}
+                        className="bg-green-500 hover:bg-green-600 text-white py-6 px-12 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg"
+                      >
+                        ✅ GET ORDER
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Step 2: Select items */}
+                {gameStep === 2 && (
+                  <div>
+                    <div className="bg-blue-100 border-4 border-blue-300 rounded-2xl p-6 mb-6 text-center">
+                      <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                        🍽️ Find the food the customer wants
+                      </h3>
+                    </div>
+
+                    {/* Food Menu - Simple Grid */}
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                      {currentQuestion.menuOptions.map((item, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleItemSelect(item)}
+                          disabled={isAnswered}
+                          className="bg-white hover:bg-blue-50 border-4 border-gray-300 hover:border-blue-400 rounded-2xl p-6 transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg"
+                        >
+                          <div className="text-5xl mb-3">{item.image}</div>
+                          <div className="font-bold text-gray-800 text-lg">{item.name}</div>
+                          <div className="text-green-600 font-semibold text-lg">{item.price}</div>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Selected Items Display */}
+                    {selectedItems.length > 0 && (
+                      <div className="bg-green-100 border-4 border-green-300 rounded-2xl p-6 mb-6">
+                        <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">
+                          ✅ Food I picked:
+                        </h3>
+                        <div className="flex flex-wrap gap-3 justify-center">
+                          {selectedItems.map((item, index) => (
+                            <div key={index} className="bg-white border-3 border-green-400 rounded-xl p-4 flex items-center space-x-3 shadow-md">
+                              <span className="text-3xl">{item.image}</span>
+                              <span className="font-semibold text-lg">{item.name}</span>
+                              <button
+                                onClick={() => handleRemoveItem(index)}
+                                disabled={isAnswered}
+                                className="bg-red-100 hover:bg-red-200 text-red-600 px-3 py-2 rounded-lg text-lg cursor-pointer font-bold"
+                              >
+                                ❌
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Submit Button */}
+                    {selectedItems.length > 0 && !isAnswered && (
+                      <div className="text-center">
+                        <button
+                          onClick={handleCashierSubmit}
+                          className="bg-purple-500 hover:bg-purple-600 text-white py-6 px-12 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg"
+                        >
+                          🎯 Give food to customer
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Step 3: Complete */}
+                {gameStep === 3 && (
+                  <div className="text-center">
+                    <div className="bg-purple-100 border-4 border-purple-300 rounded-2xl p-6">
+                      <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                        🏆 Good job helping the customer!
+                      </h3>
+                      <div className="text-xl font-bold text-purple-600">
+                        You got {cashierScore} points! 🌟
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : isCashierGame ? (
+            <div className="space-y-6">
               {/* Main Game Area */}
               <div className="bg-gradient-to-b from-blue-50 to-green-50 rounded-3xl p-4 -mt-2 border-4 border-blue-200 relative">
                 
@@ -1130,9 +2150,330 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                     </div>
                   </div>
                 )}
+
               </div>
             </div>
-          )}
+          ) : isGreetingsGame ? (
+            <div className="space-y-6">
+              {/* Main Game Area */}
+              <div className="bg-gradient-to-b from-green-50 to-blue-50 rounded-3xl p-4 -mt-2 border-4 border-green-200 relative">
+                
+                {/* Social Greetings Adventure UI */}
+                <div className="flex justify-between items-center relative min-h-[300px]">
+                  
+                  {/* Student Character (You) */}
+                  <div className="flex flex-col items-center relative">
+                    {/* Thought Bubble for Student */}
+                    {currentGreetingScenario?.studentThought && (
+                      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white rounded-3xl p-3 border-4 border-blue-300 shadow-2xl w-[250px] z-10 animate-bounce-gentle">
+                        <div className="text-xl font-bold text-gray-800 text-center leading-relaxed">
+                          {currentGreetingScenario.studentThought}
+                        </div>
+                        {/* Bubble pointer */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
+                          <div className="w-0 h-0 border-l-8 border-r-8 border-t-16 border-l-transparent border-r-transparent border-t-white"></div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Student Character - Head only */}
+                    <div className="text-center">
+                      {/* Head - larger */}
+                      <div className="text-[12rem] mb-4">👦</div>
+                      
+                      {/* Label */}
+                      <div className="bg-blue-500 text-white px-8 py-4 rounded-full text-2xl font-bold shadow-lg">
+                        You
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Scene Background */}
+                  <div className="flex-1 mx-16 mt-20">
+                    <div className="h-32 bg-gradient-to-t from-yellow-400 to-yellow-200 rounded-2xl border-4 border-yellow-500 relative flex items-center justify-center shadow-lg">
+                      <span className="text-2xl font-bold text-yellow-900">
+                        {currentGreetingScenario?.background} 
+                        {currentGreetingScenario?.context === 'morning' ? '🌅' : 
+                         currentGreetingScenario?.context === 'afternoon' ? '☀️' : 
+                         currentGreetingScenario?.context === 'evening' ? '🌆' : '🏫'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Other Character */}
+                  <div className="flex flex-col items-center relative">
+                    {/* Speech Bubble for Other Character */}
+                    {currentGreetingScenario?.otherCharacterSpeech && (
+                      <div className="absolute -top-32 left-1/2 transform -translate-x-1/2 bg-white rounded-3xl p-8 border-4 border-pink-300 shadow-2xl max-w-lg z-10 animate-bounce-gentle">
+                        <div className="text-xl font-bold text-gray-800 text-center leading-relaxed">
+                          {currentGreetingScenario.otherCharacterSpeech}
+                        </div>
+                        {/* Bubble pointer */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
+                          <div className="w-0 h-0 border-l-8 border-r-8 border-t-16 border-l-transparent border-r-transparent border-t-white"></div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Other Character - Head only */}
+                    <div className="text-center">
+                      {/* Head - larger */}
+                      <div className="text-[12rem] mb-4">
+                        {currentGreetingScenario?.character}
+                      </div>
+                      
+                      {/* Label */}
+                      <div className="bg-pink-500 text-white px-8 py-4 rounded-full text-2xl font-bold shadow-lg">
+                        {currentGreetingScenario?.characterType}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Scenario Title and Context */}
+                <div className="text-center mb-6">
+                  <div className="bg-gradient-to-r from-purple-100 to-blue-100 border-4 border-purple-300 rounded-2xl p-6">
+                    <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                      🌟 Social Greetings Adventure 🌟
+                    </h2>
+                    <p className="text-xl font-semibold text-gray-700">
+                      Round {greetingsRound}/5 - {currentGreetingScenario?.title}
+                    </p>
+                    <p className="text-lg text-gray-600 mt-2">
+                      {currentGreetingScenario?.situation}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Greeting Choice Buttons */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  {currentGreetingScenario?.choices?.map((choice, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleGreetingAnswer(choice)}
+                      disabled={greetingAnswered}
+                      className={`
+                        p-6 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg border-4
+                        ${choice.correct && greetingAnswered 
+                          ? 'bg-green-100 border-green-400 text-green-800' 
+                          : !choice.correct && greetingAnswered
+                          ? 'bg-red-100 border-red-400 text-red-800'
+                          : 'bg-white hover:bg-blue-50 border-gray-300 hover:border-blue-400 text-gray-800'}
+                        ${greetingAnswered ? 'cursor-not-allowed' : ''}
+                      `}
+                    >
+                      <div className="text-4xl mb-3">{choice.emoji}</div>
+                      <div className="leading-relaxed">{choice.text}</div>
+                      {choice.correct && greetingAnswered && (
+                        <div className="text-green-600 font-bold mt-3">✅ Perfect greeting!</div>
+                      )}
+                      {!choice.correct && greetingAnswered && greetingSelectedChoice === choice && (
+                        <div className="text-red-600 font-bold mt-3">❌ Try a different approach</div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Feedback Section */}
+                {greetingAnswered && (
+                  <div className="bg-gradient-to-r from-blue-100 to-green-100 border-4 border-blue-300 rounded-2xl p-6 text-center">
+                    <div className="text-6xl mb-4">
+                      {greetingSelectedChoice?.correct ? '🎉' : '🤔'}
+                    </div>
+                    <div className="text-2xl font-bold text-gray-800 mb-3">
+                      {greetingSelectedChoice?.correct ? 'Excellent greeting!' : 'Let\'s try again!'}
+                    </div>
+                    <div className="text-lg text-gray-700 mb-4">
+                      {greetingSelectedChoice?.feedback}
+                    </div>
+                    {greetingSelectedChoice?.correct && (
+                      <div className="text-xl font-bold text-green-600">
+                        +20 points! 🌟 (Score: {greetingsScore}/100)
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Progress Bar */}
+                <div className="bg-gray-200 rounded-full h-4 mb-4">
+                  <div 
+                    className="bg-gradient-to-r from-green-400 to-blue-500 h-4 rounded-full transition-all duration-500"
+                    style={{ width: `${(greetingsScore / 100) * 100}%` }}
+                  ></div>
+                </div>
+                <div className="text-center text-lg font-semibold text-gray-700">
+                  Progress: {greetingsScore}/100 points
+                </div>
+              </div>
+            </div>
+          ) : isMoneyGame ? (
+            <div className="space-y-6">
+              {/* Money Value Game Main Area */}
+              <div className="bg-gradient-to-b from-green-50 to-blue-50 rounded-3xl p-6 border-4 border-green-200 relative overflow-hidden">
+                
+                {/* Game Header */}
+                <div className="text-center mb-6">
+                  <div className="bg-gradient-to-r from-yellow-100 to-green-100 border-4 border-yellow-300 rounded-2xl p-6 relative">
+                    <div className="absolute -top-2 -right-2 text-6xl animate-bounce-gentle">💰</div>
+                    <div className="absolute -top-2 -left-2 text-4xl animate-float">🏪</div>
+                    <h2 className="text-4xl font-bold text-gray-800 mb-2">
+                      💱 Money Value Adventure 💱
+                    </h2>
+                    <p className="text-xl font-semibold text-gray-700">
+                      Round {moneyRound}/3 - Learn Philippine Peso Values!
+                    </p>
+                  </div>
+                </div>
+
+                {/* Budget Display */}
+                <div className="bg-gradient-to-r from-blue-100 to-purple-100 border-4 border-blue-300 rounded-2xl p-6 mb-6 text-center relative">
+                  <div className="absolute -top-3 -left-3 text-5xl animate-pulse-gentle">💳</div>
+                  <h3 className="text-3xl font-bold text-gray-800 mb-3">Your Budget</h3>
+                  <div className="text-6xl font-extrabold text-green-600 bg-white/70 backdrop-blur-sm rounded-xl p-4 border-2 border-green-200">
+                    ₱{currentBudget.toLocaleString()}
+                  </div>
+                  <p className="text-lg text-gray-600 mt-3">Choose items you can afford!</p>
+                </div>
+
+                {/* Shopping Items */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  {currentMoneyItems.map((item, index) => {
+                    const isAffordable = item.price <= currentBudget;
+                    const isPurchased = selectedPurchases.some(p => p.id === item.id);
+                    
+                    return (
+                      <div
+                        key={item.id}
+                        className={`
+                          relative bg-white/90 backdrop-blur-xl rounded-2xl p-6 border-4 shadow-xl transition-all duration-300 transform hover:scale-105
+                          ${isAffordable ? 'border-green-300 hover:border-green-500' : 'border-gray-300 hover:border-gray-400'}
+                          ${isPurchased ? 'ring-4 ring-green-400 bg-green-50' : ''}
+                        `}
+                      >
+                        {/* Affordability Indicator */}
+                        <div className={`absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center text-xl ${
+                          isAffordable ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                        }`}>
+                          {isAffordable ? '✓' : '❌'}
+                        </div>
+                        
+                        {/* Item Display */}
+                        <div className="text-center">
+                          <div className="text-8xl mb-4">{item.image}</div>
+                          <h4 className="text-2xl font-bold text-gray-800 mb-3">{item.name}</h4>
+                          <div className={`text-3xl font-bold mb-4 p-3 rounded-xl ${
+                            isAffordable ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100'
+                          }`}>
+                            ₱{item.price.toLocaleString()}
+                          </div>
+                          
+                          {/* Purchase Button */}
+                          <button
+                            onClick={() => handlePurchaseItem(item)}
+                            disabled={isPurchased || isRoundComplete}
+                            className={`
+                              w-full py-4 px-6 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 shadow-lg
+                              ${isPurchased 
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                                : isAffordable
+                                  ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white cursor-pointer'
+                                  : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white cursor-pointer'
+                              }
+                              ${isRoundComplete ? 'opacity-50 cursor-not-allowed' : ''}
+                            `}
+                          >
+                            {isPurchased ? '✅ Purchased!' : '🛒 Purchase'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Feedback Section */}
+                {showMoneyFeedback && (
+                  <div className={`rounded-2xl p-6 text-center border-4 mb-6 ${
+                    moneyFeedbackType === 'correct' 
+                      ? 'bg-gradient-to-r from-green-100 to-blue-100 border-green-400'
+                      : 'bg-gradient-to-r from-orange-100 to-red-100 border-orange-400'
+                  }`}>
+                    <div className="text-6xl mb-4">
+                      {moneyFeedbackType === 'correct' ? '🎉' : '💭'}
+                    </div>
+                    <div className="text-2xl font-bold text-gray-800 mb-3">
+                      {moneyFeedbackMessage}
+                    </div>
+                  </div>
+                )}
+
+                {/* Progress and Controls */}
+                <div className="text-center">
+                  {/* Score Display */}
+                  <div className="bg-purple-100 border-4 border-purple-300 rounded-2xl p-4 mb-4">
+                    <div className="text-2xl font-bold text-purple-800">
+                      Correct Purchases: {moneyScore} 🏆
+                    </div>
+                    {selectedPurchases.length > 0 && (
+                      <div className="text-lg text-gray-700 mt-2">
+                        Total Spent: ₱{totalSpent.toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Next Round Button */}
+                  {selectedPurchases.length > 0 && !isRoundComplete && (
+                    <button
+                      onClick={proceedToNextMoneyRound}
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-4 px-8 rounded-2xl text-xl font-bold shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer"
+                    >
+                      {moneyRound < 3 ? '➡️ Next Round' : '🏆 Complete Game'}
+                    </button>
+                  )}
+                </div>
+
+                {/* Badge Completion Modal */}
+                {showBadgeCompletion && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/90 via-green-400/90 to-blue-400/90 backdrop-blur-md rounded-3xl flex items-center justify-center z-50">
+                    <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-12 text-center shadow-2xl border-4 border-yellow-300 relative animate-modal-appear">
+                      <div className="absolute -top-8 -right-8 text-8xl animate-spin-slow">🏆</div>
+                      <div className="absolute -bottom-4 -left-4 text-6xl animate-bounce-gentle">💰</div>
+                      
+                      <div className="text-8xl mb-6 animate-bounce-gentle">🎉</div>
+                      <h3 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-green-600 mb-4">
+                        Money Master Achievement!
+                      </h3>
+                      <div className="bg-gradient-to-r from-yellow-50 to-green-50 rounded-2xl p-6 mb-6 border-2 border-yellow-200">
+                        <p className="text-2xl font-bold text-gray-800 mb-3">
+                          🏆 Badge Earned: Money Master 💰
+                        </p>
+                        <p className="text-lg text-gray-700 mb-2">
+                          You completed all 3 rounds and learned about Philippine Peso values!
+                        </p>
+                        <p className="text-xl font-bold text-green-600">
+                          Final Score: {moneyScore} correct purchases! 🌟
+                        </p>
+                      </div>
+                      
+                      <div className="flex gap-4 justify-center">
+                        <button
+                          onClick={restartMoneyGame}
+                          className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white py-3 px-6 rounded-2xl text-lg font-bold shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer"
+                        >
+                          🔄 Play Again
+                        </button>
+                        <button
+                          onClick={() => onComplete(moneyScore, 3)}
+                          className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white py-3 px-6 rounded-2xl text-lg font-bold shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer"
+                        >
+                          🚀 Continue Adventure
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {/* Correct Overlay */}
@@ -1209,7 +2550,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 </h2>
                 <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-purple-100">
                   <p className="text-2xl font-bold text-gray-800 mb-2">
-                    You scored <span className="text-3xl text-purple-600">{score}</span> out of <span className="text-3xl text-pink-600">{isHygieneGame ? 5 : total}</span>!
+                    You scored <span className="text-3xl text-purple-600">{score}</span> out of <span className="text-3xl text-pink-600">{isHygieneGame || isStreetGame ? 5 : total}</span>!
                   </p>
                   {activity === "Cashier Game" && (
                     <p className="text-xl font-bold text-green-600 mb-2">
@@ -1221,6 +2562,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                       Hygiene Score: <span className="text-2xl">{hygieneScore}</span>/5 🧼✨
                     </p>
                   )}
+                  {activity === "Safe Street Crossing" && (
+                    <p className="text-xl font-bold text-green-600 mb-2">
+                      Safety Score: <span className="text-2xl">{streetScore}</span>/5 🚦✨
+                    </p>
+                  )}
                   <div className="flex justify-center items-center space-x-2 mt-3">
                     <span className="text-2xl animate-bounce-gentle">🏆</span>
                     <span className="text-lg font-semibold text-gray-700">
@@ -1228,6 +2574,10 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                         (hygieneScore === 5 ? "Perfect Hygiene Hero!" : 
                          hygieneScore >= 4 ? "Excellent Hygiene!" : 
                          hygieneScore >= 3 ? "Great Job Learning!" : "Keep Practicing!") :
+                       activity === "Safe Street Crossing" ?
+                        (streetScore === 5 ? "Perfect Safety Champion!" : 
+                         streetScore >= 4 ? "Excellent Street Safety!" : 
+                         streetScore >= 3 ? "Great Job Staying Safe!" : "Keep Learning Safety!") :
                         (score === total ? "Perfect Score!" : 
                          score >= total * 0.8 ? "Excellent!" : 
                          score >= total * 0.6 ? "Great Job!" : "Keep Learning!")

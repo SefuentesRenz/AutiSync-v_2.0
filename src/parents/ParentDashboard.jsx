@@ -132,13 +132,13 @@ const ParentDashboard = () => {
       },
       // Enhanced emotions data with levels matching admin Expression Wall
       emotions: [
-        { date: '2025-09-04', emotion: 'happy', level: 5, priority: 'Positive', username: 'emma_explorer' },
-        { date: '2025-09-03', emotion: 'excited', level: 5, priority: 'Positive', username: 'emma_explorer' },
-        { date: '2025-09-02', emotion: 'happy', level: 4, priority: 'Positive', username: 'emma_explorer' },
-        { date: '2025-09-01', emotion: 'calm', level: 3, priority: 'Neutral', username: 'emma_explorer' },
-        { date: '2025-08-31', emotion: 'happy', level: 5, priority: 'Positive', username: 'emma_explorer' },
-        { date: '2025-08-30', emotion: 'excited', level: 4, priority: 'Positive', username: 'emma_explorer' },
-        { date: '2025-08-29', emotion: 'calm', level: 3, priority: 'Neutral', username: 'emma_explorer' }
+        { date: '2025-09-04', emotion: 'happy', level: 5, priority: 'Positive', username: 'emma_explorer', note: 'I finished all my math problems today and got them right!' },
+        { date: '2025-09-03', emotion: 'excited', level: 5, priority: 'Positive', username: 'emma_explorer', note: 'We are going to the playground after activities!' },
+        { date: '2025-09-02', emotion: 'happy', level: 4, priority: 'Positive', username: 'emma_explorer', note: 'I made a new friend in my activity group.' },
+        { date: '2025-09-01', emotion: 'calm', level: 3, priority: 'Neutral', username: 'emma_explorer', note: '' },
+        { date: '2025-08-31', emotion: 'happy', level: 5, priority: 'Positive', username: 'emma_explorer', note: 'My teacher said I did a great job on the shapes activity!' },
+        { date: '2025-08-30', emotion: 'excited', level: 4, priority: 'Positive', username: 'emma_explorer', note: 'Tomorrow we will learn about animals.' },
+        { date: '2025-08-29', emotion: 'calm', level: 3, priority: 'Neutral', username: 'emma_explorer', note: 'Just feeling okay today.' }
       ],
       // Enhanced badges matching student page structure
       badges: [
@@ -863,11 +863,24 @@ const ParentDashboard = () => {
                       </div>
                     </div>
                     
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-500 mb-3">
                       {emotion.level >= 4 ? 'High positive emotion' : 
                        emotion.level >= 3 ? 'Moderate emotion level' : 
                        'Lower emotion intensity'}
                     </div>
+
+                    {/* Student Note */}
+                    {emotion.note && (
+                      <div className="mt-4 p-3 bg-white/50 rounded-lg border border-gray-200">
+                        <div className="flex items-start space-x-2">
+                          <div className="text-sm">💭</div>
+                          <div>
+                            <p className="text-xs font-semibold text-gray-600 mb-1">Student's Note:</p>
+                            <p className="text-sm text-gray-700 italic">"{emotion.note}"</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

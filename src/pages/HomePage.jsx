@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import StudentCharacter from '../components/StudentCharacter';
 
 const Emotions = [
   { name: "Happy", image: "src/assets/happy.png", color: "from-yellow-400 to-orange-500", bgColor: "bg-yellow-50" },
@@ -13,6 +14,7 @@ const HomePage = () => {
   const [selectedEmotion, setSelectedEmotion] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState(3);
+  const [emotionNote, setEmotionNote] = useState("");
   const [expressions, setExpressions] = useState([
     { emotion: "Happy", image: "src/assets/happy.png", level: 2, time: "2 hours ago", userName: "Emma" },
     { emotion: "Calm", image: "src/assets/calm.png", level: 5, time: "5 hours ago", userName: "Alex" },
@@ -45,6 +47,7 @@ const HomePage = () => {
     setExpressions((prev) => [newExpression, ...prev]);
     setShowModal(false);
     setSelectedLevel(3);
+    setEmotionNote("");
   };
 
   const studentPageRoute = () => navigate("/studentpage");
@@ -321,6 +324,8 @@ const HomePage = () => {
           </div>
         </section>
 
+        
+
         {/* Difficulty Levels Section */}
         <section className="mb-12">
           <div className=" bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/20">
@@ -380,6 +385,12 @@ const HomePage = () => {
                 </div>
           </div>
         </section>
+
+      
+      {/* Use the character component */}
+      {/* <StudentCharacter /> */}
+    
+    
           </div>
         </section>
 
@@ -457,12 +468,30 @@ const HomePage = () => {
                      "Very much - overwhelming feeling"}
                   </p> */}
                 </div>
+
+                {/* Optional Note Section */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Note (Optional)
+                  </label>
+                  <textarea
+                    value={emotionNote}
+                    onChange={(e) => setEmotionNote(e.target.value)}
+                    placeholder="why?"
+                    className="w-full h-16 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 resize-none text-gray-700 placeholder-gray-400"
+                    maxLength={100}
+                  />
+                  
+                </div>
               </div>
 
               {/* Action Buttons */}
               <div className="flex space-x-4">
                 <button
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false);
+                    setEmotionNote("");
+                  }}
                   className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
                   Cancel

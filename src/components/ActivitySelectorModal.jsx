@@ -57,11 +57,11 @@ const activities = [
   },
   { 
     id: 7, 
-    name: "Shopping Skills", 
-    icon: "🛒", 
-    color: "from-blue-500 to-cyan-600",
-    bgColor: "bg-blue-50",
-    hoverColor: "hover:bg-blue-100",
+    name: "Money Value Game", 
+    icon: "💰", 
+    color: "from-yellow-500 to-orange-600",
+    bgColor: "bg-yellow-50",
+    hoverColor: "hover:bg-yellow-100",
     category: "Social / Daily Life Skill"
   },
   { 
@@ -80,6 +80,15 @@ const activities = [
     color: "from-cyan-500 to-blue-600",
     bgColor: "bg-cyan-50",
     hoverColor: "hover:bg-cyan-100",
+    category: "Social / Daily Life Skill"
+  },
+  { 
+    id: 10, 
+    name: "Safe Street Crossing", 
+    icon: "🚦", 
+    color: "from-emerald-500 to-green-600",
+    bgColor: "bg-emerald-50",
+    hoverColor: "hover:bg-emerald-100",
     category: "Social / Daily Life Skill"
   },
 ];
