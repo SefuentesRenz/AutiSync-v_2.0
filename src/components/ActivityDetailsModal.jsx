@@ -15,6 +15,7 @@ import EditActivityModal from './EditActivityModal';
 
 const ActivityDetailsModal = ({ isOpen, onClose, activity }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { getButtonSoundHandlers } = useButtonSounds();
   
   if (!isOpen || !activity) return null;
 
@@ -64,7 +65,7 @@ const ActivityDetailsModal = ({ isOpen, onClose, activity }) => {
         {/* Modal Header */}
         <div className={`bg-gradient-to-r ${activity.color} p-6 rounded-t-3xl relative`}>
           <button
-            onClick={onClose}
+            {...getButtonSoundHandlers(onClose)}
             className="absolute top-4 right-4 text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-xl transition-all duration-200"
           >
             <XMarkIcon className="w-6 h-6" />
@@ -263,13 +264,13 @@ const ActivityDetailsModal = ({ isOpen, onClose, activity }) => {
           {/* Action Buttons */}
           <div className="flex gap-4 justify-end pt-4 border-t border-gray-200">
             <button
-              onClick={onClose}
+              {...getButtonSoundHandlers(onClose)}
               className="cursor-pointer px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-all duration-200"
             >
               Close
             </button>
             <button
-              onClick={() => setIsEditModalOpen(true)}
+              {...getButtonSoundHandlers(() => setIsEditModalOpen(true))}
               className="cursor-pointer px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 flex items-center space-x-2"
             >
               <PencilIcon className="w-5 h-5" />

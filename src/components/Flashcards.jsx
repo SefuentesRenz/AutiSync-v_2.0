@@ -6,9 +6,11 @@ import {
   saveBadgesToStorage, 
   getBadgeAchievementMessage 
 } from '../utils/badgeSystem';
+import { useButtonSounds } from '../utils/useButtonSounds';
 
 const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const navigate = useNavigate();
+  const { getButtonSoundHandlers } = useButtonSounds();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -1594,7 +1596,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                     ${!isAnswered ? 'hover:animate-bounce-gentle' : ''}
                     min-h-[4rem] flex items-center justify-center
                   `}
-                  onClick={() => handleAnswerClick(choice)}
+                  {...getButtonSoundHandlers(() => handleAnswerClick(choice))}
                   disabled={isAnswered}
                 >
                   <span className="relative z-10">{choice}</span>
@@ -2499,7 +2501,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       {isAnswered && (
         <div className="absolute right-7 bottom-90 animate-slide-in-right">
           <button
-            onClick={handleNextClick}
+            {...getButtonSoundHandlers(handleNextClick)}
             className="w-50 relative right-6 top-38 cursor-pointer bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 hover:from-purple-600 hover:via-pink-600 hover:to-purple-700 text-white  py-3 rounded-2xl text-lg font-bold shadow-2xl transform hover:scale-110 transition-all duration-300 flex items-center space-x-3 border-2 border-white/30 backdrop-blur-sm animate-pulse-gentle"
           >
             <span className="text-2xl animate-bounce-gentle">

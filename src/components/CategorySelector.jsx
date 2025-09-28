@@ -1,8 +1,12 @@
 
 import React from 'react';
+import { useButtonSounds } from '../utils/useButtonSounds';
 
-const CategorySelector = ({ onSelectCategory, onJoinFriend }) => (
-  <div className="bg-gradient-to-br -mt-15 from-blue-50 via-purple-50 to-pink-50 rounded-3xl p-8 pt-13 shadow-2xl border border-white/20 w-270 mx-auto ">
+const CategorySelector = ({ onSelectCategory, onJoinFriend }) => {
+  const { getButtonSoundHandlers } = useButtonSounds();
+
+  return (
+    <div className="bg-gradient-to-br -mt-15 from-blue-50 via-purple-50 to-pink-50 rounded-3xl p-8 pt-13 shadow-2xl border border-white/20 w-270 mx-auto ">
 
     <img 
                 src="/src/assets/categoryheader.jpg" 
@@ -15,7 +19,7 @@ const CategorySelector = ({ onSelectCategory, onJoinFriend }) => (
       </h2>
       <button 
         className="btn-autism-friendly bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white text-lg font-bold px-8 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 mb-2 cursor-pointer"
-        onClick={onJoinFriend}
+        {...getButtonSoundHandlers(onJoinFriend)}
       >
        Join a Friend
       </button>
@@ -23,7 +27,7 @@ const CategorySelector = ({ onSelectCategory, onJoinFriend }) => (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
       <button 
         className="bg-white/80 backdrop-blur-xl border-2 border-blue-200 hover:border-blue-400 rounded-3xl shadow-xl hover:shadow-2xl p-6 flex flex-col items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 cursor-pointer "
-        onClick={() => onSelectCategory('Academic')}
+        {...getButtonSoundHandlers(() => onSelectCategory('Academic'))}
       >
         <div className="text-6xl mb-3">🎓</div>
         <div className="font-bold text-xl text-blue-700 mb-1">Academic</div>
@@ -31,7 +35,7 @@ const CategorySelector = ({ onSelectCategory, onJoinFriend }) => (
       </button>
       <button 
         className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 hover:border-purple-400 rounded-3xl shadow-xl hover:shadow-2xl p-6 flex flex-col items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300 cursor-pointer "
-        onClick={() => onSelectCategory('Social / Daily Life Skill')}
+        {...getButtonSoundHandlers(() => onSelectCategory('Social / Daily Life Skill'))}
       >
         <div className="text-6xl mb-3">👫</div>
         <div className="font-bold text-xl text-purple-700 mb-1">Social / Daily Life Skill</div>
@@ -39,6 +43,7 @@ const CategorySelector = ({ onSelectCategory, onJoinFriend }) => (
       </button>
     </div>
   </div>
-);
+  );
+};
 
 export default CategorySelector;

@@ -7,6 +7,7 @@ import Flashcards from '../components/Flashcards';
 import NavBar from '../components/NavBar';
 import ChatBar from '../components/ChatBar';
 import { useChat } from '../components/ChatContext';
+import { useButtonSounds } from '../utils/useButtonSounds';
 
 const FlashcardsPage = () => {
   const navigate = useNavigate();
@@ -17,6 +18,8 @@ const FlashcardsPage = () => {
   const [showActivityModal, setShowActivityModal] = useState(false);
   const bgmRef = React.useRef(null);
   const [isBgmPlaying, setIsBgmPlaying] = useState(true);
+  
+  const { getButtonSoundHandlers } = useButtonSounds();
 
   const {
     showChatBar,

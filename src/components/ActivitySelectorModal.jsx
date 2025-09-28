@@ -1,4 +1,5 @@
 import React from "react";
+import { useButtonSounds } from '../utils/useButtonSounds';
 
 const activities = [
   { 
@@ -94,6 +95,8 @@ const activities = [
 ];
 
 const ActivitySelectorModal = ({ isOpen, onClose, onSelect, selectedCategory }) => {
+  const { getButtonSoundHandlers } = useButtonSounds();
+  
   if (!isOpen) return null;
 
   // Filter activities based on selected category
@@ -108,7 +111,7 @@ const ActivitySelectorModal = ({ isOpen, onClose, onSelect, selectedCategory }) 
         <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-6 text-white relative">
           <button
             className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-200 transform hover:scale-110"
-            onClick={onClose}
+            {...getButtonSoundHandlers(onClose)}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -127,10 +130,10 @@ const ActivitySelectorModal = ({ isOpen, onClose, onSelect, selectedCategory }) 
             {filteredActivities.map((activity) => (
               <button
                 key={activity.id}
-                onClick={() => {
+                {...getButtonSoundHandlers(() => {
                   onSelect(activity.name);
                   onClose();
-                }}
+                })}
                 className={`
                   ${activity.bgColor} ${activity.hoverColor}
                   cursor-pointer rounded-2xl h-25 shadow-lg hover:shadow-xl
