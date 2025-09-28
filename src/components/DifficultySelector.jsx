@@ -1,6 +1,10 @@
 import React from 'react';
+import { useButtonSounds } from '../utils/useButtonSounds';
 
-const DifficultySelector = ({ onSelectDifficulty, onJoinFriend, selectedCategory, onGoBack }) => (
+const DifficultySelector = ({ onSelectDifficulty, onJoinFriend, selectedCategory, onGoBack }) => {
+  const { getButtonSoundHandlers } = useButtonSounds();
+
+  return (
   <div className="bg-gradient-to-br -mt-10 from-blue-50 via-purple-50 to-pink-50 rounded-3xl shadow-2xl p-10 border border-white/20 relative overflow-hidden mx-auto w-270">
     {/* Decorative background */}
     <div className="absolute top-0 right-0 w-270 h-32 bg-gradient-to-bl from-purple-200/20 to-transparent rounded-full blur-2xl"></div>
@@ -15,7 +19,7 @@ const DifficultySelector = ({ onSelectDifficulty, onJoinFriend, selectedCategory
           </h2>
         </div>
         <button
-          onClick={onGoBack}
+          {...getButtonSoundHandlers(onGoBack)}
           className="bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 px-6 py-3 rounded-2xl transition-all duration-300 flex items-center space-x-3 shadow-lg hover:shadow-xl transform hover:scale-105"
         >
           <span className="text-xl">←</span>
@@ -40,7 +44,7 @@ const DifficultySelector = ({ onSelectDifficulty, onJoinFriend, selectedCategory
         </h2>
         <button 
           className="btn-autism-friendly bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white text-lg font-bold px-8 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 mb-2"
-          onClick={onJoinFriend}
+          {...getButtonSoundHandlers(onJoinFriend)}
         >
          Join a Friend
         </button>
@@ -51,7 +55,7 @@ const DifficultySelector = ({ onSelectDifficulty, onJoinFriend, selectedCategory
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
       <button 
         className="bg-white/80 backdrop-blur-xl border-2 border-green-200 hover:border-green-400 rounded-3xl shadow-xl hover:shadow-2xl p-8 flex flex-col items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-green-300 cursor-pointer " 
-        onClick={() => onSelectDifficulty("Easy")}
+        {...getButtonSoundHandlers(() => onSelectDifficulty("Easy"))}
       >
         <div className="text-7xl mb-4">😊</div>
         <div className="font-bold text-2xl text-green-700 mb-2">Easy</div>
@@ -60,7 +64,7 @@ const DifficultySelector = ({ onSelectDifficulty, onJoinFriend, selectedCategory
       
       <button 
         className="bg-white/80 backdrop-blur-xl border-2 border-orange-200 hover:border-orange-400 rounded-3xl shadow-xl hover:shadow-2xl p-8 flex flex-col items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-orange-300 cursor-pointer " 
-        onClick={() => onSelectDifficulty("Medium")}
+        {...getButtonSoundHandlers(() => onSelectDifficulty("Medium"))}
       >
         <div className="text-7xl mb-4">🤔</div>
         <div className="font-bold text-2xl text-orange-700 mb-2">Medium</div>
@@ -69,7 +73,7 @@ const DifficultySelector = ({ onSelectDifficulty, onJoinFriend, selectedCategory
       
       <button 
         className="bg-white/80 backdrop-blur-xl border-2 border-red-200 hover:border-red-400 rounded-3xl shadow-xl hover:shadow-2xl p-8 flex flex-col items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-red-300 cursor-pointer " 
-        onClick={() => onSelectDifficulty("Hard")}
+        {...getButtonSoundHandlers(() => onSelectDifficulty("Hard"))}
       >
         <div className="text-7xl mb-4">💪</div>
         <div className="font-bold text-2xl text-red-700 mb-2">Hard</div>
@@ -77,6 +81,7 @@ const DifficultySelector = ({ onSelectDifficulty, onJoinFriend, selectedCategory
       </button>
     </div>
   </div>
-);
+  );
+};
 
 export default DifficultySelector;

@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-<<<<<<< HEAD
 import StudentCharacter from '../components/StudentCharacter';
-=======
+
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
->>>>>>> 4781b982c0cdf0460b3f574cda14b5b9dde7643b
+
 
 const Emotions = [
   { name: "Happy", image: "src/assets/happy.png", color: "from-yellow-400 to-orange-500", bgColor: "bg-yellow-50" },
@@ -19,7 +18,7 @@ const HomePage = () => {
   const [selectedEmotion, setSelectedEmotion] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState(3);
-<<<<<<< HEAD
+
   const [emotionNote, setEmotionNote] = useState("");
   const [expressions, setExpressions] = useState([
     { emotion: "Happy", image: "src/assets/happy.png", level: 2, time: "2 hours ago", userName: "Emma" },
@@ -29,12 +28,12 @@ const HomePage = () => {
     { emotion: "Sad",  image: "src/assets/sad.png", level: 3, time: "2 hours ago", userName: "Riley" },
     { emotion: "Excited", image: "src/assets/excited.png", level: 1, time: "Yesterday", userName: "Casey" },
   ]);
-=======
+
   const [note, setNote] = useState('');
   const [userProfile, setUserProfile] = useState(null);
   const { user } = useAuth();
-  const [expressions, setExpressions] = useState([]);
->>>>>>> 4781b982c0cdf0460b3f574cda14b5b9dde7643b
+  
+
 
   const navigate = useNavigate();
 
@@ -763,24 +762,7 @@ const HomePage = () => {
                 </div>
               </div>
 
-              {/* Note input for high-intensity negative emotions */}
-              {(selectedEmotion?.toLowerCase() === 'sad' || selectedEmotion?.toLowerCase() === 'angry') && selectedLevel >= 4 && (
-                <div className="mb-6 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                    <span className="mr-2">💭</span>
-                    Want to tell us more about how you're feeling?
-                  </h3>
-                  <textarea
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    placeholder="You can share what's making you feel this way... (optional)"
-                    className="w-full p-3 border-2 border-yellow-300 rounded-lg resize-none focus:outline-none focus:border-blue-400 text-gray-700"
-                    rows="3"
-                    maxLength="200"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">This will help your teacher and parents understand how to support you better.</p>
-                </div>
-              )}
+            
 
               {/* Action Buttons */}
               <div className="flex space-x-4">
