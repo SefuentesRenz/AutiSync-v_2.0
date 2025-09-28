@@ -1,6 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
+<<<<<<< HEAD
 import StudentCharacter from '../components/StudentCharacter';
+=======
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
+>>>>>>> 4781b982c0cdf0460b3f574cda14b5b9dde7643b
 
 const Emotions = [
   { name: "Happy", image: "src/assets/happy.png", color: "from-yellow-400 to-orange-500", bgColor: "bg-yellow-50" },
@@ -14,6 +19,7 @@ const HomePage = () => {
   const [selectedEmotion, setSelectedEmotion] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState(3);
+<<<<<<< HEAD
   const [emotionNote, setEmotionNote] = useState("");
   const [expressions, setExpressions] = useState([
     { emotion: "Happy", image: "src/assets/happy.png", level: 2, time: "2 hours ago", userName: "Emma" },
@@ -23,31 +29,301 @@ const HomePage = () => {
     { emotion: "Sad",  image: "src/assets/sad.png", level: 3, time: "2 hours ago", userName: "Riley" },
     { emotion: "Excited", image: "src/assets/excited.png", level: 1, time: "Yesterday", userName: "Casey" },
   ]);
+=======
+  const [note, setNote] = useState('');
+  const [userProfile, setUserProfile] = useState(null);
+  const { user } = useAuth();
+  const [expressions, setExpressions] = useState([]);
+>>>>>>> 4781b982c0cdf0460b3f574cda14b5b9dde7643b
 
   const navigate = useNavigate();
+
+  // Helper function to get time ago
+  const getTimeAgo = (date) => {
+    const now = new Date();
+    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return "Just now";
+    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours} hours ago`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays === 1) return "Yesterday";
+    if (diffInDays < 7) return `${diffInDays} days ago`;
+    
+    return date.toLocaleDateString();
+  };
+
+  // Function to create an alert for high-intensity negative emotions
+  const createAlert = async (studentId, emotion, intensity, expressionId, note) => {
+    try {
+      // Get student's parent (assuming parent_id is in students table)
+      const { data: studentWithParent, error: parentError } = await supabase
+        .from('students')
+        .select('parent_id')
+        .eq('id', studentId)
+        .single();
+
+      // Get all admins to notify them
+      const { data: admins, error: adminError } = await supabase
+        .from('admins')
+        .select('id')
+        .limit(1); // Get first admin or adjust logic as needed
+
+      if (parentError) {
+        console.error('Error fetching parent:', parentError);
+      }
+
+      if (adminError) {
+        console.error('Error fetching admin:', adminError);
+      }
+
+      // Create alert with available IDs
+      const alertData = {
+        student_id: studentId,
+        profile_id: userProfile?.id,
+        emotion_id: expressionId, // Using expression ID as emotion reference
+        intensity: intensity,
+        status: 'priority',
+        created_at: new Date().toISOString(),
+        ...(studentWithParent?.parent_id && { parent_id: studentWithParent.parent_id }),
+        ...(admins && admins.length > 0 && { admin_id: admins[0].id })
+      };
+
+      const { data: alertResult, error: alertError } = await supabase
+        .from('alert')
+        .insert([alertData])
+        .select();
+
+      if (alertError) {
+        console.error('Error creating alert:', alertError);
+      } else {
+        console.log('Alert created successfully:', alertResult);
+        
+        // Create notification for admin and parent
+        await createNotifications(studentId, emotion, intensity, note, studentWithParent?.parent_id, admins?.[0]?.id);
+      }
+    } catch (error) {
+      console.error('Error in createAlert:', error);
+    }
+  };
+
+  // Function to create notifications for admin and parent
+  const createNotifications = async (studentId, emotion, intensity, note, parentId, adminId) => {
+    try {
+      const studentName = userProfile?.full_name || userProfile?.username || 'Student';
+      const message = `🚨 HIGH PRIORITY ALERT: ${studentName} submitted "${emotion}" with intensity level ${intensity}${note ? `. Note: "${note}"` : ''}. Please check on the student.`;
+
+      const notifications = [];
+
+      // Create notification for parent if exists
+      if (parentId) {
+        notifications.push({
+          profile_id: userProfile?.id,
+          message: message,
+          type: 'alert',
+          priority: 'high',
+          is_read: false,
+          created_at: new Date().toISOString()
+        });
+      }
+
+      // Create notification for admin if exists
+      if (adminId) {
+        notifications.push({
+          profile_id: userProfile?.id,
+          message: message,
+          type: 'alert',
+          priority: 'high',
+          is_read: false,
+          created_at: new Date().toISOString()
+        });
+      }
+
+      if (notifications.length > 0) {
+        const { data: notificationResult, error: notificationError } = await supabase
+          .from('notifications')
+          .insert(notifications)
+          .select();
+
+        if (notificationError) {
+          console.error('Error creating notifications:', notificationError);
+        } else {
+          console.log('Notifications created successfully:', notificationResult);
+        }
+      }
+    } catch (error) {
+      console.error('Error in createNotifications:', error);
+    }
+  };
+
+  // Fetch user profile data
+  useEffect(() => {
+    if (user) {
+      fetchUserProfile();
+      fetchExpressions();
+    }
+  }, [user]);
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+      } else {
+        setUserProfile(data);
+      }
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+    }
+  };
+
+  const fetchExpressions = async () => {
+    try {
+      // Fetch all expressions from all students to create a shared emotion wall
+      const { data, error } = await supabase
+        .from('Expressions')
+        .select(`
+          *,
+          students!inner (
+            id,
+            profile_id
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) {
+        console.error('Error fetching expressions:', error);
+      } else {
+        // Get user profiles separately to avoid relationship conflicts
+        const studentIds = data.map(expr => expr.students.profile_id).filter(Boolean);
+        
+        if (studentIds.length > 0) {
+          const { data: profilesData, error: profilesError } = await supabase
+            .from('user_profiles')
+            .select('id, full_name, username')
+            .in('id', studentIds);
+
+          if (!profilesError) {
+            const profileMap = {};
+            profilesData.forEach(profile => {
+              profileMap[profile.id] = profile;
+            });
+
+            const formattedExpressions = data.map(expr => {
+              const profile = profileMap[expr.students.profile_id];
+              const timeAgo = getTimeAgo(new Date(expr.created_at));
+              return {
+                emotion: expr.emotion.charAt(0).toUpperCase() + expr.emotion.slice(1),
+                image: `src/assets/${expr.emotion}.png`,
+                level: expr.intensity,
+                time: timeAgo,
+                userName: profile?.full_name || profile?.username || 'Student',
+                note: expr.note || null
+              };
+            });
+            setExpressions(formattedExpressions);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error in fetchExpressions:', error);
+    }
+  };
 
   const handleEmotionClick = (emotion) => {
     setSelectedEmotion(emotion);
     setShowModal(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!userProfile?.id) {
+      alert('User profile not loaded. Please refresh and try again.');
+      return;
+    }
+
     const emotionData = Emotions.find((emotion) => emotion.name === selectedEmotion);
+    const userName = userProfile?.full_name || userProfile?.username || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Student';
+    
     const newExpression = {
       emotion: selectedEmotion,
-      // description: `Feeling ${selectedEmotion} at level ${selectedLevel}`,
       image: emotionData?.image,
       level: selectedLevel,
       time: "Just now",
-      userName: "Chris", // Current user name from header
+      userName: userName,
     };
 
-    setExpressions((prev) => [newExpression, ...prev]);
+    // Save to Supabase Expressions table
+    try {
+      // First, get the student record for this user
+      const { data: studentData, error: studentError } = await supabase
+        .from('students')
+        .select('id')
+        .eq('profile_id', userProfile.id)
+        .single();
+
+      if (studentError || !studentData) {
+        console.error('Error fetching student:', studentError);
+        alert('Error: Could not find student profile. Please make sure you have a student account.');
+        return;
+      }
+
+      // Insert into Expressions table
+      const isNegativeHigh = (selectedEmotion.toLowerCase() === 'sad' || selectedEmotion.toLowerCase() === 'angry') && selectedLevel >= 4;
+      
+      const insertData = {
+        student_id: studentData.id,
+        emotion: selectedEmotion.toLowerCase(),
+        intensity: selectedLevel,
+        ...(isNegativeHigh && note ? { note } : {})
+      };
+
+      const { data: expressionData, error: expressionError } = await supabase
+        .from('Expressions')
+        .insert([insertData])
+        .select();
+
+      if (expressionError) {
+        console.error('Error saving expression:', expressionError);
+        console.error('Full error details:', JSON.stringify(expressionError, null, 2));
+        alert(`Error saving expression: ${expressionError.message || expressionError.code || 'Unknown error'}`);
+      } else {
+        console.log('Expression saved successfully:', expressionData);
+        
+        // Check if this is a high-intensity negative emotion that needs an alert
+        if (isNegativeHigh) {
+          await createAlert(studentData.id, selectedEmotion, selectedLevel, expressionData[0].id, note);
+        }
+        
+        // Add to local state for immediate display
+        setExpressions((prev) => [newExpression, ...prev]);
+        // Refresh expressions from database
+        setTimeout(() => fetchExpressions(), 500);
+      }
+    } catch (error) {
+      console.error('Error in handleSubmit:', error);
+      alert('Error submitting expression');
+    }
+
     setShowModal(false);
     setSelectedLevel(3);
+
     setEmotionNote("");
+
+    // setNote('');
+
   };
 
   const studentPageRoute = () => navigate("/studentpage");
@@ -109,7 +385,9 @@ const HomePage = () => {
                   alt="Profile"
                   className="w-10 h-10 rounded-xl object-cover border-2 border-white shadow-sm group-hover:scale-105 transition-transform duration-300"
                 />
-                <span className="hidden sm:block text-sm font-semibold text-gray-700">Chris</span>
+                <span className="hidden sm:block text-sm font-semibold text-gray-700">
+                  {userProfile?.full_name || userProfile?.username || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Student'}
+                </span>
               </div>
             </div>
           </div>
@@ -484,6 +762,25 @@ const HomePage = () => {
                   
                 </div>
               </div>
+
+              {/* Note input for high-intensity negative emotions */}
+              {(selectedEmotion?.toLowerCase() === 'sad' || selectedEmotion?.toLowerCase() === 'angry') && selectedLevel >= 4 && (
+                <div className="mb-6 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                    <span className="mr-2">💭</span>
+                    Want to tell us more about how you're feeling?
+                  </h3>
+                  <textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="You can share what's making you feel this way... (optional)"
+                    className="w-full p-3 border-2 border-yellow-300 rounded-lg resize-none focus:outline-none focus:border-blue-400 text-gray-700"
+                    rows="3"
+                    maxLength="200"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">This will help your teacher and parents understand how to support you better.</p>
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="flex space-x-4">
