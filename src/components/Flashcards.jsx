@@ -118,11 +118,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const correctAudioRef = useRef(null);
   const wrongAudioRef = useRef(null);
   const badgeAudioRef = useRef(null);
+  const bgMusicRef = useRef(null);
 
   const celebrationSound = "/src/assets/sounds/Activitycompletion.mp3"; // Place your sound file here
   const correctSound = "/src/assets/sounds/correct.mp3"; 
   const wrongSound = "/src/assets/sounds/wrong.mp3";
   const badgeCelebrationSound = "/src/assets/sounds/Activitycompletion.mp3";
+  const jungleBgMusic = "/src/assets/sounds/Jungle_BGmusic.wav";
 
   // Pause video and play sound when modal appears
   useEffect(() => {
@@ -150,6 +152,34 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       wrongAudioRef.current.play();
     }
   }, [showWrong]);
+
+  
+  // Background music for Medium Identification activity
+  useEffect(() => {
+    if (activity === "Identification" && difficulty === "Medium") {
+      // Play jungle background music
+      if (bgMusicRef.current) {
+        bgMusicRef.current.volume = 0.3; // Set volume to 30%
+        bgMusicRef.current.loop = true; // Loop the music
+        bgMusicRef.current.play().catch(console.error);
+      }
+    } else {
+      // Stop background music for other activities
+      if (bgMusicRef.current) {
+        bgMusicRef.current.pause();
+        bgMusicRef.current.currentTime = 0;
+      }
+    }
+
+    // Cleanup function to stop music when component unmounts or activity changes
+    return () => {
+      if (bgMusicRef.current) {
+        bgMusicRef.current.pause();
+        bgMusicRef.current.currentTime = 0;
+      }
+    };
+  }, [activity, difficulty]);
+
 
   // Sample questions data - you can organize this by category, difficulty, and activity
   const questionsData = {
@@ -269,34 +299,34 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       Medium: {
         Identification: [
           {
-            questionText: "What are they doing?", 
-            videoSrc: "/src/assets/flashcards/brushyourteeth.mp4",
-            answerChoices: ["Sleeping", "Eating", "Reading a Book", "Brushing Teeth"],
-            correctAnswer: "Brushing Teeth"   
+            questionText: "What is this Animal?", 
+            videoSrc: "/src/assets/flashcards/Animals/Snake.mp4",
+            answerChoices: ["Lizard", "Worm", "Snake", "Monkey"],
+            correctAnswer: "Snake"   
           },
           {
             questionText: "What animal is this?",
-            videoSrc: "/src/assets/flashcards/dog_academic.mp4",
-            answerChoices: ["Dog", "Cat", "Fish", "Bird"],
-            correctAnswer: "Dog"
+            videoSrc: "/src/assets/flashcards/Animals/Frog.mp4",
+            answerChoices: ["Grasshopper", "Fish", "Bird", "Frog"],
+            correctAnswer: "Frog"
           },
           {
-            questionText: "What number is this?",
-            videoSrc: "/src/assets/flashcards/Easy-identificaction/number9.mp4",
-            answerChoices: ["Eight", "Seven", "Nine", "Ten"],
-            correctAnswer: "Nine"
+            questionText: "What animal is this?",
+            videoSrc: "/src/assets/flashcards/Animals/Panda.mp4",
+            answerChoices: ["Panda", "Monkey", "Cat", "Lion"],
+            correctAnswer: "Panda"
           },
           {
-            questionText: "What number is this?",
-            videoSrc: "/src/assets/flashcards/Easy-identificaction/number4.mp4",
-            answerChoices: ["Four", "Eight", "Six", "Ten"],
-            correctAnswer: "Four"
+            questionText: "What animal is this?",
+            videoSrc: "/src/assets/flashcards/Animals/Racoon.mp4",
+            answerChoices: ["Dog", "Squirrel", "Cat", "Racoon"],
+            correctAnswer: "Racoon"
           },
           {
-            questionText: "What number is this?",
-            videoSrc: "/src/assets/flashcards/Easy-identificaction/number8.mp4",
-            answerChoices: ["Six", "Nine", "Eight", "Three"],
-            correctAnswer: "Eight"
+            questionText: "What animal is this?",
+            videoSrc: "/src/assets/flashcards/Animals/Lion.mp4",
+            answerChoices: ["Tiger", "Lion", "Cat", "Dog"],
+            correctAnswer: "Lion"
           }
         ],
 
@@ -3640,6 +3670,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           box-shadow: 0 0 0 6px rgba(139, 92, 246, 0.2);
         }
       `}</style>
+
+      {/* Background Music for Medium Identification */}
+      <audio ref={bgMusicRef} src={jungleBgMusic} />
     </div>
   );
 };

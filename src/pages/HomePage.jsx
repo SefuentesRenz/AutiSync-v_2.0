@@ -34,7 +34,6 @@ const HomePage = () => {
   const { user } = useAuth();
   
 
-
   const navigate = useNavigate();
 
   // Helper function to get time ago
