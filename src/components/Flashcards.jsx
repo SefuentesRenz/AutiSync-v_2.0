@@ -11,6 +11,11 @@ import { useButtonSounds } from '../utils/useButtonSounds';
 const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const navigate = useNavigate();
   const { getButtonSoundHandlers } = useButtonSounds();
+  
+  // Refs for connection lines
+  const leftItemRefs = useRef({});
+  const rightItemRefs = useRef({});
+  const gameContainerRef = useRef(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -85,6 +90,28 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const [totalSpent, setTotalSpent] = useState(0);
   const [showBadgeCompletion, setShowBadgeCompletion] = useState(false);
   const [isRoundComplete, setIsRoundComplete] = useState(false);
+
+  // Matching Game specific state
+  const [matchingScore, setMatchingScore] = useState(0);
+  const [matchingConnections, setMatchingConnections] = useState([]);
+  const [selectedLeftItem, setSelectedLeftItem] = useState(null);
+  const [selectedRightItem, setSelectedRightItem] = useState(null);
+  const [matchedPairs, setMatchedPairs] = useState([]);
+  const [isMatchingComplete, setIsMatchingComplete] = useState(false);
+  const [showMatchingFeedback, setShowMatchingFeedback] = useState(false);
+  const [matchingFeedbackMessage, setMatchingFeedbackMessage] = useState('');
+  const [matchingFeedbackType, setMatchingFeedbackType] = useState(''); // 'correct' or 'incorrect'
+  const [wrongConnections, setWrongConnections] = useState([]);
+  
+  // New drag-and-drop matching game state
+  const [dragConnections, setDragConnections] = useState([]);
+  const [dragging, setDragging] = useState(null);
+  const [dragStart, setDragStart] = useState(null);
+  const [isAnswersChecked, setIsAnswersChecked] = useState(false);
+  const [correctConnections, setCorrectConnections] = useState([]);
+  const [incorrectConnections, setIncorrectConnections] = useState([]);
+  const [canSubmit, setCanSubmit] = useState(false);
+  const [shuffledRightItems, setShuffledRightItems] = useState(null);
 
     const videoRef = useRef(null);
   const audioRef = useRef(null);
@@ -174,7 +201,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             correctAnswer: "Four"
           },
           {
-            questionText: "What number are missing?",
+            questionText: "What number is missing?",
             videoSrc: "/src/assets/flashcards/Easy-Numbers/numbers-1-easy.mp4",
             answerChoices: ["Three", "Four", "Two", "One"],
             correctAnswer: "One"
@@ -208,20 +235,134 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             correctAnswer: "Triangle"
           }
         ],
-        MatchingType: [
+        "Matching Type": [
           {
-            questionText: "How do you spell this word?",
-            imageSrc: "/src/assets/flashcards/cat.jpg",
-            answerChoices: ["CAT", "COT", "CUT", "BAT"],
-            correctAnswer: "CAT"
+            questionText: "Simple Recognition - Match the pairs!",
+            gameType: "matching",
+            leftItems: [
+              { id: 1, content: "🌞 Sun", type: "text" },
+              
+              { id: 3, content: "🐶Dog", type: "text" },
+              { id: 4, content: "😺 Cat", type: "text" },
+              { id: 5, content: "🚗 Car", type: "text" },
+              { id: 6, content: "🪑 Chair", type: "text" },
+              { id: 7, content: "📖 Book", type: "text" },
+              
+              { id: 9, content: "🏠 House", type: "text" },
+              
+            ],
+            rightItems: [
+              
+              { id: "b", content: "Sit", type: "text", matchId: 6 },
+              { id: "c", content: "Day", type: "text", matchId: 1 },
+              { id: "d", content: "Meow", type: "text", matchId: 4 },
+              { id: "e", content: "Live", type: "text", matchId: 9 },
+              { id: "f", content: "Drive", type: "text", matchId: 5 },
+              
+              
+              { id: "i", content: "Read", type: "text", matchId: 7 },
+              { id: "j", content: "Bark", type: "text", matchId: 3 }
+            ]
           }
         ]
       },
       Medium: {
-        // Add medium difficulty questions here
+        Identification: [
+          {
+            questionText: "What are they doing?", 
+            videoSrc: "/src/assets/flashcards/brushyourteeth.mp4",
+            answerChoices: ["Sleeping", "Eating", "Reading a Book", "Brushing Teeth"],
+            correctAnswer: "Brushing Teeth"   
+          },
+          {
+            questionText: "What animal is this?",
+            videoSrc: "/src/assets/flashcards/dog_academic.mp4",
+            answerChoices: ["Dog", "Cat", "Fish", "Bird"],
+            correctAnswer: "Dog"
+          },
+          {
+            questionText: "What number is this?",
+            videoSrc: "/src/assets/flashcards/Easy-identificaction/number9.mp4",
+            answerChoices: ["Eight", "Seven", "Nine", "Ten"],
+            correctAnswer: "Nine"
+          },
+          {
+            questionText: "What number is this?",
+            videoSrc: "/src/assets/flashcards/Easy-identificaction/number4.mp4",
+            answerChoices: ["Four", "Eight", "Six", "Ten"],
+            correctAnswer: "Four"
+          },
+          {
+            questionText: "What number is this?",
+            videoSrc: "/src/assets/flashcards/Easy-identificaction/number8.mp4",
+            answerChoices: ["Six", "Nine", "Eight", "Three"],
+            correctAnswer: "Eight"
+          }
+        ],
+
+
+        "Matching Type": [
+          {
+            questionText: "Categories & School Concepts - Match the pairs!",
+            gameType: "matching",
+            leftItems: [
+              { id: 1, content: "👩‍🏫 Teacher", type: "text" },
+              { id: 2, content: "✏️ Pencil", type: "text" },
+              { id: 3, content: "🕒 Clock", type: "text" },
+              { id: 4, content: "👟 Shoes", type: "text" },
+             
+              { id: 6, content: "🐦 Bird", type: "text" },
+              { id: 7, content: "🛏️ Bed", type: "text" },
+              { id: 8, content: "🌧️ Rain", type: "text" },
+              // { id: 9, content: "🔥 Fire", type: "text" },
+              // { id: 10, content: "🎵 Music", type: "text" }
+            ],
+            rightItems: [
+              { id: "a", content: "Fly", type: "text", matchId: 6 },
+              { id: "b", content: "Time", type: "text", matchId: 3 },
+              { id: "c", content: "Classroom", type: "text", matchId: 1 },
+              { id: "d", content: "Wet", type: "text", matchId: 8 },
+              { id: "e", content: "Write", type: "text", matchId: 2 },
+              // { id: "f", content: "Hot", type: "text", matchId: 9 },
+              { id: "g", content: "Sleep", type: "text", matchId: 7 },
+              // { id: "h", content: "Dance", type: "text", matchId: 10 },
+              { id: "i", content: "Feet", type: "text", matchId: 4 },
+             
+            ]
+          }
+        ]
       },
       Hard: {
-        // Add hard difficulty questions here
+        "Matching Type": [
+          {
+            questionText: "Associations & Cause-Effect - Match the pairs!",
+            gameType: "matching",
+            leftItems: [
+              // { id: 1, content: "🔥 Fire", type: "text" },
+              { id: 2, content: "🌧️ Rain", type: "text" },
+              { id: 3, content: "👨‍⚕️ Doctor", type: "text" },
+              { id: 4, content: "👩‍ Chef", type: "text" },
+              { id: 5, content: "🌱 Plant", type: "text" },
+              { id: 6, content: "🕒 Clock", type: "text" },
+              { id: 7, content: "👩‍🎓 Student", type: "text" },
+              // { id: 8, content: "🌙 Night", type: "text" },
+              { id: 9, content: "📚 Library", type: "text" },
+              // { id: 10, content: "💧 Water", type: "text" }
+            ],
+            rightItems: [
+              { id: "a", content: "☂️ Umbrella", type: "text", matchId: 2 },
+              { id: "b", content: "📚 School", type: "text", matchId: 7 },
+              // { id: "c", content: "Warmth", type: "text", matchId: 1 },
+              { id: "d", content: "🌳 Grow", type: "text", matchId: 5 },
+              { id: "e", content: "🏥 Hospital", type: "text", matchId: 3 },
+              // { id: "f", content: "🌟 Sleep", type: "text", matchId: 8 },
+              { id: "g", content: "Tells Time", type: "text", matchId: 6 },
+              { id: "h", content: "🍴 Kitchen", type: "text", matchId: 4 },
+              // { id: "i", content: "💧 Drink", type: "text", matchId: 10 },
+              { id: "j", content: "📖 Books", type: "text", matchId: 9 }
+            ]
+          }
+        ]
       }
     },
     "Social / Daily Life Skill": {
@@ -813,9 +954,65 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
   const questions = questionsData[category]?.[difficulty]?.[activity] || [];
   const total = questions.length;
-  const currentQuestion = questions[currentQuestionIndex];
+  
+  // Fisher-Yates shuffle algorithm
+  const shuffleArray = (array) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+  
+  // Get current question and handle shuffling for matching games
+  const originalQuestion = questions[currentQuestionIndex];
+  const currentQuestion = (() => {
+    if (originalQuestion?.gameType === 'matching' && originalQuestion.rightItems) {
+      // Use shuffled items from state or create new shuffled version
+      if (shuffledRightItems) {
+        return {
+          ...originalQuestion,
+          rightItems: shuffledRightItems
+        };
+      }
+      // This will be set in useEffect
+      return originalQuestion;
+    }
+    return originalQuestion;
+  })();
+  
+  // Effect to shuffle right items only when question changes
+  useEffect(() => {
+    if (originalQuestion?.gameType === 'matching' && originalQuestion.rightItems) {
+      setShuffledRightItems(shuffleArray(originalQuestion.rightItems));
+    } else {
+      setShuffledRightItems(null);
+    }
+    // Reset matching game state when question changes
+    setDragConnections([]);
+    setIsAnswersChecked(false);
+    setCorrectConnections([]);
+    setIncorrectConnections([]);
+    setCanSubmit(false);
+  }, [currentQuestionIndex, category, difficulty, activity]);
+  
+  // Debug logging for matching game
+  if (activity === "MatchingType" || activity === "Matching Type") {
+    console.log('Matching game debug:', {
+      category,
+      difficulty, 
+      activity,
+      questionsData: questionsData[category]?.[difficulty],
+      questions,
+      total,
+      currentQuestion
+    });
+  }
+  
   const isCashierGame = currentQuestion?.gameType === 'cashier';
   const isHygieneGame = currentQuestion?.gameType === 'hygiene';
+  const isMatchingGame = currentQuestion?.gameType === 'matching';
   const isStreetGame = activity === "Safe Street Crossing";
   const isGreetingsGame = activity === "Social Greetings";
   const isMoneyGame = activity === "Money Value Game";
@@ -1262,6 +1459,156 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     }, 500);
   };
 
+  // Create connection line between matched items
+  const createConnectionLine = (leftItemId, rightItemId) => {
+    if (!gameContainerRef.current) return null;
+    
+    const leftElement = leftItemRefs.current[leftItemId];
+    const rightElement = rightItemRefs.current[rightItemId];
+    
+    if (!leftElement || !rightElement) return null;
+    
+    const containerRect = gameContainerRef.current.getBoundingClientRect();
+    const leftRect = leftElement.getBoundingClientRect();
+    const rightRect = rightElement.getBoundingClientRect();
+    
+    // Calculate relative positions
+    const x1 = leftRect.right - containerRect.left;
+    const y1 = leftRect.top + leftRect.height / 2 - containerRect.top;
+    const x2 = rightRect.left - containerRect.left;
+    const y2 = rightRect.top + rightRect.height / 2 - containerRect.top;
+    
+    return { x1, y1, x2, y2, leftItemId, rightItemId };
+  };
+
+  // New Drag-and-Drop Matching Game Functions
+  const handleDragStart = (e, item, side) => {
+    setDragging({ item, side });
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleDragEnd = (e, targetItem, targetSide) => {
+    if (!dragging) return;
+    
+    // Only allow connections from left to right
+    if (dragging.side === 'left' && targetSide === 'right') {
+      const existingConnection = dragConnections.find(
+        conn => conn.leftId === dragging.item.id || conn.rightId === targetItem.id
+      );
+      
+      if (!existingConnection) {
+        const newConnection = {
+          leftId: dragging.item.id,
+          rightId: targetItem.id,
+          leftContent: dragging.item.content,
+          rightContent: targetItem.content,
+          isCorrect: targetItem.matchId === dragging.item.id
+        };
+        
+        setDragConnections(prev => [...prev, newConnection]);
+        
+        // Check if all 7 items are connected
+        if (dragConnections.length + 1 >= 7) {
+          setCanSubmit(true);
+        }
+      }
+    }
+    
+    setDragging(null);
+    setDragStart(null);
+  };
+
+  const handleCheckAnswers = () => {
+    const correct = dragConnections.filter(conn => conn.isCorrect);
+    const incorrect = dragConnections.filter(conn => !conn.isCorrect);
+    
+    setCorrectConnections(correct.map(conn => ({ leftId: conn.leftId, rightId: conn.rightId })));
+    setIncorrectConnections(incorrect.map(conn => ({ leftId: conn.leftId, rightId: conn.rightId })));
+    setIsAnswersChecked(true);
+    
+    // Calculate score
+    const finalScore = correct.length;
+    setMatchingScore(finalScore);
+    setScore(prev => prev + finalScore);
+    
+    // Show completion with detailed feedback
+    if (finalScore === 7) {
+      setMatchingFeedbackMessage("🎉 PERFECT SCORE! All 7 answers correct! Excellent work! 🎊");
+      setMatchingFeedbackType("correct");
+    } else if (finalScore >= 5) {
+      setMatchingFeedbackMessage(`🎯 Great job! ${finalScore}/7 correct. ${7 - finalScore} to review.`);
+      setMatchingFeedbackType("partial");
+    } else {
+      setMatchingFeedbackMessage(`💪 Keep trying! ${finalScore}/7 correct. Review and try again!`);
+      setMatchingFeedbackType("incorrect");
+    }
+    setShowMatchingFeedback(true);
+    
+    // Auto advance if all correct
+    if (finalScore === 7) {
+      setTimeout(() => {
+        setIsAnswered(true);
+        setIsMatchingComplete(true);
+      }, 2000);
+    }
+  };
+
+  const handleResetConnections = () => {
+    setDragConnections([]);
+    setCorrectConnections([]);
+    setIncorrectConnections([]);
+    setIsAnswersChecked(false);
+    setCanSubmit(false);
+    setShowMatchingFeedback(false);
+    setMatchingScore(0);
+    setMatchingFeedbackMessage('');
+  };
+
+  // Connection visualization function for string-like connections
+  const getConnectionPath = (leftId, rightId) => {
+    const leftElement = document.getElementById(`left-item-${leftId}`);
+    const rightElement = document.getElementById(`right-item-${rightId}`);
+    
+    if (!leftElement || !rightElement) return '';
+    
+    const leftRect = leftElement.getBoundingClientRect();
+    const rightRect = rightElement.getBoundingClientRect();
+    const container = document.getElementById('matching-container')?.getBoundingClientRect();
+    
+    if (!container) return '';
+    
+    // Connect from right edge of left container to left edge of right container
+    const startX = leftRect.right - container.left;
+    const startY = leftRect.top + leftRect.height / 2 - container.top;
+    const endX = rightRect.left - container.left;
+    const endY = rightRect.top + rightRect.height / 2 - container.top;
+    
+    // Create straight string line (not curved)
+    return `M ${startX} ${startY} L ${endX} ${endY}`;
+  };
+
+  const resetMatchingGame = () => {
+    // Reset drag-and-drop state
+    setDragConnections([]);
+    setCorrectConnections([]);
+    setIncorrectConnections([]);
+    setDragging(null);
+    setDragStart(null);
+    setIsAnswersChecked(false);
+    setCanSubmit(false);
+    
+    // Reset general matching state
+    setMatchingConnections([]);
+    setSelectedLeftItem(null);
+    setSelectedRightItem(null);
+    setMatchedPairs([]);
+    setIsMatchingComplete(false);
+    setShowMatchingFeedback(false);
+    setMatchingFeedbackMessage('');
+    setWrongConnections([]);
+    setMatchingScore(0);
+  };
+
   // Handle answer selection
   const handleAnswerClick = (choice) => {
     if (isAnswered) return;
@@ -1346,6 +1693,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       setIsAnswered(false);
       resetCashierState(); // Reset cashier game state
       resetStreetState(); // Reset street game state
+      resetMatchingGame(); // Reset matching game state
     } else {
       setShowModal(true);
     }
@@ -1577,7 +1925,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           </div>
 
           {/* Answer Choices with autism-friendly design */}
-          {!isCashierGame && !isHygieneGame && !isStreetGame && !isGreetingsGame && !isMoneyGame ? (
+          {!isCashierGame && !isHygieneGame && !isStreetGame && !isGreetingsGame && !isMoneyGame && !isMatchingGame ? (
             <div className="grid grid-cols-2 gap-6">
               {questions[currentQuestionIndex].answerChoices.map((choice, index) => (
                 <button
@@ -2475,6 +2823,298 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 )}
               </div>
             </div>
+          ) : isMatchingGame ? (
+            /* Modern Interactive Matching Game UI */
+            <div className="space-y-8">
+              {/* Game Instructions */}
+              <div className="flex flex-col items-center justify-center text-center bg-gradient-to-r -mt-6 from-blue-50 to-purple-50 rounded-2xl p-2 border-3 border-blue-200 relative overflow-hidden">
+                <div className="absolute -top-4 -right-4 text-6xl animate-bounce-gentle">🎯</div>
+                <div className="absolute -bottom-2 -left-2 text-4xl animate-float">✨</div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3 flex items-center space-x-3">
+                  <span className="text-3xl animate-pulse-gentle">🎮</span>
+                  <span>Drag & Drop!</span>
+                </h3>
+                
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <span className="bg-green-100 px-2 py-1 rounded-full text-green-700 font-semibold">
+                    ✓ Connected: {dragConnections.length}/10
+                  </span>
+                  <span className="bg-blue-100 px-2 py-1 rounded-full text-blue-700 font-semibold">
+                    🎯 Drag to connect!
+                  </span>
+                </div>
+              </div>
+
+              {/* Matching Game Area */}
+              <div 
+                id="matching-container"
+                ref={gameContainerRef}
+                className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 rounded-3xl p-4 border-4 border-purple-200 relative overflow-hidden shadow-2xl"
+              >
+                {/* Decorative Elements */}
+                <div className="absolute top-2 right-2 text-2xl animate-spin-slow">⭐</div>
+                <div className="absolute bottom-2 left-2 text-xl animate-float-delayed">🌟</div>
+                
+                <div className="flex justify-between items-start gap-4 relative">
+                  {/* Left Column */}
+                  <div className="w-1/3 space-y-2">
+                    <h4 className="text-sm font-bold text-center text-gray-800 bg-gradient-to-r from-blue-100 to-purple-100 py-2 rounded-xl border-2 border-blue-200">
+                      📋 Drag From Here
+                    </h4>
+                    {currentQuestion.leftItems.map((item, index) => (
+                      <button
+                        key={item.id}
+                        id={`left-item-${item.id}`}
+                        ref={el => leftItemRefs.current[item.id] = el}
+                        onMouseDown={(e) => handleDragStart(e, item, 'left')}
+                        disabled={dragConnections.some(conn => conn.leftId === item.id)}
+                        className={`
+                          w-full p-4 rounded-xl border-2 transition-all duration-300 transform text-lg h-20 min-h-[5rem]
+                          ${dragConnections.some(conn => conn.leftId === item.id)
+                            ? isAnswersChecked
+                              ? correctConnections.some(conn => conn.leftId === item.id)
+                                ? 'bg-gradient-to-r from-green-200 to-green-300 border-green-500 border-4 shadow-lg'
+                                : 'bg-gradient-to-r from-red-200 to-red-300 border-red-500 border-4 shadow-lg'
+                              : 'bg-gradient-to-r from-blue-200 to-blue-300 border-blue-400 cursor-not-allowed opacity-90'
+                            : dragging?.item.id === item.id
+                            ? 'bg-gradient-to-r from-yellow-200 to-orange-300 border-yellow-400 scale-105 shadow-xl animate-pulse-gentle'
+                            : 'bg-gradient-to-r from-white to-blue-50 border-blue-200 hover:border-blue-400 hover:scale-105 hover:shadow-lg cursor-grab active:cursor-grabbing'
+                          }
+                          ${!dragConnections.some(conn => conn.leftId === item.id) ? 'hover:animate-bounce-gentle' : ''}
+                          flex items-center justify-center text-center font-bold
+                          focus:outline-none focus:ring-2 focus:ring-blue-300
+                        `}
+                      >
+                        {item.type === 'emoji' ? (
+                          <span className="text-4xl">{item.content}</span>
+                        ) : (
+                          <span className="text-xl text-gray-800 font-medium">{item.content}</span>
+                        )}
+                        {dragConnections.some(conn => conn.leftId === item.id) && (
+                          <span className="ml-2 text-lg animate-bounce-gentle">
+                            {isAnswersChecked 
+                              ? correctConnections.some(conn => conn.leftId === item.id) 
+                                ? '✅' 
+                                : '❌'
+                              : '🔗'
+                            }
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* SVG String Connection Lines */}
+                  <svg 
+                    className="absolute inset-0 w-full h-full pointer-events-none z-10"
+                    style={{ top: 0, left: 0 }}
+                  >
+                    {/* Drag connections with string-like appearance */}
+                    {dragConnections.map((connection, index) => {
+                      const path = getConnectionPath(connection.leftId, connection.rightId);
+                      const isCorrect = correctConnections.some(
+                        conn => conn.leftId === connection.leftId && conn.rightId === connection.rightId
+                      );
+                      const isIncorrect = incorrectConnections.some(
+                        conn => conn.leftId === connection.leftId && conn.rightId === connection.rightId
+                      );
+                      
+                      // Get coordinates for connection points
+                      const leftElement = document.getElementById(`left-item-${connection.leftId}`);
+                      const rightElement = document.getElementById(`right-item-${connection.rightId}`);
+                      const container = document.getElementById('matching-container');
+                      
+                      let startX = 0, startY = 0, endX = 0, endY = 0;
+                      if (leftElement && rightElement && container) {
+                        const leftRect = leftElement.getBoundingClientRect();
+                        const rightRect = rightElement.getBoundingClientRect();
+                        const containerRect = container.getBoundingClientRect();
+                        
+                        startX = leftRect.right - containerRect.left;
+                        startY = leftRect.top + leftRect.height / 2 - containerRect.top;
+                        endX = rightRect.left - containerRect.left;
+                        endY = rightRect.top + rightRect.height / 2 - containerRect.top;
+                      }
+                      
+                      return (
+                        <g key={`${connection.leftId}-${connection.rightId}`}>
+                          {/* Main string line - thicker and light blue */}
+                          <path
+                            d={path}
+                            stroke={isAnswersChecked ? (isCorrect ? "#10b981" : "#ef4444") : "#60A5FA"}
+                            strokeWidth="4"
+                            strokeLinecap="round"
+                            fill="none"
+                            className="animate-draw-line"
+                            strokeDasharray="none"
+                          />
+                          
+                          {/* String texture - secondary light blue line */}
+                          <path
+                            d={path}
+                            stroke={isAnswersChecked ? (isCorrect ? "#059669" : "#dc2626") : "#93C5FD"}
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            fill="none"
+                            className="animate-draw-line"
+                            style={{ animationDelay: '0.1s' }}
+                            strokeDasharray="none"
+                          />
+                          
+                          {/* Connection indicator on left column */}
+                          <circle
+                            cx={startX}
+                            cy={startY}
+                            r="4"
+                            fill={isAnswersChecked ? (isCorrect ? "#10b981" : "#ef4444") : "#60A5FA"}
+                            stroke="#ffffff"
+                            strokeWidth="2"
+                            className="animate-pulse"
+                          />
+                          
+                          {/* Connection indicator on right column */}
+                          <circle
+                            cx={endX}
+                            cy={endY}
+                            r="4"
+                            fill={isAnswersChecked ? (isCorrect ? "#10b981" : "#ef4444") : "#60A5FA"}
+                            stroke="#ffffff"
+                            strokeWidth="2"
+                            className="animate-pulse"
+                          />
+                        </g>
+                      );
+                    })}
+                  </svg>
+
+                  {/* Right Column */}
+                  <div className="w-1/3 space-y-2 relative z-20">
+                    <h4 className="text-sm font-bold text-center text-gray-800 bg-gradient-to-r from-pink-100 to-purple-100 py-2 rounded-xl border-2 border-pink-200">
+                      🎯 Drop Here
+                    </h4>
+                    {currentQuestion.rightItems.map((item, index) => (
+                      <button
+                        key={item.id}
+                        id={`right-item-${item.id}`}
+                        ref={el => rightItemRefs.current[item.id] = el}
+                        onMouseUp={(e) => handleDragEnd(e, item, 'right')}
+                        disabled={dragConnections.some(conn => conn.rightId === item.id)}
+                        className={`
+                          w-full p-4 rounded-xl border-2 transition-all duration-300 transform text-lg h-20 min-h-[5rem]
+                          ${dragConnections.some(conn => conn.rightId === item.id)
+                            ? isAnswersChecked
+                              ? correctConnections.some(conn => conn.rightId === item.id)
+                                ? 'bg-gradient-to-r from-green-200 to-green-300 border-green-500 border-4 shadow-lg'
+                                : 'bg-gradient-to-r from-red-200 to-red-300 border-red-500 border-4 shadow-lg'
+                              : 'bg-gradient-to-r from-blue-200 to-blue-300 border-blue-400 cursor-not-allowed opacity-90'
+                            : dragging && dragging.side === 'left'
+                            ? 'bg-gradient-to-r from-yellow-100 to-orange-100 border-yellow-300 hover:scale-105 hover:shadow-lg cursor-crosshair border-dashed border-2'
+                            : 'bg-gradient-to-r from-white to-pink-50 border-pink-200 hover:border-pink-400 hover:scale-105 hover:shadow-lg'
+                          }
+                          ${!dragConnections.some(conn => conn.rightId === item.id) ? 'hover:animate-bounce-gentle' : ''}
+                          flex items-center justify-center text-center font-bold
+                          focus:outline-none focus:ring-2 focus:ring-pink-300
+                        `}
+                      >
+                        {item.type === 'emoji' ? (
+                          <span className="text-2xl">{item.content}</span>
+                        ) : (
+                          <span className="text-lg text-gray-800 font-medium">{item.content}</span>
+                        )}
+                        {dragConnections.some(conn => conn.rightId === item.id) && (
+                          <span className="ml-2 text-lg animate-bounce-gentle">
+                            {isAnswersChecked 
+                              ? correctConnections.some(conn => conn.rightId === item.id) 
+                                ? '✅' 
+                                : '❌'
+                              : '🔗'
+                            }
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Feedback Area */}
+                {showMatchingFeedback && (
+                  <div className={`
+                    mt-6 p-4 rounded-2xl border-3 text-center text-xl font-bold animate-fade-in
+                    ${matchingFeedbackType === 'correct' 
+                      ? 'bg-gradient-to-r from-green-100 to-blue-100 border-green-400 text-green-800' 
+                      : 'bg-gradient-to-r from-yellow-100 to-orange-100 border-yellow-400 text-orange-800'
+                    }
+                  `}>
+                    {matchingFeedbackMessage}
+                  </div>
+                )}
+
+                {/* Progress Indicator */}
+                
+
+                {/* Action Buttons */}
+                <div className="mt-6 flex space-x-4">
+                  <button
+                    onClick={handleCheckAnswers}
+                    disabled={!canSubmit || isAnswersChecked}
+                    className={`
+                      flex-1 py-4 px-6 rounded-2xl border-3 font-bold text-lg transition-all duration-300 transform
+                      ${canSubmit && !isAnswersChecked
+                        ? 'bg-gradient-to-r from-green-400 to-green-600 text-white border-green-500 hover:scale-105 hover:shadow-xl cursor-pointer animate-pulse-gentle'
+                        : 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed opacity-60'
+                      }
+                      focus:outline-none focus:ring-4 focus:ring-green-300
+                    `}
+                  >
+                    <span className="text-2xl mr-2">✅</span>
+                    {isAnswersChecked ? `Score: ${correctConnections.length}/7` : 'Check Answers'}
+                  </button>
+                  
+                  <button
+                    onClick={handleResetConnections}
+                    disabled={dragConnections.length === 0}
+                    className={`
+                      flex-1 py-4 px-6 rounded-2xl border-3 font-bold text-lg transition-all duration-300 transform
+                      ${dragConnections.length > 0
+                        ? 'bg-gradient-to-r from-orange-400 to-red-500 text-white border-orange-500 hover:scale-105 hover:shadow-xl cursor-pointer'
+                        : 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed opacity-60'
+                      }
+                      focus:outline-none focus:ring-4 focus:ring-orange-300
+                    `}
+                  >
+                    <span className="text-2xl mr-2">🔄</span>
+                    Reset
+                  </button>
+                </div>
+
+                {/* Back to Activities Button */}
+                <div className="mt-4 flex justify-center">
+                  <button
+                    onClick={() => navigate(-1)}
+                    className="
+                      py-3 px-8 rounded-2xl border-3 font-bold text-lg transition-all duration-300 transform
+                      bg-gradient-to-r from-purple-400 to-blue-500 text-white border-purple-500 
+                      hover:scale-105 hover:shadow-xl cursor-pointer hover:from-purple-500 hover:to-blue-600
+                      focus:outline-none focus:ring-4 focus:ring-purple-300
+                    "
+                  >
+                    <span className="text-2xl mr-2">⬅️</span>
+                    Back to Activities
+                  </button>
+                </div>
+
+                {/* Completion Message */}
+                {(isMatchingComplete || (isAnswersChecked && correctConnections.length === 10)) && (
+                  <div className="mt-6 bg-gradient-to-r from-green-100 to-blue-100 rounded-2xl p-6 border-3 border-green-400 text-center animate-fade-in">
+                    <div className="text-6xl mb-4 animate-bounce-gentle">🎉</div>
+                    <h3 className="text-2xl font-bold text-green-800 mb-2">Excellent Work!</h3>
+                    <p className="text-lg text-green-700">
+                      You matched all pairs perfectly! Great job! 🌟
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
           ) : null}
         </div>
 
@@ -2966,6 +3606,22 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         
         .animate-slide-across {
           animation: slide-across 0.6s ease-in-out;
+        }
+        
+        /* Connection line drawing animation */
+        @keyframes draw-line {
+          from {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+          }
+          to {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 0;
+          }
+        }
+        
+        .animate-draw-line {
+          animation: draw-line 0.8s ease-in-out forwards;
         }
         
         /* Accessibility: Reduce motion for users who prefer it */

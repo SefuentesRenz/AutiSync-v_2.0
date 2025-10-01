@@ -290,7 +290,7 @@ const FlashcardsPage = () => {
       )}
       
       {/* Enhanced Custom Styles for Modern Autism-Friendly Design */}
-      <style jsx>{`
+      <style>{`
         /* Gentle floating animations */
         @keyframes float {
           0%, 100% { 
