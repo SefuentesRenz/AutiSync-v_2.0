@@ -9,27 +9,28 @@ export async function createUserProfile({
   gender,
   email,
   age,
-  parents_email,
+  birthdate,
   address,
   grade,
   school,
   phone_number
 }) {
   try {
-    // Map to your exact database schema - only use columns that exist
+    // Use only essential fields - no firstname/lastname, just full_name
     const profileData = {
-      user_id, // Foreign key to auth.users.id
-      full_name,
+      user_id: user_id,
       username,
-      gender,
-      email,
-      age,
-      parents_email,
-      address,
-      grade,
-      school,
-      phone_number
+      full_name,
+      email
     };
+
+    // Add optional fields only if they have values
+    if (age) profileData.age = age;
+    if (birthdate) profileData.birthdate = birthdate;
+    if (address) profileData.address = address;
+    if (gender) profileData.gender = gender;
+    if (grade) profileData.grade = grade;
+    if (school) profileData.school = school;
 
     // Remove null/undefined values to avoid insert issues
     Object.keys(profileData).forEach(key => {
@@ -40,12 +41,64 @@ export async function createUserProfile({
 
     console.log('Creating profile with cleaned data:', profileData);
 
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .insert([profileData])
-      .select();
+    // First, verify the auth user exists before attempting insert
+    try {
+      const { data: userExists } = await supabase
+        .rpc('check_auth_user_exists', { user_uuid: user_id });
+      
+      if (!userExists) {
+        console.warn('Auth user does not exist yet, will retry...');
+      } else {
+        console.log('Auth user verified to exist in database');
+      }
+    } catch (rpcError) {
+      console.warn('Could not verify auth user (function may not exist):', rpcError.message);
+    }
+
+    // Retry mechanism for foreign key constraint violations (timing issues)
+    let retryCount = 0;
+    const maxRetries = 3;
     
-    return { data, error };
+    while (retryCount < maxRetries) {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .insert([profileData])
+        .select();
+      
+      if (!error) {
+        // Success!
+        console.log('Profile created successfully on attempt', retryCount + 1);
+        return { data, error };
+      }
+      
+      if (error.code === '23503') {
+        // Foreign key constraint violation - retry after a delay
+        console.warn(`Foreign key constraint violation on attempt ${retryCount + 1}. Retrying...`);
+        retryCount++;
+        
+        if (retryCount < maxRetries) {
+          // Wait longer with each retry (exponential backoff)
+          const delay = 1500 * retryCount; // 1.5s, 3s, 4.5s
+          console.log(`Waiting ${delay}ms before retry...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          // Final attempt failed
+          console.error('All retry attempts failed. Auth user may not exist:', user_id);
+          return { 
+            data: null, 
+            error: { 
+              message: `Account creation failed after multiple attempts. Please try again in a few moments, or contact support if the issue persists.`,
+              code: 'FK_CONSTRAINT_VIOLATION_RETRY_FAILED',
+              originalError: error
+            } 
+          };
+        }
+      } else {
+        // Different error, don't retry
+        console.error('Non-foreign-key error:', error);
+        return { data, error };
+      }
+    }
   } catch (e) {
     console.error('Unexpected error in createUserProfile:', e);
     return { data: null, error: { message: e.message } };

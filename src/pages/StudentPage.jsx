@@ -364,7 +364,7 @@ const StudentPage = () => {
                 <span className="text-2xl mb-1">🎯</span>
                 <span className="text-xs font-semibold">Activity</span>
               </a>
-              <a href="/home" className="flex flex-col items-center p-2 text-gray-600 hover:text-blue-600">
+              <a href="/expression-debug" className="flex flex-col items-center p-2 text-gray-600 hover:text-blue-600">
                 <span className="text-2xl mb-1">😊</span>
                 <span className="text-xs font-semibold">Expression</span>
               </a>

@@ -48,6 +48,20 @@
   100% { width: 100%; }
 }
 
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.pulse-animation {
+  animation: pulse-gentle 2s infinite;
+}
+
 @keyframes float-slow {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-15px); }

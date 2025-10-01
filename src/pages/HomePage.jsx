@@ -56,38 +56,28 @@ const HomePage = () => {
   };
 
   // Function to create an alert for high-intensity negative emotions
-  const createAlert = async (studentId, emotion, intensity, expressionId, note) => {
+  const createAlert = async (profileId, emotion, intensity, expressionId, note) => {
     try {
-      // Get student's parent (assuming parent_id is in students table)
-      const { data: studentWithParent, error: parentError } = await supabase
-        .from('students')
-        .select('parent_id')
-        .eq('id', studentId)
-        .single();
-
+      console.log('Creating alert for profile:', profileId);
+      
       // Get all admins to notify them
       const { data: admins, error: adminError } = await supabase
         .from('admins')
         .select('id')
         .limit(1); // Get first admin or adjust logic as needed
 
-      if (parentError) {
-        console.error('Error fetching parent:', parentError);
-      }
-
       if (adminError) {
         console.error('Error fetching admin:', adminError);
       }
 
-      // Create alert with available IDs
+      // Create alert with available data
       const alertData = {
-        student_id: studentId,
-        profile_id: userProfile?.id,
+        profile_id: profileId,
         emotion_id: expressionId, // Using expression ID as emotion reference
         intensity: intensity,
         status: 'priority',
         created_at: new Date().toISOString(),
-        ...(studentWithParent?.parent_id && { parent_id: studentWithParent.parent_id }),
+        message: `High-intensity ${emotion} detected (Level ${intensity})${note ? `: ${note}` : ''}`,
         ...(admins && admins.length > 0 && { admin_id: admins[0].id })
       };
 
@@ -101,8 +91,8 @@ const HomePage = () => {
       } else {
         console.log('Alert created successfully:', alertResult);
         
-        // Create notification for admin and parent
-        await createNotifications(studentId, emotion, intensity, note, studentWithParent?.parent_id, admins?.[0]?.id);
+        // Create notification for admin
+        await createNotifications(profileId, emotion, intensity, note, null, admins?.[0]?.id);
       }
     } catch (error) {
       console.error('Error in createAlert:', error);
@@ -110,9 +100,9 @@ const HomePage = () => {
   };
 
   // Function to create notifications for admin and parent
-  const createNotifications = async (studentId, emotion, intensity, note, parentId, adminId) => {
+  const createNotifications = async (profileId, emotion, intensity, note, parentId, adminId) => {
     try {
-      const studentName = userProfile?.full_name || userProfile?.username || 'Student';
+      const studentName = userProfile?.username || userProfile?.full_name?.split(' ')[0] || 'Student';
       const message = `🚨 HIGH PRIORITY ALERT: ${studentName} submitted "${emotion}" with intensity level ${intensity}${note ? `. Note: "${note}"` : ''}. Please check on the student.`;
 
       const notifications = [];
@@ -120,7 +110,7 @@ const HomePage = () => {
       // Create notification for parent if exists
       if (parentId) {
         notifications.push({
-          profile_id: userProfile?.id,
+          profile_id: profileId,
           message: message,
           type: 'alert',
           priority: 'high',
@@ -132,7 +122,7 @@ const HomePage = () => {
       // Create notification for admin if exists
       if (adminId) {
         notifications.push({
-          profile_id: userProfile?.id,
+          profile_id: profileId,
           message: message,
           type: 'alert',
           priority: 'high',
@@ -188,55 +178,82 @@ const HomePage = () => {
 
   const fetchExpressions = async () => {
     try {
-      // Fetch all expressions from all students to create a shared emotion wall
+      console.log('Fetching expressions...');
+      
+      // Fetch all expressions with student and profile data using joins
       const { data, error } = await supabase
         .from('Expressions')
         .select(`
           *,
           students!inner (
             id,
-            profile_id
+            profile_id,
+            user_profiles!inner (
+              id,
+              username,
+              full_name
+            )
           )
         `)
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(50);
+
+      console.log('Expressions query result:', { data, error, count: data?.length });
 
       if (error) {
         console.error('Error fetching expressions:', error);
-      } else {
-        // Get user profiles separately to avoid relationship conflicts
-        const studentIds = data.map(expr => expr.students.profile_id).filter(Boolean);
+        // Try a simpler query as fallback
+        const { data: simpleData, error: simpleError } = await supabase
+          .from('Expressions')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(50);
         
-        if (studentIds.length > 0) {
-          const { data: profilesData, error: profilesError } = await supabase
-            .from('user_profiles')
-            .select('id, full_name, username')
-            .in('id', studentIds);
-
-          if (!profilesError) {
-            const profileMap = {};
-            profilesData.forEach(profile => {
-              profileMap[profile.id] = profile;
-            });
-
-            const formattedExpressions = data.map(expr => {
-              const profile = profileMap[expr.students.profile_id];
-              const timeAgo = getTimeAgo(new Date(expr.created_at));
-              return {
-                emotion: expr.emotion.charAt(0).toUpperCase() + expr.emotion.slice(1),
-                image: `src/assets/${expr.emotion}.png`,
-                level: expr.intensity,
-                time: timeAgo,
-                userName: profile?.full_name || profile?.username || 'Student',
-                note: expr.note || null
-              };
-            });
-            setExpressions(formattedExpressions);
-          }
+        console.log('Fallback simple query:', { simpleData, simpleError });
+        
+        if (!simpleError && simpleData) {
+          const simpleExpressions = simpleData.map(expr => ({
+            emotion: expr.emotion?.charAt(0).toUpperCase() + expr.emotion?.slice(1) || 'Unknown',
+            image: `src/assets/${expr.emotion || 'neutral'}.png`,
+            level: expr.intensity || 3,
+            time: getTimeAgo(new Date(expr.created_at)),
+            userName: 'Student',
+            note: expr.note || null
+          }));
+          setExpressions(simpleExpressions);
         }
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const formattedExpressions = data.map(expr => {
+          const profile = expr.students?.user_profiles;
+          const timeAgo = getTimeAgo(new Date(expr.created_at));
+          const displayName = profile ? (
+            profile.full_name || profile.username || 'Student'
+          ) : 'Student';
+          
+          return {
+            emotion: expr.emotion?.charAt(0).toUpperCase() + expr.emotion?.slice(1) || 'Unknown',
+            image: `src/assets/${expr.emotion || 'neutral'}.png`,
+            level: expr.intensity || 3,
+            time: timeAgo,
+            userName: displayName,
+            note: expr.note || null,
+            id: expr.id,
+            student_id: expr.student_id
+          };
+        });
+        
+        console.log('Formatted expressions:', formattedExpressions);
+        setExpressions(formattedExpressions);
+      } else {
+        console.log('No expressions found');
+        setExpressions([]);
       }
     } catch (error) {
       console.error('Error in fetchExpressions:', error);
+      setExpressions([]);
     }
   };
 
@@ -266,56 +283,125 @@ const HomePage = () => {
 
     // Save to Supabase Expressions table
     try {
-      // First, get the student record for this user
+      console.log('Starting emotion submission...');
+      console.log('User profile:', userProfile);
+      
+      // Look up student by profile_id
       const { data: studentData, error: studentError } = await supabase
         .from('students')
-        .select('id')
+        .select('id, profile_id')
         .eq('profile_id', userProfile.id)
         .single();
 
+      console.log('Student lookup result:', { studentData, studentError });
+
       if (studentError || !studentData) {
-        console.error('Error fetching student:', studentError);
-        alert('Error: Could not find student profile. Please make sure you have a student account.');
+        console.error('Student lookup failed:', studentError);
+        
+        // Try to create a student record if one doesn't exist
+        console.log('Attempting to create student record...');
+        const { data: newStudent, error: createError } = await supabase
+          .from('students')
+          .insert([{
+            profile_id: userProfile.id,
+            created_at: new Date().toISOString()
+          }])
+          .select()
+          .single();
+          
+        if (createError) {
+          console.error('Failed to create student record:', createError);
+          alert('Could not set up student account. Please contact an administrator.');
+          return;
+        }
+        
+        console.log('Created new student record:', newStudent);
+        
+        // Use the newly created student data
+        const finalStudentData = newStudent;
+      }
+
+      console.log('Using student record:', {
+        id: (studentData || finalStudentData).id,
+        idType: typeof (studentData || finalStudentData).id,
+        profileId: (studentData || finalStudentData).profile_id
+      });
+
+      const currentStudent = studentData || finalStudentData;
+      const isNegativeHigh = (selectedEmotion.toLowerCase() === 'sad' || selectedEmotion.toLowerCase() === 'angry') && selectedLevel >= 4;
+      
+      // Prepare expression data for submission
+      const expressionData = {
+        student_id: currentStudent.id, // This is now UUID from students table
+        emotion: selectedEmotion.toLowerCase(),
+        intensity: selectedLevel,
+        note: (isNegativeHigh && note) ? note.trim() : null
+      };
+
+      console.log('Submitting expression:', expressionData);
+
+      const { data: expressionResult, error: expressionError } = await supabase
+        .from('Expressions')
+        .insert([expressionData])
+        .select()
+        .single();
+
+      if (expressionError) {
+        console.error('Expression creation failed:', expressionError);
+        alert(`Failed to save emotion: ${expressionError.message || 'Please try again.'}`);
         return;
       }
 
-      // Insert into Expressions table
-      const isNegativeHigh = (selectedEmotion.toLowerCase() === 'sad' || selectedEmotion.toLowerCase() === 'angry') && selectedLevel >= 4;
+      console.log('Expression saved successfully:', expressionResult);
+
+      // Verify the expression was actually saved by querying it back
+      const { data: verifyData, error: verifyError } = await supabase
+        .from('Expressions')
+        .select('*')
+        .eq('id', expressionResult.id)
+        .single();
       
-      const insertData = {
-        student_id: studentData.id,
-        emotion: selectedEmotion.toLowerCase(),
+      console.log('Expression verification:', { verifyData, verifyError });
+
+      // Also create User_emotion record for tracking (keep existing functionality)
+      const userEmotionData = {
+        profile_id: userProfile.id,
+        expressions_id: expressionResult.id,
         intensity: selectedLevel,
-        ...(isNegativeHigh && note ? { note } : {})
+        created_at: new Date().toISOString()
       };
 
-      const { data: expressionData, error: expressionError } = await supabase
-        .from('Expressions')
-        .insert([insertData])
-        .select();
+      const { error: userEmotionError } = await supabase
+        .from('User_emotion')
+        .insert([userEmotionData]);
 
-      if (expressionError) {
-        console.error('Error saving expression:', expressionError);
-        console.error('Full error details:', JSON.stringify(expressionError, null, 2));
-        alert(`Error saving expression: ${expressionError.message || expressionError.code || 'Unknown error'}`);
-      } else {
-        console.log('Expression saved successfully:', expressionData);
-        
-        // Check if this is a high-intensity negative emotion that needs an alert
-        if (isNegativeHigh) {
-          await createAlert(studentData.id, selectedEmotion, selectedLevel, expressionData[0].id, note);
-        }
-        
-        // Add to local state for immediate display
-        setExpressions((prev) => [newExpression, ...prev]);
-        // Refresh expressions from database
-        setTimeout(() => fetchExpressions(), 500);
+      if (userEmotionError) {
+        console.warn('Warning: Failed to create User_emotion record:', userEmotionError);
       }
+
+      // Check if this is a high-intensity negative emotion that needs an alert
+      if (isNegativeHigh) {
+        await createAlert(userProfile.id, selectedEmotion, selectedLevel, expressionResult.id, note);
+      }
+      
+      // Don't add to local state immediately - let the refresh handle it
+      // This ensures we're showing data from the database, not local state
+      setShowModal(false);
+      setSelectedLevel(3);
+      setNote('');
+      
+      // Refresh expressions from database to show the new one
+      console.log('Refreshing expressions from database...');
+      await fetchExpressions();
+      
+      console.log('Emotion submitted and refreshed successfully!');
+      alert('Emotion submitted successfully!');
     } catch (error) {
-      console.error('Error in handleSubmit:', error);
-      alert('Error submitting expression');
+      console.error('Unexpected error saving expression:', error);
+      alert('An unexpected error occurred. Please try again.');
     }
 
+    // Reset form state (moved outside try-catch)
     setShowModal(false);
     setSelectedLevel(3);
 
@@ -527,7 +613,7 @@ const HomePage = () => {
                     className="card-autism-friendly bg-gradient-to-r from-blue-100 to-white p-6 rounded-2xl shadow-lg border-l-4 border-blue-500 w-82"
                     style={{animationDelay: `${index * 0.1}s`}}
                   >
-                    {/* Emotions shared container */}``
+                    {/* Emotions shared container */}```
                     <div className="flex items-center space-x-4">                
                       <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg">
                         <img

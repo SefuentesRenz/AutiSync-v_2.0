@@ -14,6 +14,7 @@ import StudentPage from './pages/StudentPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import StudentProfile from './pages/StudentProfile';
 import FlashcardsPage from './pages/FlashcardsPage';
+import ExpressionDebug from './pages/ExpressionDebug';
 
 // Working Admin pages
 import ActivitiesPage from './Admin/Activities';
@@ -44,6 +45,7 @@ function App() {
           <Route path="/studentpage" element={<StudentPage />} />
           <Route path="/studentprofile" element={<StudentProfile />} />
           <Route path="/flashcardspage" element={<FlashcardsPage />} />
+          <Route path="/expression-debug" element={<ExpressionDebug />} />
 
           {/* Admin Pages - All Working */}
           <Route path="/activities" element={<ActivitiesPage />} />
