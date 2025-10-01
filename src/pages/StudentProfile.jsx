@@ -9,13 +9,12 @@ const StudentProfile = () => {
   
   const [userInfo, setUserInfo] = useState({
     username: 'Student',
-    first_name: '',
-    last_name: '',
+    full_name: '',
     email: '',
     grade: '',
     gender: '',
     address: '',
-    birthday: '',
+    birthdate: '',
     achievements: 0,
     day_streak: 0,
     activities_done: 0,
@@ -114,13 +113,12 @@ const StudentProfile = () => {
         // Merge existing profile with signup metadata to fill missing fields
         setUserInfo({
           username: existingProfile.username || user.user_metadata?.username || user.email?.split('@')[0] || 'Student',
-          first_name: existingProfile.first_name || user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || '',
-          last_name: existingProfile.last_name || user.user_metadata?.last_name || user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
+          full_name: existingProfile.full_name || user.user_metadata?.full_name || '',
           email: existingProfile.email || user.email || '',
           grade: existingProfile.grade || user.user_metadata?.grade || '',
           gender: existingProfile.gender || user.user_metadata?.gender || '',
           address: existingProfile.address || user.user_metadata?.address || '',
-          birthday: existingProfile.birthday || user.user_metadata?.birthday || user.user_metadata?.birthdate || '',
+          birthdate: existingProfile.birthdate || existingProfile.birthday || user.user_metadata?.birthdate || user.user_metadata?.birthday || '',
           achievements: existingProfile.achievements || 0,
           day_streak: existingProfile.day_streak || 0,
           activities_done: existingProfile.activities_done || 0,
@@ -148,19 +146,14 @@ const StudentProfile = () => {
     const metadata = user.user_metadata || {};
     console.log('Creating basic profile from metadata:', metadata);
     
-    // Extract first and last name from full_name if available
-    const firstName = metadata.first_name || metadata.full_name?.split(' ')[0] || '';
-    const lastName = metadata.last_name || metadata.full_name?.split(' ').slice(1).join(' ') || '';
-    
     setUserInfo({
       username: metadata.username || user.email?.split('@')[0] || 'Student',
-      first_name: firstName,
-      last_name: lastName,
+      full_name: metadata.full_name || '',
       email: user.email || '',
       grade: metadata.grade || '',
       gender: metadata.gender || '',
       address: metadata.address || '',
-      birthday: metadata.birthday || metadata.birthdate || '',
+      birthdate: metadata.birthdate || metadata.birthday || '',
       achievements: 0,
       day_streak: 0,
       activities_done: 0,
@@ -174,8 +167,6 @@ const StudentProfile = () => {
     try {
       // Extract information from user metadata (signup data)
       const metadata = user.user_metadata || {};
-      const firstName = metadata.first_name || metadata.full_name?.split(' ')[0] || '';
-      const lastName = metadata.last_name || metadata.full_name?.split(' ').slice(1).join(' ') || '';
       
       // Create a unique email to avoid duplicates
       let profileEmail = user.email;
@@ -229,13 +220,12 @@ const StudentProfile = () => {
       const defaultProfile = {
         user_id: user.id, // Use user_id field for int4 primary key
         username: uniqueUsername,
-        first_name: firstName,
-        last_name: lastName,
+        full_name: metadata.full_name || '',
         email: profileEmail,
         gender: metadata.gender || '',
         address: metadata.address || '',
         grade: metadata.grade || '',
-        birthday: metadata.birthdate || metadata.birthday || ''
+        birthdate: metadata.birthdate || metadata.birthday || ''
       };
 
       console.log('Creating profile with user_id (int4):', defaultProfile);
@@ -268,13 +258,12 @@ const StudentProfile = () => {
               console.log('Profile created successfully on retry:', retryData);
               setUserInfo({
                 username: retryData.username,
-                first_name: retryData.first_name || '',
-                last_name: retryData.last_name || '',
+                full_name: retryData.full_name || '',
                 email: retryData.email || user.email || '',
                 grade: retryData.grade || '',
                 gender: retryData.gender || '',
                 address: retryData.address || '',
-                birthday: retryData.birthday || '',
+                birthdate: retryData.birthdate || retryData.birthday || '',
                 achievements: 0,
                 day_streak: 0,
                 activities_done: 0,
@@ -297,13 +286,12 @@ const StudentProfile = () => {
       console.log('Profile created successfully:', data);
       setUserInfo({
         username: data.username,
-        first_name: data.first_name || '',
-        last_name: data.last_name || '',
+        full_name: data.full_name || '',
         email: data.email || user.email || '',
         grade: data.grade || '',
         gender: data.gender || '',
         address: data.address || '',
-        birthday: data.birthday || '',
+        birthdate: data.birthdate || data.birthday || '',
         achievements: 0,
         day_streak: 0,
         activities_done: 0,
@@ -377,13 +365,12 @@ const StudentProfile = () => {
 
       const updateData = {
         username: finalUsername,
-        first_name: userInfo.first_name,
-        last_name: userInfo.last_name,
+        full_name: userInfo.full_name,
         email: userInfo.email,
         grade: userInfo.grade,
         gender: userInfo.gender,
         address: userInfo.address,
-        birthday: userInfo.birthday
+        birthdate: userInfo.birthdate
       };
 
       // Update profile using user_id field (int4)
@@ -561,7 +548,7 @@ const StudentProfile = () => {
             <div className="flex-1 text-center lg:text-left">
               <div className="mb-4">
                 <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-2">
-                  Hi, {userInfo.username || `${userInfo.first_name} ${userInfo.last_name}`.trim() || 'Student'}! 👋
+                  Hi, {userInfo.username || userInfo.full_name || 'Student'}! 👋
                 </h1>
                 <p className="text-lg text-gray-600">
                   You're doing amazing things every day! 🚀
@@ -676,40 +663,21 @@ const StudentProfile = () => {
               </div>
             </div>
 
-            {/* First Name */}
+            {/* Full Name */}
             <div className="flex items-center p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-2xl border border-green-200/50">
               <span className="text-2xl mr-4">👋</span>
               <div className="flex-1">
-                <label className="block text-sm font-semibold text-gray-700">First Name</label>
+                <label className="block text-sm font-semibold text-gray-700">Full Name</label>
                 {isEditing ? (
                   <input
                     type="text"
-                    name="first_name"
-                    value={userInfo.first_name}
+                    name="full_name"
+                    value={userInfo.full_name}
                     onChange={handleInputChange}
                     className="w-full bg-transparent border-b border-green-400 focus:outline-none text-gray-800 py-1"
                   />
                 ) : (
-                  <p className="text-gray-800 font-medium">{userInfo.first_name || 'Not provided'}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Last Name */}
-            <div className="flex items-center p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl border border-yellow-200/50">
-              <span className="text-2xl mr-4">👤</span>
-              <div className="flex-1">
-                <label className="block text-sm font-semibold text-gray-700">Last Name</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    name="last_name"
-                    value={userInfo.last_name}
-                    onChange={handleInputChange}
-                    className="w-full bg-transparent border-b border-yellow-400 focus:outline-none text-gray-800 py-1"
-                  />
-                ) : (
-                  <p className="text-gray-800 font-medium">{userInfo.last_name || 'Not provided'}</p>
+                  <p className="text-gray-800 font-medium">{userInfo.full_name || 'Not provided'}</p>
                 )}
               </div>
             </div>
@@ -756,21 +724,21 @@ const StudentProfile = () => {
               </div>
             </div>
 
-            {/* Birthday */}
+            {/* Birthdate */}
             <div className="flex items-center p-4 bg-gradient-to-r from-pink-50 to-red-50 rounded-2xl border border-pink-200/50">
               <span className="text-2xl mr-4">🎂</span>
               <div className="flex-1">
-                <label className="block text-sm font-semibold text-gray-700">Birthday</label>
+                <label className="block text-sm font-semibold text-gray-700">Birthdate</label>
                 {isEditing ? (
                   <input
                     type="date"
-                    name="birthday"
-                    value={userInfo.birthday}
+                    name="birthdate"
+                    value={userInfo.birthdate}
                     onChange={handleInputChange}
                     className="w-full bg-transparent border-b border-pink-400 focus:outline-none text-gray-800 py-1"
                   />
                 ) : (
-                  <p className="text-gray-800 font-medium">{userInfo.birthday || 'Not provided'}</p>
+                  <p className="text-gray-800 font-medium">{userInfo.birthdate || 'Not provided'}</p>
                 )}
               </div>
             </div>

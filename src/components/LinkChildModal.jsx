@@ -12,12 +12,39 @@ const LinkChildModal = ({ isOpen, onClose, onChildLinked }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  // Debug: Log when modal state changes
+  React.useEffect(() => {
+    console.log('🔗 LinkChild Modal open state:', isOpen);
+    if (isOpen) {
+      console.log('✨ Modal opened - clearing form');
+      // Clear any previous errors when opening
+      setError('');
+      setSuccess('');
+      setFormData({ username: '' });
+      setLoading(false);
+    }
+  }, [isOpen]);
+
+  // Debug: Log when component mounts
+  React.useEffect(() => {
+    console.log('🔗 LinkChildModal component mounted');
+  }, []);
+
+  console.log('🔗 LinkChildModal render - isOpen:', isOpen);
+
+  // TEMPORARY DEBUG: Force modal to show for testing
+  const forceShow = isOpen || false; // Normal behavior
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+    // Clear error and success when user starts typing
+    if (error) setError('');
+    if (success) setSuccess('');
   };
 
   const handleSubmit = async (e) => {
@@ -29,10 +56,34 @@ const LinkChildModal = ({ isOpen, onClose, onChildLinked }) => {
 
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
-      console.log('Linking child with email:', formData.username);
-      console.log('Parent auth user ID (UUID):', user.id);
+      console.log('📧 Linking child with email:', formData.username);
+      console.log('👨‍👩‍👧‍👦 Parent auth user ID (UUID):', user.id);
+      
+      // Pre-flight validation
+      if (!user || !user.id) {
+        throw new Error('User authentication required. Please log in again.');
+      }
+      
+      if (!formData.username.includes('@')) {
+        throw new Error('Please enter a valid email address.');
+      }
+      
+      // Debug: Let's see what students exist in the database
+      console.log('Debug: Checking all students in database...');
+      const { data: allStudents, error: debugError } = await supabase
+        .from('user_profiles')
+        .select('email, username, user_id, first_name, last_name')
+        .limit(10);
+        
+      if (!debugError && allStudents) {
+        console.log('Debug: Available students:', allStudents);
+        console.log('Debug: Looking for email:', formData.username);
+      } else {
+        console.log('Debug: Could not fetch students for debugging:', debugError);
+      }
       
       // First, find or create the parent profile in the parents table
       let parentProfile = null;
@@ -76,41 +127,55 @@ const LinkChildModal = ({ isOpen, onClose, onChildLinked }) => {
         return;
       }
       
-      // Find the student by email - first get their profile, then get their auth info
-      const { data: studentProfile, error: profileError } = await supabase
+      // Find the student by email in user_profiles table
+      let studentProfile;
+      const { data: foundStudentProfile, error: profileError } = await supabase
         .from('user_profiles')
-        .select('*, auth_user_id')
+        .select('*')
         .eq('email', formData.username)
         .single();
 
       if (profileError) {
         console.error('Student lookup error:', profileError);
-        setError('Student not found with this email address');
-        setLoading(false);
-        return;
-      }
-
-      console.log('Student profile found:', studentProfile);
-
-      // We need the student's auth UUID for the relationship
-      // If auth_user_id exists, use it; otherwise use a lookup method
-      let studentAuthId = studentProfile.auth_user_id;
-      
-      if (!studentAuthId) {
-        // Try to find the auth user by email
-        const { data: authUser, error: authError } = await supabase.auth.admin.getUserByEmail(formData.username);
-        if (authError || !authUser.user) {
-          setError('Could not find student auth account. Please ensure the student has registered.');
+        console.error('Error details:', profileError);
+        
+        // Try alternative search methods
+        console.log('Trying alternative search by email...');
+        
+        // Search with case-insensitive matching
+        const { data: altStudentProfile, error: altError } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .ilike('email', formData.username)
+          .single();
+          
+        if (altError) {
+          console.error('Alternative search also failed:', altError);
+          setError(`Student not found with email "${formData.username}". Please check the email address and ensure the student has created a profile.`);
           setLoading(false);
           return;
         }
-        studentAuthId = authUser.user.id;
+        
+        // Use the alternative result
+        console.log('Found student via alternative search:', altStudentProfile);
+        studentProfile = altStudentProfile;
+      } else {
+        console.log('Student profile found:', foundStudentProfile);
+        studentProfile = foundStudentProfile;
       }
 
-      // Create the parent-child relationship using UUIDs for both
+      // For the parent-child relationship, we need to use UUIDs for both parent and child
+      // The parent_child_relations table links parent auth UUID to student auth UUID
+      console.log('Attempting to create parent-child relationship with:', {
+        parentUserId: user.id, // Parent auth UUID (directly from auth)
+        studentUserId: studentProfile.user_id,  // Student auth UUID from user_profiles
+        parentEmail: user.email,
+        studentEmail: studentProfile.email
+      });
+
       const { data: relationData, error: relationError } = await linkParentToChild(
-        parentProfile.user_id, // Parent auth UUID
-        studentAuthId, // Student auth UUID
+        user.id, // Parent auth UUID (directly from auth - no need for parents table lookup)
+        studentProfile.user_id,   // Student auth UUID from user_profiles
         user.email,
         studentProfile.email
       );
@@ -127,6 +192,9 @@ const LinkChildModal = ({ isOpen, onClose, onChildLinked }) => {
 
       console.log('Child linked successfully:', relationData);
 
+      // Show success message
+      setSuccess(`Successfully linked ${studentProfile.first_name || studentProfile.username}!`);
+      
       // Success - call the callback
       if (onChildLinked) {
         onChildLinked({
@@ -141,8 +209,12 @@ const LinkChildModal = ({ isOpen, onClose, onChildLinked }) => {
         });
       }
       
-      setFormData({ username: '' });
-      onClose();
+      // Clear form and close modal after a brief delay to show success
+      setTimeout(() => {
+        setFormData({ username: '' });
+        setSuccess('');
+        onClose();
+      }, 1500);
     } catch (err) {
       console.error('Error in handleSubmit:', err);
       setError('An unexpected error occurred: ' + err.message);
@@ -151,11 +223,20 @@ const LinkChildModal = ({ isOpen, onClose, onChildLinked }) => {
     }
   };
 
-  if (!isOpen) return null;
+  if (!forceShow) {
+    console.log('Modal not open, returning null');
+    return null;
+  }
+
+  console.log('Modal IS open, rendering modal!');
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-indigo-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full transform transition-all duration-300 scale-100 hover:scale-[1.02]">
+    <div 
+      className="fixed inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-indigo-900/20 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
+      style={{ zIndex: 9999, animation: 'fadeIn 0.3s ease-out' }} // Force highest z-index
+    >
+      <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full transform transition-all duration-300 scale-100 hover:scale-[1.02] animate-scale-in"
+           style={{ animation: 'scaleIn 0.3s ease-out' }}>
         {/* Header with gradient */}
         <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-6 rounded-t-3xl text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
@@ -212,6 +293,15 @@ const LinkChildModal = ({ isOpen, onClose, onChildLinked }) => {
                 <div className="flex items-center">
                   <span className="text-red-500 mr-2">⚠️</span>
                   <p className="text-red-700 text-sm font-medium">{error}</p>
+                </div>
+              </div>
+            )}
+
+            {success && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-400 p-4 rounded-lg">
+                <div className="flex items-center">
+                  <span className="text-green-500 mr-2">✅</span>
+                  <p className="text-green-700 text-sm font-medium">{success}</p>
                 </div>
               </div>
             )}

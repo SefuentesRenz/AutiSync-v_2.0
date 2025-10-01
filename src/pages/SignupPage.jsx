@@ -16,7 +16,7 @@ function SignupPage() {
     confirmPassword: '',
     age: '',
     grade: '',
-    parentEmail: '',
+    birthdate: '',
     address: '',
     gender: '',
     phoneNumber: '',
@@ -82,29 +82,55 @@ function SignupPage() {
 
     try {
       // Step 1: Sign up the user in Supabase Auth
+      console.log('Starting signup process for:', formData.email);
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
             full_name: formData.fullName,
-            user_type: userType
+            user_type: userType,
+            username: formData.username,
+            gender: formData.gender,
+            age: formData.age,
+            birthdate: formData.birthdate,
+            address: formData.address,
+            grade: formData.grade
           }
         }
       });
 
+      console.log('Auth signup result:', { authData, signUpError });
+
       if (signUpError) {
+        console.error('Auth signup failed:', signUpError);
         setError(signUpError.message);
         setLoading(false);
         return;
       }
 
-      const userId = authData.user?.id;
+      // Use the user ID from the session/response
+      const userId = authData.user?.id || authData.session?.user?.id;
       if (!userId) {
+        console.error('No user ID returned from auth signup');
+        console.error('Full auth data:', authData);
         setError("Failed to create user account. Please try again.");
         setLoading(false);
         return;
       }
+
+      console.log('Using user ID for profile creation:', userId);
+
+      // Wait a moment for the auth user to be fully committed to the database
+      console.log('Waiting for auth user to be fully committed...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Check if the user needs email confirmation
+      if (authData.user && !authData.user.email_confirmed_at) {
+        console.log('User needs email confirmation, but we can still create profile');
+      }
+
+      // The user ID exists in auth.users even if unconfirmed, so we can proceed
 
       // Step 2: Create records based on user type
       if (userType === 'student') {
@@ -116,7 +142,7 @@ function SignupPage() {
           gender: formData.gender,
           email: formData.email,
           age: parseInt(formData.age) || null,
-          parents_email: formData.parentEmail,
+          birthdate: formData.birthdate || null,
           address: formData.address,
           grade: formData.grade,
           school: null // Can be added later
@@ -135,10 +161,13 @@ function SignupPage() {
         // Get the profile ID from the created profile record
         const profileId = profileResult?.[0]?.id;
         if (!profileId) {
+          console.error('Profile creation result:', profileResult);
           setError("Failed to get profile ID after creating student profile.");
           setLoading(false);
           return;
         }
+
+        console.log('Using profile ID:', profileId);
 
         console.log('Creating student record for profile ID:', profileId);
         const { error: studentError } = await createStudent({ profile_id: profileId });
@@ -473,24 +502,23 @@ function SignupPage() {
             </div>
           )}
 
-          {/* Parent Email Field - Only show for students */}
+          {/* Birthdate Field - Only show for students */}
           {userType === 'student' && (
             <div>
-              <label htmlFor="parentEmail" className="flex items-center text-sm font-bold text-gray-700 mb-2">
-                <span className="text-lg mr-2">👨‍👩‍👧‍👦</span>
-                Parent/Guardian Email
+              <label htmlFor="birthdate" className="flex items-center text-sm font-bold text-gray-700 mb-2">
+                <span className="text-lg mr-2">🎂</span>
+                Birthdate
               </label>
               <input
-                type="email"
-                id="parentEmail"
-                name="parentEmail"
-                value={formData.parentEmail}
+                type="date"
+                id="birthdate"
+                name="birthdate"
+                value={formData.birthdate}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg placeholder-gray-400 transition-all duration-300"
-                placeholder="parent@example.com"
                 required={userType === 'student'}
               />
-              <p className="text-xs text-gray-500 mt-1">Your parent/guardian will use this email to view your progress</p>
+              <p className="text-xs text-gray-500 mt-1">Please enter your date of birth</p>
             </div>
           )}
 

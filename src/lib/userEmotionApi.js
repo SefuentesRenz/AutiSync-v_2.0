@@ -341,3 +341,231 @@ export async function getEmotionPatterns(profile_id, timeframe = '30 days') {
     });
   return { data, error };
 }
+
+// Get emotions for children linked to a parent (for parent dashboard)
+export async function getChildrenEmotionsForParent(parentAuthId) {
+  try {
+    // First, get all children linked to this parent
+    const { data: relations, error: relationsError } = await supabase
+      .from('parent_child_relations')
+      .select('child_user_id')
+      .eq('parent_user_id', parentAuthId);
+
+    if (relationsError) {
+      console.error('Error fetching parent-child relations:', relationsError);
+      return { data: null, error: relationsError };
+    }
+
+    if (!relations || relations.length === 0) {
+      return { data: [], error: null };
+    }
+
+    // Get child user IDs
+    const childUserIds = relations.map(r => r.child_user_id);
+
+    // Get user profiles for these children
+    const { data: childProfiles, error: profilesError } = await supabase
+      .from('user_profiles')
+      .select('id, user_id, first_name, last_name, username, email')
+      .in('user_id', childUserIds);
+
+    if (profilesError) {
+      console.error('Error fetching child profiles:', profilesError);
+      return { data: null, error: profilesError };
+    }
+
+    if (!childProfiles || childProfiles.length === 0) {
+      return { data: [], error: null };
+    }
+
+    // Get emotions for all children
+    const childProfileIds = childProfiles.map(p => p.id);
+
+    const { data: emotionsData, error: emotionsError } = await supabase
+      .from('User_emotion')
+      .select(`
+        *,
+        Expressions!inner(
+          id,
+          emotion_name,
+          confidence_score,
+          detected_at,
+          image_path
+        )
+      `)
+      .in('profile_id', childProfileIds)
+      .order('created_at', { ascending: false })
+      .limit(50); // Limit to recent 50 emotions across all children
+
+    if (emotionsError) {
+      console.error('Error fetching emotions:', emotionsError);
+      return { data: null, error: emotionsError };
+    }
+
+    // Combine emotions with child profile info
+    const enrichedEmotions = emotionsData?.map(emotion => {
+      const childProfile = childProfiles.find(p => p.id === emotion.profile_id);
+      return {
+        ...emotion,
+        child_name: childProfile ? `${childProfile.first_name || ''} ${childProfile.last_name || ''}`.trim() || childProfile.username : 'Unknown',
+        child_username: childProfile?.username || 'Unknown',
+        child_email: childProfile?.email || ''
+      };
+    }) || [];
+
+    return { data: enrichedEmotions, error: null };
+  } catch (error) {
+    console.error('Unexpected error in getChildrenEmotionsForParent:', error);
+    return { data: null, error };
+  }
+}
+
+// Get emotions for a specific child (by user_profiles.id)
+export async function getChildEmotionsForParent(childProfileId, limit = 10) {
+  try {
+    const { data, error } = await supabase
+      .from('User_emotion')
+      .select(`
+        *,
+        Expressions!inner(
+          id,
+          emotion_name,
+          confidence_score,
+          detected_at,
+          image_path
+        )
+      `)
+      .eq('profile_id', childProfileId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching child emotions:', error);
+      return { data: null, error };
+    }
+
+    return { data: data || [], error: null };
+  } catch (error) {
+    console.error('Unexpected error in getChildEmotionsForParent:', error);
+    return { data: null, error };
+  }
+}
+
+// Get recent emotions summary for all children of a parent
+export async function getParentDashboardEmotions(parentAuthId) {
+  try {
+    console.log('Fetching dashboard emotions for parent auth ID:', parentAuthId);
+    
+    // Try to get the parent record first
+    const { data: parentData, error: parentError } = await supabase
+      .from('parents')
+      .select('id')
+      .eq('user_id', parentAuthId)
+      .single();
+
+    if (parentError || !parentData) {
+      console.log('No parent record found for user_id:', parentAuthId);
+      return { data: [], error: null };
+    }
+
+    console.log('Found parent ID:', parentData.id);
+
+    // Now get children using the parent ID - simplified query
+    const { data: relations, error: relationsError } = await supabase
+      .from('parent_child_relations')
+      .select(`
+        child_user_id,
+        relationship_type,
+        linked_at
+      `)
+      .eq('parent_user_id', parentData.id);
+
+    if (relationsError) {
+      console.error('Error fetching parent-child relations:', relationsError);
+      return { data: null, error: relationsError };
+    }
+
+    if (!relations || relations.length === 0) {
+      console.log('No children found for this parent');
+      return { data: [], error: null };
+    }
+
+    console.log('Found relations:', relations);
+
+    // For each child, get their data from the students table
+    const childrenWithEmotions = [];
+    
+    for (const relation of relations) {
+      const studentId = relation.child_user_id;
+      
+      // Get student data
+      const { data: studentData, error: studentError } = await supabase
+        .from('students')
+        .select('*')
+        .eq('id', studentId)
+        .single();
+      
+      if (studentError) {
+        console.warn(`Failed to fetch student data for ${studentId}:`, studentError);
+        continue;
+      }
+      
+      // Get user profile data if student has profile_id
+      let userProfile = null;
+      if (studentData.profile_id) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', studentData.profile_id)
+          .single();
+        
+        if (!profileError && profileData) {
+          userProfile = profileData;
+        }
+      }
+
+      // Get emotions for this student from Expressions table directly
+      const { data: emotions, error: emotionError } = await supabase
+        .from('Expressions')
+        .select('*')
+        .eq('student_id', studentId)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      if (emotionError) {
+        console.warn(`Failed to fetch emotions for student ${studentId}:`, emotionError);
+      }
+
+      // Create child data object
+      const childData = {
+        user_id: userProfile?.user_id || studentId,
+        id: studentData.id,
+        username: userProfile?.username || `Student ${studentId}`,
+        firstname: userProfile?.firstname || null,
+        lastname: userProfile?.lastname || null,
+        full_name: userProfile?.full_name || userProfile?.username || `Student ${studentId}`,
+        email: userProfile?.email || null,
+        age: userProfile?.age || null,
+        grade: userProfile?.grade || null,
+        student_id: studentId,
+        relationship: relation,
+        emotions: emotions || [],
+        latestEmotion: emotions && emotions.length > 0 ? emotions[0] : null,
+        emotionSummary: {
+          total: emotions?.length || 0,
+          positive: emotions?.filter(e => (e.intensity || 0) >= 4).length || 0,
+          negative: emotions?.filter(e => (e.intensity || 0) <= 2).length || 0,
+          neutral: emotions?.filter(e => (e.intensity || 0) === 3).length || 0
+        }
+      };
+      
+      childrenWithEmotions.push(childData);
+    }
+
+    console.log('Children with emotions:', childrenWithEmotions);
+    return { data: childrenWithEmotions, error: null };
+  } catch (error) {
+    console.error('Unexpected error in getParentDashboardEmotions:', error);
+    return { data: null, error };
+  }
+}
