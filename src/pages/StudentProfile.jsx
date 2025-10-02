@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
 const StudentProfile = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   
   const [userInfo, setUserInfo] = useState({
@@ -435,6 +435,16 @@ const StudentProfile = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      setError('Failed to sign out. Please try again.');
+    }
+  };
+
   const stats = [
     { icon: "🏆", label: "Achievements", value: userInfo.achievements, color: "from-yellow-400 to-orange-500" },
     { icon: "🔥", label: "Day Streak", value: userInfo.day_streak, color: "from-red-400 to-pink-500" },
@@ -482,7 +492,7 @@ const StudentProfile = () => {
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-sm">
         <div className="container mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center -my-2">
             <div className="flex items-center space-x-4">
               <img
                 src="/src/assets/logo.png"
@@ -500,6 +510,13 @@ const StudentProfile = () => {
                 className="bg-gradient-to-r from-green-500 to-teal-500 text-white px-6 py-2 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
               >
                 Back to Learning Hub
+              </button>
+              
+              <button
+                onClick={handleLogout}
+                className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-2 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+              >
+                Log Out
               </button>
               
               {isEditing && (
