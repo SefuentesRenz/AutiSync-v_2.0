@@ -536,6 +536,41 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             ]
           }
         ],
+        
+        Numbers: [
+          {
+            questionText: "What is 3 x 9?",
+            videoSrc: "/src/assets/flashcards/Numbers_Hard/27_multiplication.mp4",
+            answerChoices: ["28", "30", "27", "29"],
+            correctAnswer: "27"
+          },
+          {
+            questionText: "What is 8 x 4?",
+            videoSrc: "/src/assets/flashcards/Numbers_Hard/32_multiplication.mp4",
+            answerChoices: ["32", "34", "33", "31"],
+            correctAnswer: "32"
+          },
+          {
+            questionText: "What is 6 x 8?",
+            videoSrc: "/src/assets/flashcards/Numbers_Hard/48_multiplication.mp4",
+            answerChoices: ["49", "48", "47", "50"],
+            correctAnswer: "48"
+          },
+          {
+            questionText: "What is 5 x 7?",
+            videoSrc: "/src/assets/flashcards/Numbers_Hard/35_multiplication.mp4",
+            answerChoices: ["34", "36", "35", "33"],
+            correctAnswer: "35"
+          },
+          {
+            questionText: "What is 4 x 9?",
+            videoSrc: "/src/assets/flashcards/Numbers_Hard/36_multiplication.mp4",
+            answerChoices: ["36", "40", "38", "35"],
+            correctAnswer: "36"
+          }
+        ],
+      
+
         "Academic Puzzles": [
           {
             puzzleType: "math",
@@ -580,6 +615,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             hint: "Red means stop for safety!"
           }
         ]
+        
       }
     },
     "Social / Daily Life Skill": {
@@ -627,6 +663,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             gameType: "puzzle"
           }
         ],
+
         Medium: [
           {
             puzzleType: "math",
