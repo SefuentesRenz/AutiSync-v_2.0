@@ -390,6 +390,43 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             correctAnswer: "Lion"
           }
         ],
+    
+        Numbers: [
+          {
+            questionText: "How many apples?",
+            videoSrc: "/src/assets/flashcards/Numbers_Medium/7_Numbers.mp4",
+            answerChoices: ["Six", "Seven", "Eight", "Five"],
+            correctAnswer: "Seven"
+          },
+          {
+            questionText: "How many ducks are left?",
+            videoSrc: "/src/assets/flashcards/Numbers_Medium/1_Numbers.mp4",
+            answerChoices: ["One", "Three", "Four", "Two"],
+            correctAnswer: "One"
+          },
+          {
+            questionText: "How many Ice Cream?",
+            videoSrc: "/src/assets/flashcards/Numbers_Medium/5_Numbers.mp4",
+            answerChoices: ["Three", "Six", "Four", "Five"],
+            correctAnswer: "Five"
+          },
+          {
+            questionText: "How many applesc are left?",
+            videoSrc: "/src/assets/flashcards/Numbers_Medium/3_Numbers.mp4",
+            answerChoices: ["Four", "Three", "Six", "Five"],
+            correctAnswer: "Three"
+          },
+          {
+            questionText: "How many balls?",
+            videoSrc: "/src/assets/flashcards/Numbers_Medium/11_Numbers.mp4",
+            answerChoices: ["Thirteen", "Eleven", "Twelve", "Ten"],
+            correctAnswer: "Eleven"
+          }
+        ],
+      
+
+
+
 
 
         "Matching Type": [
