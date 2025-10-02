@@ -12,6 +12,11 @@ const AlarmingEmotions = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('alerts'); // 'alerts' or 'history'
 
+  const AdminProfile = (e) => {
+    e.preventDefault();
+    navigate("/adminprofile");
+  };
+
   // Fetch alerts and notifications from backend
   useEffect(() => {
     fetchAlertsAndNotifications();
@@ -293,8 +298,49 @@ const AlarmingEmotions = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Header */}
+      <header className="bg-white shadow-lg border-b-4 border-blue-500">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-4">
+              <div className="bg-blue-600 text-white  rounded-xl">
+                <AcademicCapIcon className="w-6 h-6" />
+              </div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                AutiSync
+              </h1>
+            </div>
+            
+            <nav className="hidden md:flex space-x-8">
+                    <a href="/tracking" className="text-gray-600 text-lg hover:text-blue-600 font-semibold  transition-colors">
+                      Dashboard
+                    </a>
+                    <a href="/activities" className="text-gray-600 text-lg hover:text-blue-600 font-semibold  transition-colors">
+                      Activities
+                    </a>
+                    <a href="/alarmingemotions" className="text-gray-600 text-lg hover:text-blue-600 font-semibold transition-colors">
+                      Expression Wall
+                    </a>
+                  </nav>
+            
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={AdminProfile}
+                className="cursor-pointer -my-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-1 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+              >
+                <img
+                  src="/src/assets/kidprofile1.jpg"
+                  alt="Profile"
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <div className="max-w-full mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">

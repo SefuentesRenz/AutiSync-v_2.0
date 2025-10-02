@@ -113,6 +113,23 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const [canSubmit, setCanSubmit] = useState(false);
   const [shuffledRightItems, setShuffledRightItems] = useState(null);
 
+  // Academic Puzzle Game specific state
+  const [puzzleScore, setPuzzleScore] = useState(0);
+  const [puzzleRound, setPuzzleRound] = useState(1);
+  const [currentPuzzleType, setCurrentPuzzleType] = useState('math'); // 'math', 'spelling', 'logic', 'sequence'
+  const [isPuzzleGameActive, setIsPuzzleGameActive] = useState(false);
+  const [puzzleFeedbackMessage, setPuzzleFeedbackMessage] = useState('');
+  const [showPuzzleFeedback, setShowPuzzleFeedback] = useState(false);
+  const [puzzleFeedbackType, setPuzzleFeedbackType] = useState(''); // 'correct' or 'incorrect'
+  const [draggedItems, setDraggedItems] = useState([]);
+  const [targetPositions, setTargetPositions] = useState([]);
+  const [selectedPuzzleAnswers, setSelectedPuzzleAnswers] = useState([]);
+  const [showPuzzleHint, setShowPuzzleHint] = useState(false);
+  const [puzzleAttempts, setPuzzleAttempts] = useState(0);
+  const [isPuzzleComplete, setIsPuzzleComplete] = useState(false);
+  const [currentPuzzleData, setCurrentPuzzleData] = useState(null);
+  const [showPuzzleAnimation, setShowPuzzleAnimation] = useState(false);
+
     const videoRef = useRef(null);
   const audioRef = useRef(null);
   const correctAudioRef = useRef(null);
@@ -153,7 +170,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     }
   }, [showWrong]);
 
-  
+
   // Background music for Medium Identification activity
   useEffect(() => {
     if (activity === "Identification" && difficulty === "Medium") {
@@ -294,6 +311,50 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { id: "j", content: "Bark", type: "text", matchId: 3 }
             ]
           }
+        ],
+        "Academic Puzzles": [
+          {
+            puzzleType: "logic",
+            questionText: "Color puzzle",
+            instruction: "Which one is RED?",
+            options: ["🔵", "🍎", "☀️"],
+            correctAnswer: "🍎",
+            hint: "Look for the red colored object!"
+          },
+          {
+            puzzleType: "logic",
+            questionText: "Circle puzzle",
+            instruction: "Find the CIRCLE.",
+            options: ["🔺", "🟦", "⚪"],
+            correctAnswer: "⚪",
+            hint: "A circle is round with no corners!"
+          },
+          {
+            puzzleType: "math",
+            questionText: "Apple Counting Puzzle",
+            instruction: "Count the Apples. How many are there?",
+            objects: ["🍎", "🍎", "🍎"],
+            options: [2, 3, 4],
+            correctAnswer: 3,
+            hint: "Count each apple: 1, 2, 3!"
+          },
+          {
+            puzzleType: "matching",
+            questionText: "Number Matching",
+            instruction: "Number 6",
+            objects: [{id: 1, content: "Five", color: "red"}, {id: 2, content: "Seven", color: "blue"}, {id: 3, content: "Six", color: "green"}],
+            word: "BLUE",
+            correctAnswer: 3,
+            hint: "Match the 6 to number six!"
+          },
+          {
+            puzzleType: "logic",
+            questionText: "",
+            instruction: "Which one says MEOW?",
+            options: ["🐶", "🐱", "🐮"],
+            correctAnswer: "🐱",
+            hint: "Cats say meow!"
+          }
         ]
       },
       Medium: {
@@ -360,6 +421,51 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
              
             ]
           }
+        ],
+        "Academic Puzzles": [
+          {
+            puzzleType: "spelling",
+            questionText: "Spelling Puzzle",
+            instruction: "Arrange the letters to spell the word 'CAT'.",
+            targetWord: "CAT",
+            letters: ["T", "A", "B", "R", "C"],
+            correctAnswer: "CAT",
+            hint: "The pet that says meow!"
+          },
+          {
+            puzzleType: "math",
+            questionText: "Simple Math Puzzle",
+            instruction: "",
+            equation: { first: 2, operator1: "+", second: 1 },
+            options: [2, 3, 4],
+            correctAnswer: 3,
+            hint: "Add 2 and 1 together!"
+          },
+          {
+            puzzleType: "sequence",
+            questionText: "Sequence Puzzle",
+            instruction: "What comes next?",
+            sequence: ["🟦", "🔺", "⚪", "?"],
+            options: ["🔺", "🟦", "⚪"],
+            correctAnswer: "🟦",
+            hint: "Look at the pattern - it repeats!"
+          },
+          {
+            puzzleType: "sorting",
+            questionText: "Sorting Puzzle",
+            instruction: "Choose the fruit into the FRUIT basket.",
+            items: [{id: 1, content: "🍎 Apple", category: "fruit"}, {id: 2, content: "🚗 Car", category: "vehicle"}, {id: 3, content: "🍌 Banana", category: "fruit"}],
+            correctItems: [1, 3],
+            hint: "Fruits are things you can eat!"
+          },
+          {
+            puzzleType: "logic",
+            questionText: "Opposites Puzzle",
+            instruction: "What is the opposite of BIG?",
+            options: ["Small", "Tall", "Round"],
+            correctAnswer: "Small",
+            hint: "Think about size - what's the opposite of big?"
+          }
         ]
       },
       Hard: {
@@ -391,6 +497,190 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               // { id: "i", content: "💧 Drink", type: "text", matchId: 10 },
               { id: "j", content: "📖 Books", type: "text", matchId: 9 }
             ]
+          }
+        ],
+        "Academic Puzzles": [
+          {
+            puzzleType: "math",
+            questionText: "Advanced Math Puzzle",
+            instruction: "",
+            equation: { first: 5, operator1: "-", second: 2 },
+            options: [2, 3, 4],
+            correctAnswer: 3,
+            hint: "Take away 2 from 5!"
+          },
+          {
+            puzzleType: "logic",
+            questionText: "Color Mixing Puzzle",
+            instruction: "Red + Yellow = ?",
+            options: ["Orange", "Green", "Purple"],
+            correctAnswer: "Orange",
+            hint: "When you mix red and yellow, you get orange!"
+          },
+          {
+            puzzleType: "logic",
+            questionText: "Word Association Puzzle",
+            instruction: "Which one belongs with 'FISH'?",
+            options: ["🐟 Water", "🐕 Dog", "🍎 Apple"],
+            correctAnswer: "🐟 Water",
+            hint: "Where do fish live?"
+          },
+          {
+            puzzleType: "sequence",
+            questionText: "Pattern Puzzle",
+            instruction: "Complete the pattern:",
+            sequence: ["🍎", "🍌", "🍎", "🍌", "...?"],
+            options: ["🍌", "🍎", "🍊"],
+            correctAnswer: "🍎",
+            hint: "Look at the alternating pattern!"
+          },
+          {
+            puzzleType: "logic",
+            questionText: "Real-life Puzzle",
+            instruction: "The traffic light is 🔴Red. What should you do?",
+            options: ["Go", "Stop", "Jump"],
+            correctAnswer: "Stop",
+            hint: "Red means stop for safety!"
+          }
+        ]
+      }
+    },
+    "Social / Daily Life Skill": {
+      Easy: {
+        "Cashier Game": [
+          {
+            questionText: "Count the objects and drag the correct number!",
+            instruction: "How many 🍎 do you see?",
+            objects: ["🍎", "🍎", "🍎"],
+            correctAnswer: 3,
+            options: [1, 2, 3, 4],
+            hint: "Count each apple one by one!",
+            gameType: "puzzle"
+          },
+          {
+            puzzleType: "spelling",
+            questionText: "Drag the letters to spell the word!",
+            instruction: "Spell the word for this picture: 🐱",
+            targetWord: "CAT",
+            letters: ["C", "A", "T", "X", "B"],
+            hint: "The word starts with 'C'",
+            gameType: "puzzle"
+          },
+          {
+            puzzleType: "logic",
+            questionText: "Complete the pattern!",
+            instruction: "What comes next in the pattern?",
+            sequence: ["🔴", "🔵", "🔴", "🔵", "?"],
+            correctAnswer: "🔴",
+            options: ["🔴", "🔵", "🟡", "🟢"],
+            hint: "Look at the repeating colors!",
+            gameType: "puzzle"
+          },
+          {
+            puzzleType: "sequence",
+            questionText: "Put the pictures in the right order!",
+            instruction: "Show the steps of brushing teeth:",
+            items: [
+              { id: 1, content: "🦷 Clean teeth", order: 3 },
+              { id: 2, content: "🪥 Get toothbrush", order: 1 },
+              { id: 3, content: "✨ Rinse mouth", order: 4 },
+              { id: 4, content: "🧴 Add toothpaste", order: 2 }
+            ],
+            hint: "Think about what you do first!",
+            gameType: "puzzle"
+          }
+        ],
+        Medium: [
+          {
+            puzzleType: "math",
+            questionText: "Solve the addition puzzle!",
+            instruction: "Drag numbers to complete: 4 + ? = 7",
+            equation: { first: 4, operator: "+", result: 7 },
+            correctAnswer: 3,
+            options: [1, 2, 3, 4, 5],
+            hint: "What number plus 4 equals 7?",
+            gameType: "puzzle"
+          },
+          {
+            puzzleType: "spelling",
+            questionText: "Build the word with syllables!",
+            instruction: "Put syllables together to make: 🏠",
+            targetWord: "HOUSE",
+            syllables: ["HOU", "SE", "CAR", "DOG"],
+            hint: "A place where people live",
+            gameType: "puzzle"
+          },
+          {
+            puzzleType: "logic",
+            questionText: "Shape sorting puzzle!",
+            instruction: "Group shapes by their properties:",
+            shapes: [
+              { id: 1, shape: "🔴", category: "circle" },
+              { id: 2, shape: "🔺", category: "triangle" },
+              { id: 3, shape: "🟦", category: "square" },
+              { id: 4, shape: "🟣", category: "circle" },
+              { id: 5, shape: "🔶", category: "triangle" }
+            ],
+            categories: ["circle", "triangle", "square"],
+            hint: "Look at the shapes, not the colors!",
+            gameType: "puzzle"
+          },
+          {
+            puzzleType: "sequence",
+            questionText: "Daily routine puzzle!",
+            instruction: "Put these activities in order from morning to night:",
+            items: [
+              { id: 1, content: "🌙 Go to bed", order: 4 },
+              { id: 2, content: "☀️ Wake up", order: 1 },
+              { id: 3, content: "🍽️ Eat dinner", order: 3 },
+              { id: 4, content: "🏫 Go to school", order: 2 }
+            ],
+            hint: "Think about your daily schedule!",
+            gameType: "puzzle"
+          }
+        ],
+        Hard: [
+          {
+            puzzleType: "math",
+            questionText: "Multi-step math puzzle!",
+            instruction: "Complete the equation: (3 × ?) + 2 = 11",
+            equation: { first: 3, operator1: "×", operator2: "+", second: 2, result: 11 },
+            correctAnswer: 3,
+            options: [1, 2, 3, 4, 5],
+            hint: "Work backwards: 11 - 2 = 9, then 9 ÷ 3 = ?",
+            gameType: "puzzle"
+          },
+          {
+            puzzleType: "spelling",
+            questionText: "Advanced word building!",
+            instruction: "Use letter tiles to spell: 🌈",
+            targetWord: "RAINBOW",
+            letters: ["R", "A", "I", "N", "B", "O", "W", "X", "Y", "Z"],
+            hint: "A colorful arc in the sky after rain",
+            gameType: "puzzle"
+          },
+          {
+            puzzleType: "logic",
+            questionText: "Complex pattern puzzle!",
+            instruction: "Complete this number pattern:",
+            sequence: [2, 4, 8, 16, "?"],
+            correctAnswer: 32,
+            options: [20, 24, 32, 64],
+            hint: "Each number is double the previous one!",
+            gameType: "puzzle"
+          },
+          {
+            puzzleType: "sequence",
+            questionText: "Science experiment steps!",
+            instruction: "Put the steps in order to grow a plant:",
+            items: [
+              { id: 1, content: "🌱 Seedling grows", order: 3 },
+              { id: 2, content: "🌰 Plant seed", order: 1 },
+              { id: 3, content: "🌸 Flower blooms", order: 4 },
+              { id: 4, content: "💧 Water daily", order: 2 }
+            ],
+            hint: "Think about how plants grow step by step!",
+            gameType: "puzzle"
           }
         ]
       }
@@ -1043,6 +1333,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const isCashierGame = currentQuestion?.gameType === 'cashier';
   const isHygieneGame = currentQuestion?.gameType === 'hygiene';
   const isMatchingGame = currentQuestion?.gameType === 'matching';
+  const isPuzzleGame = currentQuestion?.gameType === 'puzzle' || activity === "Academic Puzzles";
   const isStreetGame = activity === "Safe Street Crossing";
   const isGreetingsGame = activity === "Social Greetings";
   const isMoneyGame = activity === "Money Value Game";
@@ -1475,6 +1766,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     }
   }, [currentQuestionIndex, isMoneyGame]);
 
+  // Initialize puzzle game when activity starts
+  useEffect(() => {
+    if (isPuzzleGame) {
+      initializePuzzleGame();
+    }
+  }, [currentQuestionIndex, isPuzzleGame]);
+
   // Handle moving to item selection step
   const handleStartSelecting = () => {
     // Do not hide the customer's thought bubble here; keep it visible until Next Question
@@ -1509,6 +1807,170 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     const y2 = rightRect.top + rightRect.height / 2 - containerRect.top;
     
     return { x1, y1, x2, y2, leftItemId, rightItemId };
+  };
+
+  // Academic Puzzle Game Functions
+  const initializePuzzleGame = () => {
+    const puzzleQuestions = questionsData[category]?.[difficulty]?.["Academic Puzzles"] || [];
+    if (puzzleQuestions.length > 0) {
+      const currentPuzzle = puzzleQuestions[currentQuestionIndex % puzzleQuestions.length];
+      setCurrentPuzzleData(currentPuzzle);
+      setCurrentPuzzleType(currentPuzzle.puzzleType);
+      setPuzzleAttempts(0);
+      setShowPuzzleHint(false);
+      setSelectedPuzzleAnswers([]);
+      setDraggedItems([]);
+      setIsPuzzleComplete(false);
+      setIsPuzzleGameActive(true);
+    }
+  };
+
+  const handlePuzzleAnswer = (answer, isCorrect = null) => {
+    console.log("handlePuzzleAnswer called with:", { answer, isCorrect, correctAnswer: currentPuzzleData.correctAnswer });
+    setPuzzleAttempts(prev => prev + 1);
+    
+    // If isCorrect is not provided, check the answer against correctAnswer
+    let correct = isCorrect;
+    if (correct === null) {
+      if (currentPuzzleData.puzzleType === 'matching') {
+        correct = answer === currentPuzzleData.correctAnswer;
+      } else if (currentPuzzleData.puzzleType === 'logic' || currentPuzzleData.puzzleType === 'math' || currentPuzzleData.puzzleType === 'sequence') {
+        correct = answer === currentPuzzleData.correctAnswer;
+      } else if (currentPuzzleData.puzzleType === 'spelling') {
+        correct = answer === currentPuzzleData.correctAnswer;
+      } else {
+        correct = answer === currentPuzzleData.correctAnswer;
+      }
+    }
+    
+    console.log("Answer check result:", { answer, correctAnswer: currentPuzzleData.correctAnswer, correct });
+    
+    if (correct) {
+      setPuzzleScore(prev => prev + 1);
+      setScore(prev => prev + 1);
+      setPuzzleFeedbackMessage("🎉 Excellent! You solved the puzzle!");
+      setPuzzleFeedbackType("correct");
+      setShowPuzzleFeedback(true);
+      setShowPuzzleAnimation(true);
+      setIsPuzzleComplete(true);
+      
+      // Show the same correct modal as Identification
+      setShowCorrect(true);
+      setTimeout(() => setShowCorrect(false), 1500);
+      
+      // Play success sound
+      if (correctAudioRef.current) {
+        correctAudioRef.current.play();
+      }
+      
+      // Auto-proceed to next question after showing correct modal
+      setTimeout(() => {
+        setShowPuzzleAnimation(false);
+        if (currentQuestionIndex < questions.length - 1) {
+          setCurrentQuestionIndex(currentQuestionIndex + 1);
+          setSelectedAnswer(null);
+          setIsAnswered(false);
+          setPuzzleAttempts(0);
+          setShowPuzzleHint(false);
+          setIsPuzzleComplete(false);
+          setCurrentPuzzleData(null);
+          setSelectedPuzzleAnswers([]);
+          setDraggedItems([]);
+          setTargetPositions([]);
+        } else {
+          // If it's the last question, show completion modal
+          setShowModal(true);
+        }
+      }, 1500); // Wait 1.5 seconds after correct answer before proceeding
+      
+    } else {
+      setPuzzleFeedbackMessage("🤔 Not quite right. Try again!");
+      setPuzzleFeedbackType("incorrect");
+      setShowPuzzleFeedback(true);
+      
+      // Show the same wrong modal as Identification
+      setShowWrong(true);
+      setTimeout(() => setShowWrong(false), 1500);
+      
+      // Play wrong sound
+      if (wrongAudioRef.current) {
+        wrongAudioRef.current.play();
+      }
+      
+      // Auto-proceed to next question after showing wrong modal
+      setTimeout(() => {
+        setShowPuzzleFeedback(false);
+        if (currentQuestionIndex < questions.length - 1) {
+          setCurrentQuestionIndex(currentQuestionIndex + 1);
+          setSelectedAnswer(null);
+          setIsAnswered(false);
+          setPuzzleAttempts(0);
+          setShowPuzzleHint(false);
+          setIsPuzzleComplete(false);
+          setCurrentPuzzleData(null);
+          setSelectedPuzzleAnswers([]);
+          setDraggedItems([]);
+          setTargetPositions([]);
+        } else {
+          // If it's the last question, show completion modal
+          setShowModal(true);
+        }
+      }, 1500); // Wait 1.5 seconds after wrong answer before proceeding
+      
+    }
+  };
+
+  const handlePuzzleDrag = (item, targetPosition) => {
+    const newDraggedItems = [...draggedItems];
+    const existingIndex = newDraggedItems.findIndex(d => d.id === item.id);
+    
+    if (existingIndex >= 0) {
+      newDraggedItems[existingIndex] = { ...item, position: targetPosition };
+    } else {
+      newDraggedItems.push({ ...item, position: targetPosition });
+    }
+    
+    setDraggedItems(newDraggedItems);
+  };
+
+  const checkPuzzleCompletion = () => {
+    if (!currentPuzzleData) return;
+    
+    switch (currentPuzzleData.puzzleType) {
+      case 'sequence':
+        const allItemsPlaced = currentPuzzleData.items.every(item => 
+          draggedItems.some(dragged => dragged.id === item.id)
+        );
+        if (allItemsPlaced) {
+          const isCorrectOrder = currentPuzzleData.items.every(item => {
+            const draggedItem = draggedItems.find(d => d.id === item.id);
+            return draggedItem && draggedItem.position === item.order - 1;
+          });
+          handlePuzzleAnswer(null, isCorrectOrder);
+        }
+        break;
+        
+      case 'spelling':
+        if (selectedPuzzleAnswers.length === currentPuzzleData.targetWord.length) {
+          const isCorrect = selectedPuzzleAnswers.join('') === currentPuzzleData.targetWord;
+          handlePuzzleAnswer(selectedPuzzleAnswers.join(''), isCorrect);
+        }
+        break;
+        
+      default:
+        break;
+    }
+  };
+
+  const resetPuzzle = () => {
+    setSelectedPuzzleAnswers([]);
+    setDraggedItems([]);
+    setPuzzleAttempts(0);
+    setShowPuzzleHint(false);
+    setShowPuzzleFeedback(false);
+    setIsPuzzleComplete(false);
+    setPuzzleFeedbackType('');
+    setPuzzleFeedbackMessage('');
   };
 
   // New Drag-and-Drop Matching Game Functions
@@ -1955,7 +2417,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           </div>
 
           {/* Answer Choices with autism-friendly design */}
-          {!isCashierGame && !isHygieneGame && !isStreetGame && !isGreetingsGame && !isMoneyGame && !isMatchingGame ? (
+          {!isCashierGame && !isHygieneGame && !isStreetGame && !isGreetingsGame && !isMoneyGame && !isMatchingGame && !isPuzzleGame ? (
             <div className="grid grid-cols-2 gap-6">
               {questions[currentQuestionIndex].answerChoices.map((choice, index) => (
                 <button
@@ -3180,6 +3642,447 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             <span>{currentQuestionIndex < questions.length - 1 ? "Next Question" : "Finish"}</span>
             <span className="text-xl animate-float">✨</span>
           </button>
+        </div>
+      )}
+
+      {/* Academic Puzzle Game UI */}
+      {isPuzzleGame && currentPuzzleData && (
+        <div className="space-y-6">
+          {/* Puzzle Header */}
+          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl p-4 border-3 border-indigo-200 text-center relative overflow-hidden">
+            <div className="absolute -top-2 -right-2 text-4xl animate-bounce-gentle">🧩</div>
+            <div className="absolute -bottom-1 -left-1 text-3xl animate-float">⭐</div>
+            <h3 className="text-2xl font-bold text-indigo-800 mb-2 flex items-center justify-center space-x-3">
+              <span className="text-3xl animate-pulse-gentle">🎯</span>
+              <span>Academic Puzzle</span>
+            </h3>
+            
+            {/* Hint Display */}
+            {showPuzzleHint && (
+              <div className="mt-3 bg-yellow-100 border-2 border-yellow-300 rounded-xl p-3 animate-fade-in">
+                <div className="flex items-center justify-center space-x-2">
+                  <span className="text-2xl">💡</span>
+                  <span className="text-lg font-medium text-yellow-800">Hint: {currentPuzzleData.hint}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Puzzle Content Area */}
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 border-4 border-indigo-200 relative">
+            
+            {/* Math Puzzle */}
+            {currentPuzzleData.puzzleType === 'math' && (
+              <div className="space-y-6">
+                <div className="text-center mb-6">
+                  <p className="text-2xl font-bold text-indigo-700">{currentPuzzleData.instruction}</p>
+                </div>
+                
+                {/* Math Problem Display */}
+                {currentPuzzleData.objects ? (
+                  <div className="text-center">
+                    <div className="text-6xl mb-4 space-x-2">
+                      {currentPuzzleData.objects.map((obj, index) => (
+                        <span key={index} className="inline-block animate-bounce-gentle" style={{animationDelay: `${index * 0.1}s`}}>
+                          {obj}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : currentPuzzleData.equation ? (
+                  <div className="text-center text-4xl font-bold text-indigo-800 mb-6">
+                    {currentPuzzleData.equation.first} {currentPuzzleData.equation.operator1} {currentPuzzleData.equation.second} = ?
+                  </div>
+                ) : null}
+                
+                {/* Answer Options */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {currentPuzzleData.options.map((option, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handlePuzzleAnswer(option)}
+                      className="bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 border-3 border-blue-300 hover:border-blue-500 rounded-2xl p-6 text-3xl font-bold text-indigo-800 transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Spelling Puzzle */}
+            {currentPuzzleData.puzzleType === 'spelling' && (
+              <div className="space-y-6">
+                {/* Target Word Display */}
+                <div className="text-center">
+                  <div className="flex justify-center space-x-3 mb-6">
+                    {currentPuzzleData.targetWord.split('').map((_, index) => (
+                      <div
+                        key={index}
+                        className="w-16 h-16 bg-yellow-100 border-3 border-yellow-400 rounded-xl flex items-center justify-center text-2xl font-bold text-yellow-800"
+                      >
+                        {selectedPuzzleAnswers[index] || '?'}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Letter Options */}
+                <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+                  {currentPuzzleData.letters.map((letter, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        if (selectedPuzzleAnswers.length < currentPuzzleData.targetWord.length) {
+                          const newAnswers = [...selectedPuzzleAnswers, letter];
+                          setSelectedPuzzleAnswers(newAnswers);
+                        }
+                      }}
+                      disabled={selectedPuzzleAnswers.includes(letter)}
+                      className="bg-gradient-to-r from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 border-3 border-purple-300 hover:border-purple-500 rounded-xl p-4 text-2xl font-bold text-purple-800 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-purple-300"
+                    >
+                      {letter}
+                    </button>
+                  ))}
+                </div>
+                
+                {/* Check Answer Button */}
+                <div className="text-center">
+                  <button
+                    onClick={() => {
+                      const userAnswer = selectedPuzzleAnswers.join('');
+                      handlePuzzleAnswer(userAnswer);
+                    }}
+                    disabled={selectedPuzzleAnswers.length !== currentPuzzleData.targetWord.length}
+                    className="bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white px-8 py-3 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="text-xl mr-2">✓</span>
+                    Check Answer
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Matching Puzzle */}
+            {currentPuzzleData.puzzleType === 'matching' && (
+              <div className="space-y-6">
+                <div className="text-center mb-6">
+                  <p className="text-2xl font-bold text-indigo-700">{currentPuzzleData.instruction}</p>
+                </div>
+                
+                {/* Word to Match */}
+                <div className="text-center mb-6">
+                  <div className="inline-block bg-blue-100 border-4 border-blue-400 rounded-xl p-4 text-2xl font-bold text-blue-800">
+                    {currentPuzzleData.word}
+                  </div>
+                </div>
+                
+                {/* Objects to Match */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {currentPuzzleData.objects.map((obj, index) => (
+                    <button
+                      key={obj.id}
+                      onClick={() => handlePuzzleAnswer(obj.id)}
+                      className="bg-gradient-to-r from-yellow-100 to-orange-100 hover:from-yellow-200 hover:to-orange-200 border-3 border-yellow-300 hover:border-yellow-500 rounded-xl p-6 text-xl font-semibold text-gray-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-yellow-300"
+                    >
+                      {obj.content}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sorting Puzzle */}
+            {currentPuzzleData.puzzleType === 'sorting' && (
+              <div className="space-y-6">
+                <div className="text-center mb-6">
+                  <p className="text-2xl font-bold text-purple-700">{currentPuzzleData.instruction}</p>
+                </div>
+                
+                {/* Fruit Basket (Drop Zone) */}
+                <div className="text-center mb-6">
+                  <div className="inline-block bg-green-100 border-4 border-green-400 rounded-xl p-6 min-w-[200px] min-h-[100px]">
+                    <div className="text-2xl font-bold text-green-800 mb-2">🧺 FRUIT BASKET</div>
+                    <div className="text-sm text-green-600">
+                      {selectedPuzzleAnswers.length > 0 ? `${selectedPuzzleAnswers.length} item(s) selected` : 'Drag fruits here'}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Items to Sort */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  {currentPuzzleData.items.map((item, index) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        if (selectedPuzzleAnswers.includes(item.id)) {
+                          setSelectedPuzzleAnswers(selectedPuzzleAnswers.filter(id => id !== item.id));
+                        } else {
+                          setSelectedPuzzleAnswers([...selectedPuzzleAnswers, item.id]);
+                        }
+                      }}
+                      className={`border-3 rounded-xl p-4 text-lg font-semibold transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 ${
+                        selectedPuzzleAnswers.includes(item.id)
+                          ? 'bg-green-200 border-green-500 text-green-800 ring-green-300'
+                          : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200 ring-gray-300'
+                      }`}
+                    >
+                      {item.content}
+                    </button>
+                  ))}
+                </div>
+                
+                {/* Check Answer Button */}
+                <div className="text-center">
+                  <button
+                    onClick={() => {
+                      const isCorrect = currentPuzzleData.correctItems.every(id => selectedPuzzleAnswers.includes(id)) &&
+                                      selectedPuzzleAnswers.every(id => currentPuzzleData.correctItems.includes(id));
+                      handlePuzzleAnswer(selectedPuzzleAnswers, isCorrect);
+                    }}
+                    className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-8 py-3 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-300"
+                  >
+                    <span className="text-xl mr-2">✓</span>
+                    Check Answer
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Logic Puzzle */}
+            {currentPuzzleData.puzzleType === 'logic' && (
+              <div className="space-y-6">
+                {/* Simple Multiple Choice Logic */}
+                {currentPuzzleData.options && !currentPuzzleData.sequence && !currentPuzzleData.shapes && (
+                  <div className="text-center">
+                    <div className="mb-6">
+                      <p className="text-2xl font-bold text-green-700">{currentPuzzleData.instruction}</p>
+                      
+                      {/* Display objects for counting */}
+                      {currentPuzzleData.objects && (
+                        <div className="flex justify-center space-x-2 my-4">
+                          {currentPuzzleData.objects.map((obj, index) => (
+                            <span key={index} className="text-4xl">{obj}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Answer Options */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {currentPuzzleData.options.map((option, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handlePuzzleAnswer(option)}
+                          className="bg-gradient-to-r from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 border-3 border-green-300 hover:border-green-500 rounded-2xl p-6 text-6xl font-semibold transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-green-300"
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Pattern Display */}
+                {currentPuzzleData.sequence && (
+                  <div className="text-center">
+                    <div className="flex justify-center items-center space-x-4 mb-6">
+                      {currentPuzzleData.sequence.map((item, index) => (
+                        <div key={index} className="text-6xl animate-pulse-gentle" style={{animationDelay: `${index * 0.2}s`}}>
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Answer Options */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {currentPuzzleData.options.map((option, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handlePuzzleAnswer(option)}
+                          className="bg-gradient-to-r from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 border-3 border-green-300 hover:border-green-500 rounded-2xl p-6 text-4xl transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-green-300"
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Shape Sorting */}
+                {currentPuzzleData.shapes && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                      {currentPuzzleData.categories.map((category, index) => (
+                        <div key={category} className="bg-gray-100 border-3 border-gray-300 rounded-xl p-4 min-h-[100px] text-center">
+                          <div className="font-bold text-lg text-gray-700 mb-2 capitalize">{category}</div>
+                          {/* Drop zone for shapes */}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="text-center text-lg text-gray-600">Drag shapes to the correct category!</div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Sequence Puzzle */}
+            {currentPuzzleData.puzzleType === 'sequence' && (
+              <div className="space-y-6">
+                {/* Pattern Completion Type */}
+                {currentPuzzleData.sequence && currentPuzzleData.options && (
+                  <div className="text-center">
+                    <div className="mb-6">
+                      <p className="text-2xl font-bold text-blue-700">{currentPuzzleData.instruction}</p>
+                    </div>
+                    
+                    {/* Pattern Display */}
+                    <div className="flex justify-center items-center space-x-4 mb-6">
+                      {currentPuzzleData.sequence.map((item, index) => (
+                        <div key={index} className="text-6xl animate-pulse-gentle" style={{animationDelay: `${index * 0.2}s`}}>
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Answer Options */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {currentPuzzleData.options.map((option, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handlePuzzleAnswer(option)}
+                          className="bg-gradient-to-r from-blue-100 to-cyan-100 hover:from-blue-200 hover:to-cyan-200 border-3 border-blue-300 hover:border-blue-500 rounded-2xl p-6 text-xl font-semibold transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Drag and Drop Type */}
+                {currentPuzzleData.items && !currentPuzzleData.options && (
+                  <div>
+                    {/* Sequence Slots */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                      {Array.from({ length: currentPuzzleData.items.length }, (_, index) => (
+                        <div
+                          key={index}
+                          className="bg-yellow-100 border-3 border-yellow-400 rounded-xl p-4 h-24 flex items-center justify-center text-center relative"
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const item = JSON.parse(e.dataTransfer.getData('text/plain'));
+                            handlePuzzleDrag(item, index);
+                          }}
+                          onDragOver={(e) => e.preventDefault()}
+                        >
+                          <div className="absolute -top-2 -left-2 bg-yellow-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
+                            {index + 1}
+                          </div>
+                          <div className="text-lg font-medium">
+                            {draggedItems.find(item => item.position === index)?.content || 'Drop here'}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Available Items */}
+                    <div className="grid grid-cols-2 gap-4">
+                      {currentPuzzleData.items.map((item, index) => (
+                        <div
+                          key={item.id}
+                          draggable
+                          onDragStart={(e) => e.dataTransfer.setData('text/plain', JSON.stringify(item))}
+                          className={`bg-gradient-to-r from-cyan-100 to-blue-100 border-3 border-cyan-300 rounded-xl p-4 text-center cursor-move transition-all duration-300 transform hover:scale-105 ${
+                            draggedItems.some(d => d.id === item.id) ? 'opacity-50' : 'hover:shadow-lg'
+                          }`}
+                        >
+                          <div className="text-lg font-medium text-cyan-800">{item.content}</div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Check Button */}
+                    <div className="text-center">
+                      <button
+                        onClick={checkPuzzleCompletion}
+                        disabled={draggedItems.length !== currentPuzzleData.items.length}
+                        className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-8 py-4 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-green-300"
+                      >
+                        <span className="text-2xl mr-2">✅</span>
+                        Check Order
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-center space-x-4">
+            {/* Next Question Button - only show when puzzle is completed */}
+            {isPuzzleComplete && (
+              <button
+                onClick={() => {
+                  const totalQuestions = questionsData[category]?.[difficulty]?.["Academic Puzzles"]?.length || 1;
+                  if (currentQuestionIndex < totalQuestions - 1) {
+                    setCurrentQuestionIndex(prev => prev + 1);
+                    setShowPuzzleFeedback(false);
+                    setIsPuzzleComplete(false);
+                    initializePuzzleGame();
+                  } else {
+                    setShowModal(true);
+                  }
+                }}
+                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-8 py-4 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300"
+              >
+                <span className="text-2xl mr-2">
+                  {currentQuestionIndex < (questionsData[category]?.[difficulty]?.["Academic Puzzles"]?.length || 1) - 1 ? "➡️" : "🎯"}
+                </span>
+                {currentQuestionIndex < (questionsData[category]?.[difficulty]?.["Academic Puzzles"]?.length || 1) - 1 ? "Next Puzzle" : "Finish"}
+                <span className="text-xl ml-2 animate-float">✨</span>
+              </button>
+            )}
+            
+            {/* Hint Button */}
+            {!showPuzzleHint && !isPuzzleComplete && (
+              <button
+                onClick={() => setShowPuzzleHint(true)}
+                className="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-yellow-300"
+              >
+                <span className="text-xl mr-2">💡</span>
+                Get Hint
+              </button>
+            )}
+            
+            {/* Reset Button */}
+            <button
+              onClick={resetPuzzle}
+              className="bg-gradient-to-r from-orange-400 to-red-500 hover:from-orange-500 hover:to-red-600 text-white px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-orange-300"
+            >
+              <span className="text-xl mr-2">🔄</span>
+              Reset Puzzle
+            </button>
+          </div>
+          
+          {/* Correct Overlay for Puzzle Game */}
+          {showCorrect && (
+            <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+              <div className="text-[8rem]">😄</div>
+              <div className="text-green-500 text-4xl font-bold mt-2">CORRECT!</div>
+            </div>
+          )}
+
+          {/* Wrong Overlay for Puzzle Game */}
+          {showWrong && (
+            <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+              <div className="text-[8rem]">😞</div>
+              <div className="text-red-500 text-4xl font-bold mt-2">WRONG!</div>
+            </div>
+          )}
         </div>
       )}
 

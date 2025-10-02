@@ -40,6 +40,15 @@ const activities = [
   },
   { 
     id: 5, 
+    name: "Academic Puzzles", 
+    icon: "🧩", 
+    color: "from-indigo-500 to-blue-600",
+    bgColor: "bg-indigo-50",
+    hoverColor: "hover:bg-indigo-100",
+    category: "Academic"
+  },
+  { 
+    id: 6, 
     name: "Matching Type", 
     icon: "📝", 
     color: "from-pink-500 to-rose-600",
@@ -48,7 +57,7 @@ const activities = [
     category: "Academic"
   },
   { 
-    id: 6, 
+    id: 7, 
     name: "Cashier Game", 
     icon: "🏪", 
     color: "from-green-500 to-teal-600",
@@ -57,7 +66,7 @@ const activities = [
     category: "Social / Daily Life Skill"
   },
   { 
-    id: 7, 
+    id: 8, 
     name: "Money Value Game", 
     icon: "💰", 
     color: "from-yellow-500 to-orange-600",
@@ -66,7 +75,7 @@ const activities = [
     category: "Social / Daily Life Skill"
   },
   { 
-    id: 8, 
+    id: 9, 
     name: "Social Greetings", 
     icon: "👋", 
     color: "from-purple-500 to-pink-600",
@@ -75,7 +84,7 @@ const activities = [
     category: "Social / Daily Life Skill"
   },
   { 
-    id: 9, 
+    id: 10, 
     name: "Hygiene Hero", 
     icon: "🧼", 
     color: "from-cyan-500 to-blue-600",
@@ -84,7 +93,7 @@ const activities = [
     category: "Social / Daily Life Skill"
   },
   { 
-    id: 10, 
+    id: 11, 
     name: "Safe Street Crossing", 
     icon: "🚦", 
     color: "from-emerald-500 to-green-600",
