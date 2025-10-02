@@ -372,7 +372,7 @@ const AlarmingEmotions = () => {
             <nav className="-mb-px flex space-x-8">
               <button
                 onClick={() => setActiveTab('alerts')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`bg-white py-2 px-1 border-b-2 font-medium text-sm w-45 cursor-pointer ${
                   activeTab === 'alerts'
                     ? 'border-red-500 text-red-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -382,7 +382,7 @@ const AlarmingEmotions = () => {
               </button>
               <button
                 onClick={() => setActiveTab('history')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`-ml-6 bg-white py-2 px-1 border-b-2 font-medium text-sm w-45 cursor-pointer ${
                   activeTab === 'history'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
