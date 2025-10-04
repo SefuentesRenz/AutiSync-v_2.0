@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AcademicCapIcon, MagnifyingGlassIcon, FunnelIcon, UsersIcon, CheckCircleIcon, UserIcon, ArrowLeftIcon, StarIcon, FireIcon } from '@heroicons/react/24/solid';
 import { supabase } from '../lib/supabase';
+import { getStudentProgressStats } from '../lib/progressApi';
 
 const Students = () => {
   const navigate = useNavigate();
@@ -60,10 +61,23 @@ const Students = () => {
       console.log('Profiles data:', profilesData);
       
       // Combine student and profile data
-      const transformedStudents = studentsData.map((student, index) => {
+      const transformedStudents = await Promise.all(studentsData.map(async (student, index) => {
         const profile = profilesData?.find(p => p.id === student.profile_id);
+        
+        // Get real progress data for each student
+        let progressStats = null;
+        try {
+          const statsResult = await getStudentProgressStats(profile?.id);
+          if (!statsResult.error) {
+            progressStats = statsResult.data;
+          }
+        } catch (err) {
+          console.log('Could not fetch progress for student:', profile?.id);
+        }
+        
         return {
           id: student.id,
+          profileId: profile?.id, // Add the profile UUID for navigation
           name: profile?.full_name || 'Unknown Student',
           age: profile?.age || 0,
           address: profile?.address || 'No address provided',
@@ -72,12 +86,12 @@ const Students = () => {
           phone: profile?.phone_number || '',
           joinDate: new Date(student.created_at).toLocaleDateString(),
           status: 'Active',
-          completedActivities: Math.floor(Math.random() * 30) + 5,
-          averageScore: Math.floor(Math.random() * 20) + 80,
-          lastActive: '2 hours ago',
+          completedActivities: progressStats?.completedActivities || 0,
+          averageScore: progressStats?.averageScore || 0,
+          lastActive: progressStats?.recentActivities > 0 ? '2 hours ago' : 'No recent activity',
           profileColor: ['bg-pink-500', 'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-yellow-500'][index % 5]
         };
-      });
+      }));
       
       console.log('Transformed students:', transformedStudents);
       setStudents(transformedStudents);
@@ -329,7 +343,9 @@ const Students = () => {
   };
 
   const viewStudentProgress = (student) => {
-    navigate(`/admin/student-progress/${student.id}`);
+    // Use the profile UUID for navigation to match the user_activity_progress student_id
+    const studentUUID = student.profileId || student.id;
+    navigate(`/admin/student-progress/${studentUUID}`);
   };
 
   const backToStudentList = () => {

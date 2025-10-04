@@ -4,6 +4,7 @@ import { CheckCircleIcon, AcademicCapIcon, UsersIcon, StarIcon, FireIcon, ArrowL
 import { getStudentProgressStats, getStudentProgress } from '../lib/progressApi';
 import { getStudentById } from '../lib/studentsApi';
 import { getActivities } from '../lib/activitiesApi';
+import { supabase } from '../lib/supabase';
 
 const StudentProgress = () => {
   const { id } = useParams();
@@ -22,18 +23,77 @@ const StudentProgress = () => {
       
       setLoading(true);
       try {
-        const [studentResult, statsResult, progressResult, activitiesResult] = await Promise.all([
-          getStudentById(parseInt(id)),
-          getStudentProgressStats(parseInt(id)),
-          getStudentProgress(parseInt(id)),
+        // Since the Students.jsx is passing the student database ID, we need to get the actual student UUID
+        // First, let's try to get the student by the profile UUID directly
+        const studentUUID = id; // The ID passed from Students.jsx should be the UUID
+        
+        const [statsResult, progressResult, activitiesResult] = await Promise.all([
+          getStudentProgressStats(studentUUID),
+          getStudentProgress(studentUUID),
           getActivities()
         ]);
 
-        if (studentResult.error) {
-          console.error('Error fetching student:', studentResult.error);
-          setError('Student not found');
+        // Get student profile information - try different approaches due to RLS
+        let profileData = null;
+        
+        // First try direct query using 'id' column (which contains Supabase Auth UUIDs)
+        const { data: directProfileData, error: directProfileError } = await supabase
+          .from('user_profiles')
+          .select('id, full_name, email, age, gender, address, grade, school, created_at')
+          .eq('id', studentUUID)
+          .single();
+
+        if (directProfileError) {
+          console.error('Direct profile query failed:', directProfileError);
+          
+          // Try querying from students table with join
+          const { data: studentWithProfile, error: studentError } = await supabase
+            .from('students')
+            .select(`
+              id,
+              profile_id,
+              user_profiles (
+                id,
+                full_name,
+                email,
+                age,
+                gender,
+                address,
+                grade,
+                school,
+                created_at
+              )
+            `)
+            .eq('profile_id', studentUUID)
+            .single();
+
+          if (studentError) {
+            console.error('Student with profile query failed:', studentError);
+            setError('Student not found');
+            return;
+          } else {
+            profileData = studentWithProfile?.user_profiles;
+          }
         } else {
-          setStudent(studentResult.data);
+          profileData = directProfileData;
+        }
+
+        if (profileData) {
+          // Transform profile data to match expected student format
+          setStudent({
+            id: profileData.id,
+            name: profileData.full_name || 'Unknown Student',
+            email: profileData.email,
+            age: profileData.age || 0,
+            gender: profileData.gender || 'Not specified',
+            address: profileData.address || 'No address provided',
+            grade: profileData.grade || '',
+            school: profileData.school || '',
+            joinDate: new Date(profileData.created_at).toLocaleDateString(),
+            status: 'Active'
+          });
+        } else {
+          setError('Student profile not found');
         }
 
         if (statsResult.error) {
@@ -157,63 +217,62 @@ const StudentProgress = () => {
     }
   ];
 
-  // Find the current student based on ID
-  const currentStudent = studentsDatabase.find(student => student.id === parseInt(id));
-  
-  // If student not found, redirect back
-  if (!currentStudent) {
-    navigate('/admin/students');
-    return null;
-  }
+  // Check if student exists and handle redirect in useEffect
+  useEffect(() => {
+    if (!loading && !student && !error) {
+      navigate('/admin/students');
+    }
+  }, [loading, student, error, navigate]);
 
-  // Generate dynamic data based on the selected student
-  const generateStudentMetrics = (student) => {
-    const baseMetrics = {
-      activities: student.completedActivities,
-      avgScore: student.averageScore,
-      // Generate some variation based on student performance
-      completionRate: Math.min(100, student.averageScore + Math.floor(Math.random() * 10)),
-      accuracy: Math.max(60, student.averageScore - Math.floor(Math.random() * 10)),
-      streak: Math.floor(Math.random() * 14) + 1 // 1-14 days
-    };
+  // Generate dynamic data based on real progress stats
+  const generateStudentMetrics = () => {
+    if (!progressStats) {
+      return [
+        { title: 'TOTAL ACTIVITIES', value: '0', change: 'Loading...', icon: <AcademicCapIcon className="w-8 h-8 text-blue-600" />, bgColor: 'bg-blue-50', textColor: 'text-blue-600' },
+        { title: 'COMPLETION RATE', value: '0%', change: 'Loading...', icon: <div className="w-8 h-8 text-green-600 text-2xl">🎯</div>, bgColor: 'bg-green-50', textColor: 'text-green-600' },
+        { title: 'AVERAGE SCORE', value: '0%', change: 'Loading...', icon: <StarIcon className="w-8 h-8 text-yellow-600" />, bgColor: 'bg-yellow-50', textColor: 'text-yellow-600' },
+        { title: 'RECENT ACTIVITIES', value: '0', change: 'Loading...', icon: <FireIcon className="w-8 h-8 text-red-600" />, bgColor: 'bg-red-50', textColor: 'text-red-600' },
+        { title: 'ACTIVE STREAK', value: '0 days', change: 'Loading...', icon: <FireIcon className="w-8 h-8 text-orange-600" />, bgColor: 'bg-orange-50', textColor: 'text-orange-600' }
+      ];
+    }
 
     return [
       {
         title: 'COMPLETED ACTIVITIES',
-        value: baseMetrics.activities,
-        change: `+${Math.floor(Math.random() * 5) + 1} this week`,
+        value: progressStats.completedActivities || 0,
+        change: `${progressStats.totalActivities || 0} total activities`,
         icon: <AcademicCapIcon className="w-8 h-8 text-blue-600" />,
         bgColor: 'bg-blue-50',
         textColor: 'text-blue-600'
       },
       {
         title: 'COMPLETION RATE',
-        value: `${baseMetrics.completionRate}%`,
-        change: `+${Math.floor(Math.random() * 8) + 1}% from last week`,
+        value: `${progressStats.completionRate || 0}%`,
+        change: progressStats.completionRate > 75 ? 'Excellent progress!' : progressStats.completionRate > 50 ? 'Good progress' : 'Keep going!',
         icon: <div className="w-8 h-8 text-green-600 text-2xl">🎯</div>,
         bgColor: 'bg-green-50',
         textColor: 'text-green-600'
       },
       {
         title: 'AVERAGE ACCURACY',
-        value: `${baseMetrics.accuracy}%`,
-        change: `+${Math.floor(Math.random() * 6) + 1}.2% improvement`,
+        value: `${progressStats.averageScore || 0}%`,
+        change: progressStats.averageScore > 85 ? 'Outstanding!' : progressStats.averageScore > 70 ? 'Great work!' : 'Improving',
         icon: <div className="w-8 h-8 text-purple-600 text-2xl">🎯</div>,
         bgColor: 'bg-purple-50',
         textColor: 'text-purple-600'
       },
       {
         title: 'AVERAGE SCORE',
-        value: student.averageScore.toString(),
-        change: `+${Math.floor(Math.random() * 8) + 1}.1 from last week`,
+        value: `${progressStats.averageScore || 0}%`,
+        change: progressStats.averageScore > 85 ? 'Excellent work!' : progressStats.averageScore > 70 ? 'Good performance' : 'Room for improvement',
         icon: <StarIcon className="w-8 h-8 text-yellow-600" />,
         bgColor: 'bg-yellow-50',
         textColor: 'text-yellow-600'
       },
       {
-        title: 'LEARNING STREAK',
-        value: `${baseMetrics.streak} days`,
-        change: baseMetrics.streak > 7 ? 'Personal best!' : 'Building momentum',
+        title: 'RECENT ACTIVITIES',
+        value: `${progressStats.recentActivities || 0}`,
+        change: 'Last 7 days',
         icon: <FireIcon className="w-8 h-8 text-orange-600" />,
         bgColor: 'bg-orange-50',
         textColor: 'text-orange-600'
@@ -407,16 +466,36 @@ const StudentProgress = () => {
     return badges;
   };
 
-  // Generate all dynamic data based on the current student
+  // Use real progress data instead of generated data
   const metrics = generateStudentMetrics();
-  const accuracyRates = generateAccuracyRates(currentStudent);
-  const recentActivities = generateRecentActivities(currentStudent);
-  const difficultyProgression = generateDifficultyProgression(currentStudent);
-  const badges = generateBadges(currentStudent);
+  
+  // Create simple fallback data for display sections that haven't been updated yet
+  const fallbackStudent = {
+    completedActivities: progressStats?.completedActivities || 0,
+    averageScore: progressStats?.averageScore || 0
+  };
+  
+  const accuracyRates = generateAccuracyRates(fallbackStudent);
+  const difficultyProgression = generateDifficultyProgression(fallbackStudent);
+  const badges = generateBadges(fallbackStudent);
+
+  // Use real recent progress data
+  const recentActivitiesDisplay = recentProgress?.slice(0, 6).map((progress, index) => ({
+    title: progress.activityTitle || 'Unknown Activity',
+    user: student?.name || 'Student',
+    category: progress.categoryId || 'Other',
+    time: new Date(progress.dateCompleted).toLocaleString(),
+    difficulty: progress.difficultyId || 'Easy',
+    score: progress.score ? `${progress.score}%` : 'No score',
+    difficultyColor: progress.difficultyId === 'Easy' ? 'bg-green-100 text-green-800' :
+                    progress.difficultyId === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800',
+    avatar: student?.name ? student.name.split(' ').map(n => n[0]).join('') : 'S'
+  })) || [];
 
   const categories = [
-    { name: 'Academic Skills', percent: Math.min(100, currentStudent.averageScore + 5), count: `${Math.floor(currentStudent.completedActivities * 0.7)}/${Math.floor(currentStudent.completedActivities * 0.8)}`, icon: '📚', color: 'bg-blue-500' },
-    { name: 'Daily Life Skills', percent: Math.min(100, currentStudent.averageScore + 10), count: `${Math.floor(currentStudent.completedActivities * 0.3)}/${Math.floor(currentStudent.completedActivities * 0.4)}`, icon: '🏠', color: 'bg-orange-500' }
+    { name: 'Academic Skills', percent: Math.min(100, fallbackStudent.averageScore + 5), count: `${Math.floor(fallbackStudent.completedActivities * 0.7)}/${Math.floor(fallbackStudent.completedActivities * 0.8)}`, icon: '📚', color: 'bg-blue-500' },
+    { name: 'Daily Life Skills', percent: Math.min(100, fallbackStudent.averageScore + 10), count: `${Math.floor(fallbackStudent.completedActivities * 0.3)}/${Math.floor(fallbackStudent.completedActivities * 0.4)}`, icon: '🏠', color: 'bg-orange-500' }
   ];
 
   return (
@@ -486,21 +565,21 @@ const StudentProgress = () => {
           <div className="mb-4 md:mb-0">
             <div className="flex items-center space-x-4 mb-2">
               <img
-                src={currentStudent.profileImage || '/src/assets/kidprofile1.jpg'}
-                alt={currentStudent.name}
+                src="/src/assets/kidprofile1.jpg"
+                alt={student?.name || 'Student'}
                 className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
               />
               <div>
-                <h1 className="text-4xl font-bold text-gray-800">{student?.user_profiles?.username || currentStudent.name}</h1>
+                <h1 className="text-4xl font-bold text-gray-800">{student?.name || 'Unknown Student'}</h1>
                 <p className="text-lg text-gray-600">
-                  {student?.user_profiles?.grade || 'Grade N/A'} • 
-                  Age {student?.user_profiles?.age || 'N/A'} • 
+                  {student?.grade || 'Grade N/A'} • 
+                  Age {student?.age || 'N/A'} • 
                   Individual Progress
                 </p>
-                <p className="text-sm text-gray-500">Parent: {student?.user_profiles?.parents_email || 'N/A'}</p>
+                <p className="text-sm text-gray-500">Email: {student?.email || 'N/A'}</p>
                 <p className="text-sm text-gray-500">
-                  Status: <span className="font-semibold text-green-600">Active</span> • 
-                  Progress Sessions: {displayStats.total_sessions}
+                  Status: <span className="font-semibold text-green-600">{student?.status || 'Active'}</span> • 
+                  Joined: {student?.joinDate || 'N/A'}
                 </p>
               </div>
             </div>
@@ -584,7 +663,7 @@ const StudentProgress = () => {
               </div>
             </div>
             <div className="space-y-4">
-              {recentActivities.map((activity, i) => (
+              {recentActivitiesDisplay.length > 0 ? recentActivitiesDisplay.map((activity, i) => (
                 <div
                   key={i}
                   className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 hover:shadow-md transition-all duration-200"
@@ -592,12 +671,12 @@ const StudentProgress = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="bg-blue-600 text-white w-10 h-10 flex items-center justify-center rounded-full text-sm font-bold">
-                        {currentStudent.name.split(' ').map(n => n[0]).join('')}
+                        {activity.avatar}
                       </div>
                       <div>
                         <p className="font-semibold text-gray-800">{activity.title}</p>
                         <p className="text-sm text-gray-500">
-                          {activity.category} • {activity.time} • {activity.duration}
+                          {activity.category} • {activity.time}
                         </p>
                       </div>
                     </div>
@@ -609,7 +688,9 @@ const StudentProgress = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center py-4 text-gray-600">No recent activities found</div>
+              )}
             </div>
           </div>
         </div>

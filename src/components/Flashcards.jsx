@@ -7,10 +7,42 @@ import {
   getBadgeAchievementMessage 
 } from '../utils/badgeSystem';
 import { useButtonSounds } from '../utils/useButtonSounds';
+import { handleActivityCompletion } from '../lib/activityCompletionHandler';
+import { useAuth } from '../contexts/AuthContext';
 
 const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { getButtonSoundHandlers } = useButtonSounds();
+  
+  // Debug function to test activity completion
+  const testActivityCompletion = async () => {
+    console.log('🧪 Testing activity completion manually...');
+    console.log('User:', user);
+    
+    if (!user?.id) {
+      console.error('No user found!');
+      alert('No user logged in!');
+      return;
+    }
+    
+    try {
+      // Use a real activity ID from our mapping instead of 999
+      const realActivityId = 1; // Basic Colors activity
+      const result = await handleActivityCompletion(
+        user.id,
+        realActivityId, // Use real activity ID
+        85,  // test score
+        'completed'
+      );
+      console.log('Test result:', result);
+      alert('Test completion sent! Check console and database.');
+    } catch (error) {
+      console.error('Test failed:', error);
+      alert('Test failed: ' + error.message);
+    }
+  };
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -1372,7 +1404,90 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     return calculateEarnedBadges(finalScore, totalQuestions, category, difficulty, activity, enhancedStats);
   };
 
-  const handleFinish = () => {
+  // Helper function to handle activity completion and record to database
+  const handleActivityComplete = async (finalScore, totalQuestions) => {
+    console.log('🎯 Activity completion started:', { 
+      finalScore, 
+      totalQuestions, 
+      userId: user?.id,
+      category,
+      difficulty,
+      activity 
+    });
+
+    // Record activity completion in database
+    if (user?.id) {
+      try {
+        const scorePercentage = Math.round((finalScore / totalQuestions) * 100);
+        
+        // Map activity names to IDs (based on actual database activities)
+        const getActivityId = (activityName, category, difficulty) => {
+          // Map to actual database activity IDs:
+          // 1: Counting Adventure (Academic, Easy)
+          // 2: Shape Detective (Academic, Medium) 
+          // 3: Grocery Helper (Social/Daily Life, Medium)
+          
+          const activityMap = {
+            // Academic activities with numbers/counting
+            'Numbers 1-10': 1,
+            'Numbers 11-20': 1,
+            'Basic Math': 1,
+            'Counting Adventure': 1,
+            
+            // Academic activities with shapes
+            'Basic Shapes': 2,
+            'Shape Recognition': 2,
+            'Shape Detective': 2,
+            'Basic Colors': 2,
+            'Advanced Colors': 2,
+            'Color Mixing': 2,
+            
+            // Social/Daily Life activities
+            'Hygiene Hero': 3,
+            'Cashier Game': 3,
+            'Safe Street Crossing': 3,
+            'Tooth Brushing': 3,
+            'Grocery Helper': 3
+          };
+          
+          return activityMap[activityName] || 1; // Default to 1 (Counting Adventure) if not found
+        };
+        
+        const activityId = getActivityId(activity, category, difficulty);
+        
+        console.log('🚀 Calling handleActivityCompletion with:', {
+          studentId: user.id,
+          activityId,
+          score: scorePercentage,
+          status: 'completed'
+        });
+        
+        const result = await handleActivityCompletion(
+          user.id, // studentId (using current user's ID)
+          activityId, // activityId 
+          scorePercentage, // score (as percentage)
+          'completed' // completion status
+        );
+        
+        console.log('✅ Activity completion result:', result);
+        
+        if (result.errors && result.errors.length > 0) {
+          console.error('❌ Activity completion errors:', result.errors);
+        } else {
+          console.log('🎉 Activity completion recorded successfully!');
+        }
+      } catch (error) {
+        console.error('💥 Failed to record activity completion:', error);
+      }
+    } else {
+      console.warn('⚠️ No user ID found, cannot record activity completion');
+    }
+    
+    // Call the original onComplete callback
+    onComplete(finalScore, totalQuestions);
+  };
+
+  const handleFinish = async () => {
     setShowModal(false);
     
     // Calculate earned badges with enhanced statistics
@@ -1503,7 +1618,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       }, 500);
     } else {
       // No badges, proceed to complete
-      onComplete(score, total);
+      handleActivityComplete(score, total);
     }
   };
 
@@ -1520,6 +1635,16 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
   return (
   <div className="relative">
+  {/* Debug Test Button */}
+  <div className="mb-4 text-center">
+    <button
+      onClick={testActivityCompletion}
+      className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold"
+    >
+      🧪 Test Activity Completion
+    </button>
+  </div>
+  
   {/* Flashcard Container */}
   <div className="w-270 bg-white/90 backdrop-blur-xl rounded-3xl mx-auto shadow-2xl border border-white/20 p-6 text-center animate-fade-in-scale">
         {/* Decorative background elements */}
@@ -2464,7 +2589,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                           🔄 Play Again
                         </button>
                         <button
-                          onClick={() => onComplete(moneyScore, 3)}
+                          onClick={() => handleActivityComplete(moneyScore, 3)}
                           className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white py-3 px-6 rounded-2xl text-lg font-bold shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer"
                         >
                           🚀 Continue Adventure
@@ -2712,7 +2837,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   className="flex-1 bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 hover:from-green-600 hover:via-blue-600 hover:to-purple-600 text-white px-8 py-4 rounded-2xl text-xl font-bold transition-all duration-300 shadow-2xl transform hover:scale-105 flex items-center justify-center space-x-3 border-2 border-white/30 backdrop-blur-sm group"
                   onClick={() => {
                     setShowBadgeModal(false);
-                    onComplete(score, total);
+                    handleActivityComplete(score, total);
                   }}
                 >
                   <span className="text-2xl animate-bounce-gentle group-hover:animate-spin-slow">🚀</span>
