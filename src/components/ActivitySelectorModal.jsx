@@ -31,15 +31,6 @@ const activities = [
   },
   { 
     id: 4, 
-    name: "Shapes", 
-    icon: "📐", 
-    color: "from-orange-500 to-red-600",
-    bgColor: "bg-orange-50",
-    hoverColor: "hover:bg-orange-100",
-    category: "Academic"
-  },
-  { 
-    id: 5, 
     name: "Academic Puzzles", 
     icon: "🧩", 
     color: "from-indigo-500 to-blue-600",
@@ -48,12 +39,21 @@ const activities = [
     category: "Academic"
   },
   { 
-    id: 6, 
+    id: 5, 
     name: "Matching Type", 
     icon: "📝", 
     color: "from-pink-500 to-rose-600",
     bgColor: "bg-pink-50",
     hoverColor: "hover:bg-pink-100",
+    category: "Academic"
+  },
+  { 
+    id: 6, 
+    name: "Visual Memory Challenge", 
+    icon: "🧠", 
+    color: "from-purple-500 to-indigo-600",
+    bgColor: "bg-purple-50",
+    hoverColor: "hover:bg-purple-100",
     category: "Academic"
   },
   { 
