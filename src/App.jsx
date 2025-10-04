@@ -14,7 +14,7 @@ import StudentPage from './pages/StudentPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import StudentProfile from './pages/StudentProfile';
 import FlashcardsPage from './pages/FlashcardsPage';
-import ExpressionDebug from './pages/ExpressionDebug';
+import LinkChildPage from './pages/LinkChildPage';
 
 // Working Admin pages
 import ActivitiesPage from './Admin/Activities';
@@ -26,6 +26,9 @@ import AlarmingEmotions from './Admin/AlarmingEmotions.jsx';
 // Working Parent pages
 import ParentDashboard from './parents/ParentDashboard.jsx';
 import ParentHomepage from './parents/ParentHomepage.jsx';
+
+// Debug page
+import DebugPage from './pages/DebugPage.jsx';
 
 import ErrorBoundary from './components/ErrorBoundary';
 import Students from './Admin/Students.jsx';
@@ -45,7 +48,6 @@ function App() {
           <Route path="/studentpage" element={<StudentPage />} />
           <Route path="/studentprofile" element={<StudentProfile />} />
           <Route path="/flashcardspage" element={<FlashcardsPage />} />
-          <Route path="/expression-debug" element={<ExpressionDebug />} />
 
           {/* Admin Pages - All Working */}
           <Route path="/activities" element={<ActivitiesPage />} />
@@ -64,7 +66,11 @@ function App() {
 
           {/* Parent Pages - Working */}
           <Route path="/parent-homepage" element={<ParentHomepage />} />
+          <Route path="/link-child" element={<LinkChildPage />} />
           <Route path="/parent-dashboard" element={<ParentDashboard />} />
+          
+          {/* Debug page */}
+          <Route path="/debug" element={<DebugPage />} />
         </Routes>
       </ChatProvider>
     </AuthProvider>

@@ -11,6 +11,7 @@ import {
   ChartBarIcon,
   PencilIcon
 } from '@heroicons/react/24/outline';
+import { useButtonSounds } from '../utils/useButtonSounds';
 import EditActivityModal from './EditActivityModal';
 
 const ActivityDetailsModal = ({ isOpen, onClose, activity }) => {
