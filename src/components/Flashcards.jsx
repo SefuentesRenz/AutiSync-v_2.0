@@ -167,6 +167,25 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const [currentPuzzleData, setCurrentPuzzleData] = useState(null);
   const [showPuzzleAnimation, setShowPuzzleAnimation] = useState(false);
 
+  // Visual Memory Challenge Game specific state
+  const [memoryGamePhase, setMemoryGamePhase] = useState('memorize'); // 'memorize', 'shuffle', 'question', 'complete'
+  const [memoryCards, setMemoryCards] = useState([]);
+  const [memoryCardPositions, setMemoryCardPositions] = useState([0, 1, 2, 3]);
+  const [showMemoryCardFronts, setShowMemoryCardFronts] = useState(true);
+  const [currentTargetCard, setCurrentTargetCard] = useState(null);
+  const [memoryScore, setMemoryScore] = useState(0);
+  const [memoryRound, setMemoryRound] = useState(1);
+  const [isMemoryGameActive, setIsMemoryGameActive] = useState(false);
+  const [memoryTimer, setMemoryTimer] = useState(8);
+  const [isShuffling, setIsShuffling] = useState(false);
+  const [memoryAttempts, setMemoryAttempts] = useState(0);
+  const [memoryCorrectAnswers, setMemoryCorrectAnswers] = useState(0);
+  const [memoryWrongAnswers, setMemoryWrongAnswers] = useState(0);
+  const [showMemoryFeedback, setShowMemoryFeedback] = useState(false);
+  const [memoryFeedbackMessage, setMemoryFeedbackMessage] = useState('');
+  const [memoryFeedbackType, setMemoryFeedbackType] = useState(''); // 'correct' or 'wrong'
+  const [revealedCardPosition, setRevealedCardPosition] = useState(null);
+
     const videoRef = useRef(null);
   const audioRef = useRef(null);
   const correctAudioRef = useRef(null);
@@ -312,14 +331,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             correctAnswer: "Blue"
           }
         ],
-        Shapes: [
-          {
-            questionText: "Which shape is this?",
-            imageSrc: "/src/assets/flashcards/triangle.png",
-            answerChoices: ["Circle", "Triangle", "Square", "Rectangle"],
-            correctAnswer: "Triangle"
-          }
-        ],
         "Matching Type": [
           {
             questionText: "Simple Recognition - Match the pairs!",
@@ -392,6 +403,50 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             options: ["🐶", "🐱", "🐮"],
             correctAnswer: "🐱",
             hint: "Cats say meow!"
+          }
+        ],
+        "Visual Memory Challenge": [
+          {
+            roundId: 1,
+            gameType: "memory",
+            questionText: "Memorize these cards!",
+            instruction: "Watch the cards carefully and remember where each one goes!",
+            cards: [
+              { id: 1, image: "🐶", name: "Dog" },
+              { id: 2, image: "🐱", name: "Cat" },
+              { id: 3, image: "🐸", name: "Frog" },
+              { id: 4, image: "🐻", name: "Bear" }
+            ],
+            memorizationTime: 10,
+            shuffleCount: 4
+          },
+          {
+            roundId: 2,
+            gameType: "memory",
+            questionText: "Remember the shapes!",
+            instruction: "Focus on each shape's position!",
+            cards: [
+              { id: 1, image: "⭐", name: "Star" },
+              { id: 2, image: "❤️", name: "Heart" },
+              { id: 3, image: "⚪", name: "Circle" },
+              { id: 4, image: "🔺", name: "Triangle" }
+            ],
+            memorizationTime: 10,
+            shuffleCount: 4
+          },
+          {
+            roundId: 3,
+            gameType: "memory",
+            questionText: "Find the fruits!",
+            instruction: "Watch where each fruit moves!",
+            cards: [
+              { id: 1, image: "🍎", name: "Apple" },
+              { id: 2, image: "🍌", name: "Banana" },
+              { id: 3, image: "🍊", name: "Orange" },
+              { id: 4, image: "🍇", name: "Grapes" }
+            ],
+            memorizationTime: 10,
+            shuffleCount: 4
           }
         ]
       },
@@ -544,6 +599,50 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             correctAnswer: "Small",
             hint: "Think about size - what's the opposite of big?"
           }
+        ],
+        "Visual Memory Challenge": [
+          {
+            roundId: 1,
+            gameType: "memory",
+            questionText: "Track the vehicles!",
+            instruction: "Watch carefully as the vehicles move!",
+            cards: [
+              { id: 1, image: "🚗", name: "Car" },
+              { id: 2, image: "🚌", name: "Bus" },
+              { id: 3, image: "🚲", name: "Bicycle" },
+              { id: 4, image: "✈️", name: "Airplane" }
+            ],
+            memorizationTime: 10,
+            shuffleCount: 6
+          },
+          {
+            roundId: 2,
+            gameType: "memory",
+            questionText: "Remember the colors!",
+            instruction: "Keep your eyes on each colored ball!",
+            cards: [
+              { id: 1, image: "🔴", name: "Red Ball" },
+              { id: 2, image: "🔵", name: "Blue Ball" },
+              { id: 3, image: "🟢", name: "Green Ball" },
+              { id: 4, image: "🟡", name: "Yellow Ball" }
+            ],
+            memorizationTime: 10,
+            shuffleCount: 6
+          },
+          {
+            roundId: 3,
+            gameType: "memory",
+            questionText: "Track the numbers!",
+            instruction: "Focus on where each number moves!",
+            cards: [
+              { id: 1, image: "1️⃣", name: "One" },
+              { id: 2, image: "2️⃣", name: "Two" },
+              { id: 3, image: "3️⃣", name: "Three" },
+              { id: 4, image: "4️⃣", name: "Four" }
+            ],
+            memorizationTime: 10,
+            shuffleCount: 6
+          }
         ]
       },
 
@@ -690,6 +789,50 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             options: ["Go", "Stop", "Jump"],
             correctAnswer: "Stop",
             hint: "Red means stop for safety!"
+          }
+        ],
+        "Visual Memory Challenge": [
+          {
+            roundId: 1,
+            gameType: "memory",
+            questionText: "Advanced Memory Test!",
+            instruction: "Track all the school items as they shuffle!",
+            cards: [
+              { id: 1, image: "📚", name: "Books" },
+              { id: 2, image: "✏️", name: "Pencil" },
+              { id: 3, image: "🎒", name: "Backpack" },
+              { id: 4, image: "📐", name: "Ruler" }
+            ],
+            memorizationTime: 10,
+            shuffleCount: 6
+          },
+          {
+            roundId: 2,
+            gameType: "memory",
+            questionText: "Sports Memory Challenge!",
+            instruction: "Follow the sports equipment carefully!",
+            cards: [
+              { id: 1, image: "⚽", name: "Soccer Ball" },
+              { id: 2, image: "🏀", name: "Basketball" },
+              { id: 3, image: "🎾", name: "Tennis" },
+              { id: 4, image: "🏐", name: "Volleyball" }
+            ],
+            memorizationTime: 10,
+            shuffleCount: 6
+          },
+          {
+            roundId: 3,
+            gameType: "memory",
+            questionText: "Master Level Memory!",
+            instruction: "This is challenging! Watch every move!",
+            cards: [
+              { id: 1, image: "🌟", name: "Star" },
+              { id: 2, image: "🌙", name: "Moon" },
+              { id: 3, image: "☀️", name: "Sun" },
+              { id: 4, image: "⚡", name: "Lightning" }
+            ],
+            memorizationTime: 108,
+            shuffleCount: 6
           }
         ]
         
@@ -1561,6 +1704,168 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const isGreetingsGame = activity === "Social Greetings";
   const isMoneyGame = activity === "Money Value Game";
   const isChoreGame = activity === "Household Chores Helper";
+  const isMemoryGame = currentQuestion?.gameType === 'memory' || activity === "Visual Memory Challenge";
+
+  // Visual Memory Challenge game functions
+  const performCardShuffle = () => {
+    const shuffleCount = currentQuestion?.shuffleCount || 3;
+    let currentShuffle = 0;
+    
+    const performSingleShuffle = () => {
+      if (currentShuffle >= shuffleCount) {
+        setIsShuffling(false);
+        // Wait a moment before showing the question phase
+        setTimeout(() => {
+          console.log('🤔 Shuffle complete, entering question phase...');
+          setMemoryGamePhase('question');
+          // Target card is already set and visible
+        }, 500);
+        return;
+      }
+      
+      // Select two random positions to swap
+      const idx1 = Math.floor(Math.random() * 4);
+      let idx2 = Math.floor(Math.random() * 4);
+      while (idx2 === idx1) {
+        idx2 = Math.floor(Math.random() * 4);
+      }
+      
+      console.log(`🔄 Shuffling: Position ${idx1} ↔ Position ${idx2}`);
+      
+      // Update positions array to trigger visual swap
+      setMemoryCardPositions(prev => {
+        const newPositions = [...prev];
+        // Swap the card indices at these positions
+        [newPositions[idx1], newPositions[idx2]] = [newPositions[idx2], newPositions[idx1]];
+        console.log('New positions:', newPositions);
+        return newPositions;
+      });
+      
+      currentShuffle++;
+      // Wait 1.5 seconds for the animation to complete before next shuffle
+      setTimeout(performSingleShuffle, 1500);
+    };
+    
+    // Start the shuffle sequence
+    performSingleShuffle();
+  };
+
+  const startQuestionPhase = (cards) => {
+    console.log('🤔 Starting question phase with cards:', cards);
+    setMemoryGamePhase('question');
+    
+    if (cards && cards.length > 0) {
+      // Select a random card to ask about
+      const randomCard = cards[Math.floor(Math.random() * cards.length)];
+      console.log('🎯 Target card selected:', randomCard);
+      setCurrentTargetCard(randomCard);
+    } else {
+      console.error('❌ No cards available for question phase');
+    }
+  };
+
+  const handleMemoryCardClick = (positionIndex) => {
+    if (memoryGamePhase !== 'question' || !currentTargetCard) return;
+    
+    // Reveal the clicked card
+    setRevealedCardPosition(positionIndex);
+    
+    setMemoryAttempts(prev => prev + 1);
+    
+    // Find which card is at the clicked position
+    const cardIndexAtPosition = memoryCardPositions[positionIndex];
+    const clickedCard = memoryCards[cardIndexAtPosition];
+    
+    // Wait for flip animation before showing feedback
+    setTimeout(() => {
+      if (clickedCard.id === currentTargetCard.id) {
+        // Correct answer
+        setMemoryCorrectAnswers(prev => prev + 1);
+        setMemoryScore(prev => prev + 1);
+        setScore(prev => prev + 1);
+        setShowMemoryFeedback(true);
+        setMemoryFeedbackType('correct');
+        setMemoryFeedbackMessage(`🎉 Correct! You found the ${currentTargetCard.name}!`);
+        setShowCorrect(true);
+        
+        setTimeout(() => {
+          setShowMemoryFeedback(false);
+          setShowCorrect(false);
+          setRevealedCardPosition(null);
+          proceedToNextMemoryRound();
+        }, 2500);
+      } else {
+        // Wrong answer
+        setMemoryWrongAnswers(prev => prev + 1);
+        setShowMemoryFeedback(true);
+        setMemoryFeedbackType('wrong');
+        setMemoryFeedbackMessage(`❌ Oops! That was the ${clickedCard.name}, not the ${currentTargetCard.name}. Try again!`);
+        setShowWrong(true);
+        
+        setTimeout(() => {
+          setShowMemoryFeedback(false);
+          setShowWrong(false);
+          setRevealedCardPosition(null);
+          proceedToNextMemoryRound();
+        }, 2500);
+      }
+    }, 700); // Wait for flip animation
+  };
+
+  const proceedToNextMemoryRound = () => {
+    if (memoryRound < 3) {
+      setMemoryRound(prev => prev + 1);
+      setCurrentQuestionIndex(prev => prev + 1);
+      setMemoryGamePhase('memorize');
+      setShowMemoryCardFronts(true);
+      setMemoryTimer(12);
+      setMemoryCardPositions([0, 1, 2, 3]);
+      setCurrentTargetCard(null);
+      setIsAnswered(false);
+      setSelectedAnswer(null);
+      setRevealedCardPosition(null);
+      
+      // The useEffect will handle setting up new cards when currentQuestionIndex changes
+    } else {
+      completeMemoryGame();
+    }
+  };
+
+  const completeMemoryGame = () => {
+    setMemoryGamePhase('complete');
+    setShowModal(true);
+    
+    const accuracyPercentage = memoryAttempts > 0 ? Math.round((memoryCorrectAnswers / memoryAttempts) * 100) : 0;
+    
+    const detailedScore = {
+      correctAnswers: memoryCorrectAnswers,
+      wrongAnswers: memoryWrongAnswers,
+      totalAttempts: memoryAttempts,
+      accuracyPercentage,
+      finalScore: memoryCorrectAnswers,
+      maxPossibleScore: 3
+    };
+    
+    // Don't auto-redirect - let user click Continue Adventure button
+    // The onComplete will be called when user clicks the button in the modal
+  };
+
+  const resetMemoryGame = () => {
+    setIsMemoryGameActive(false);
+    setMemoryRound(1);
+    setMemoryScore(0);
+    setMemoryCorrectAnswers(0);
+    setMemoryWrongAnswers(0);
+    setMemoryAttempts(0);
+    setMemoryGamePhase('memorize');
+    setShowMemoryCardFronts(true);
+    setMemoryTimer(12);
+    setMemoryCardPositions([0, 1, 2, 3]);
+    setMemoryCards([]);
+    setCurrentTargetCard(null);
+    setIsShuffling(false);
+    setShowMemoryFeedback(false);
+  };
 
   // Hygiene game functions
   const getRandomScenario = () => {
@@ -2179,6 +2484,65 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       initializeMoneyGame();
     }
   }, [currentQuestionIndex, isMoneyGame]);
+
+  // Initialize memory game when activity starts
+  useEffect(() => {
+    console.log('🔍 Memory Game Effect Triggered', { isMemoryGame, currentQuestionIndex });
+    
+    if (isMemoryGame && currentQuestion && currentQuestion.cards) {
+      console.log('✅ Setting cards:', currentQuestion.cards);
+      
+      // Set cards first
+      setMemoryCards(currentQuestion.cards);
+      
+      // Reset all game state
+      setIsMemoryGameActive(true);
+      setMemoryGamePhase('memorize');
+      setShowMemoryCardFronts(true);
+      setMemoryTimer(12);
+      setMemoryCardPositions([0, 1, 2, 3]);
+      setRevealedCardPosition(null);
+      setIsShuffling(false);
+      
+      // Select target card immediately
+      const randomCard = currentQuestion.cards[Math.floor(Math.random() * currentQuestion.cards.length)];
+      console.log('🎯 Target card selected at start:', randomCard);
+      setCurrentTargetCard(randomCard);
+      
+      // Start memorization phase after a brief delay
+      const timer = setTimeout(() => {
+        console.log('👀 Starting memorization phase...');
+        setMemoryGamePhase('memorize');
+        setShowMemoryCardFronts(true);
+        setMemoryTimer(12);
+        
+        // Countdown timer
+        const countdown = setInterval(() => {
+          setMemoryTimer(prev => {
+            if (prev <= 1) {
+              clearInterval(countdown);
+              console.log('⏰ Timer finished, starting shuffle...');
+              
+              // Start shuffle phase (target card already visible)
+              setMemoryGamePhase('shuffle');
+              setShowMemoryCardFronts(false);
+              setIsShuffling(true);
+              
+              // Perform shuffle animation
+              setTimeout(() => {
+                performCardShuffle();
+              }, 500);
+              
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [currentQuestionIndex, isMemoryGame]);
 
   // Initialize puzzle game when activity starts
   useEffect(() => {
@@ -2873,6 +3237,45 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     // Calculate earned badges with enhanced statistics
     let badges = calculateSessionBadges(score, total);
     
+    // Add special memory game badges
+    if (activity === "Visual Memory Challenge" || isMemoryGame) {
+      badges.push({
+        name: "Memory Master",
+        description: "Completed the Visual Memory Challenge!",
+        icon: "🧠",
+        rarity: "gold",
+        category: "Academic"
+      });
+
+      const accuracyPercentage = memoryAttempts > 0 ? Math.round((memoryCorrectAnswers / memoryAttempts) * 100) : 0;
+      
+      if (accuracyPercentage === 100) {
+        badges.push({
+          name: "Perfect Memory",
+          description: "100% accuracy! Amazing memory skills!",
+          icon: "🌟",
+          rarity: "legendary",
+          category: "Academic"
+        });
+      } else if (accuracyPercentage >= 80) {
+        badges.push({
+          name: "Memory Expert",
+          description: "Excellent memory performance!",
+          icon: "⭐",
+          rarity: "gold",
+          category: "Academic"
+        });
+      } else if (accuracyPercentage >= 60) {
+        badges.push({
+          name: "Memory Pro",
+          description: "Great memory tracking!",
+          icon: "✨",
+          rarity: "silver",
+          category: "Academic"
+        });
+      }
+    }
+    
     // Add special cashier game badges
     if (activity === "Cashier Game") {
       if (cashierScore >= 80) {
@@ -2998,7 +3401,21 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       }, 500);
     } else {
       // No badges, proceed to complete
-      onComplete(score, total);
+      // For memory game, pass detailed score
+      if (isMemoryGame || activity === "Visual Memory Challenge") {
+        const accuracyPercentage = memoryAttempts > 0 ? Math.round((memoryCorrectAnswers / memoryAttempts) * 100) : 0;
+        const detailedScore = {
+          correctAnswers: memoryCorrectAnswers,
+          wrongAnswers: memoryWrongAnswers,
+          totalAttempts: memoryAttempts,
+          accuracyPercentage,
+          finalScore: memoryCorrectAnswers,
+          maxPossibleScore: 3
+        };
+        onComplete(score, total, detailedScore);
+      } else {
+        onComplete(score, total);
+      }
     }
   };
 
@@ -3041,7 +3458,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           </div>
 
           {/* Question with improved typography */}
-         
+          {!isCashierGame && !isHygieneGame && !isStreetGame && !isGreetingsGame && !isMoneyGame && !isMatchingGame && !isPuzzleGame && !isChoreGame && !isMemoryGame && (
+            <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-2xl p-6 mb-6 border-2 border-purple-200/30 shadow-lg">
+              <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 leading-relaxed">
+                {questions[currentQuestionIndex].questionText}
+              </h2>
+            </div>
+          )}
 
           {/* Image/Video with modern container */}
           <div className="flex justify-center flex-wrap gap-4 mb-4">
@@ -3072,7 +3495,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           </div>
 
           {/* Answer Choices with autism-friendly design */}
-          {!isCashierGame && !isHygieneGame && !isStreetGame && !isGreetingsGame && !isMoneyGame && !isMatchingGame && !isPuzzleGame && !isChoreGame ? (
+          {!isCashierGame && !isHygieneGame && !isStreetGame && !isGreetingsGame && !isMoneyGame && !isMatchingGame && !isPuzzleGame && !isChoreGame && !isMemoryGame ? (
             <div className="grid grid-cols-2 gap-6">
               {questions[currentQuestionIndex].answerChoices.map((choice, index) => (
                 <button
@@ -4116,6 +4539,175 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   </div>
                 )}
               </div>
+            </div>
+          ) : isMemoryGame ? (
+            /* Visual Memory Challenge Game UI */
+            <div className="space-y-6">
+              {/* Game Header */}
+              <div className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 border-4 border-purple-300 rounded-3xl p-6 text-center relative overflow-hidden shadow-2xl">
+                <div className="absolute top-2 right-2 text-6xl animate-bounce-gentle">🧠</div>
+                <div className="absolute -bottom-2 -left-2 text-5xl animate-float">💭</div>
+                <div className="absolute top-2 left-2 text-4xl animate-pulse-gentle">✨</div>
+                <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-2">
+                  🧠 Visual Memory Challenge 🧠
+                </h2>
+                <p className="text-xl font-semibold text-gray-700 mb-1">
+                  Round {memoryRound}/3
+                </p>
+                <p className="text-lg text-gray-600">
+                  {currentQuestion?.instruction || 'Memorize and track the cards!'}
+                </p>
+              </div>
+
+              {/* Phase Indicator */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-2 border-purple-200 text-center">
+                {memoryGamePhase === 'memorize' && currentTargetCard && (
+                  <div className="space-y-2">
+                    
+                    <h3 className="text-2xl font-bold text-purple-600">Memorize the Cards!👀</h3>
+                    <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-4 border-3 border-yellow-300 inline-block my-3">
+                      <p className="text-lg font-semibold text-gray-700 mb-2">Remember this card:</p>
+                      <div className="text-7xl">{currentTargetCard.image}</div>
+                      <p className="text-xl font-bold text-gray-800 mt-2">{currentTargetCard.name}</p>
+                    </div>
+                    <div className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-600 animate-pulse">
+                      {memoryTimer}
+                    </div>
+                    <p className="text-lg text-gray-600">seconds remaining...</p>
+                  </div>
+                )}
+                {memoryGamePhase === 'shuffle' && currentTargetCard && (
+                  <div className="space-y-2">
+                    <div className="text-5xl animate-spin-slow">🔄</div>
+                    <h3 className="text-2xl font-bold text-blue-600">Watch the Shuffle!</h3>
+                    <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-4 border-3 border-yellow-300 inline-block my-3">
+                      <p className="text-lg font-semibold text-gray-700 mb-2">Find this card:</p>
+                      <div className="text-7xl">{currentTargetCard.image}</div>
+                      <p className="text-xl font-bold text-gray-800 mt-2">{currentTargetCard.name}</p>
+                    </div>
+                    <p className="text-lg text-gray-600">Keep tracking the cards...</p>
+                  </div>
+                )}
+                {memoryGamePhase === 'question' && currentTargetCard && (
+                  <div className="space-y-2">
+                    <div className="text-5xl animate-bounce-gentle">🤔</div>
+                    <h3 className="text-2xl font-bold text-green-600">Find This Card!</h3>
+                    <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-4 border-3 border-yellow-300 inline-block">
+                      <div className="text-7xl">{currentTargetCard.image}</div>
+                      <p className="text-xl font-bold text-gray-800 mt-2">{currentTargetCard.name}</p>
+                    </div>
+                    <p className="text-lg text-gray-600">Click where it is now!</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Cards Display - Absolute Positioning for Physical Movement */}
+              <div className="relative w-full h-80 max-w-4xl mx-auto">
+                {memoryCards && memoryCards.length > 0 ? memoryCards.map((card, cardIndex) => {
+                  // Find where this card currently is in the positions array
+                  const currentPosition = memoryCardPositions.indexOf(cardIndex);
+                  
+                  // Calculate physical position (each card is 25% of container width)
+                  const cardWidth = 23; // percentage
+                  const gap = 2.33; // percentage between cards
+                  const leftPosition = currentPosition * (cardWidth + gap);
+                  
+                  // Check if this card should be revealed
+                  const shouldReveal = revealedCardPosition === currentPosition;
+                  
+                  return (
+                    <div
+                      key={`card-${cardIndex}`}
+                      onClick={() => handleMemoryCardClick(currentPosition)}
+                      className={`
+                        absolute w-[23%] h-full cursor-pointer
+                        ${memoryGamePhase === 'question' ? 'hover:scale-105 hover:shadow-2xl' : ''}
+                        ${isShuffling ? 'z-50' : 'z-10'}
+                        transition-all duration-[1500ms] ease-in-out
+                      `}
+                      style={{
+                        left: `${leftPosition}%`,
+                        transformStyle: 'preserve-3d',
+                        transform: isShuffling ? 'translateY(-30px) scale(1.08)' : 'translateY(0) scale(1)',
+                      }}
+                    >
+                      {/* Card Inner Container for 3D Flip */}
+                      <div 
+                        className="relative w-full h-full transition-transform duration-700"
+                        style={{
+                          transformStyle: 'preserve-3d',
+                          transform: (showMemoryCardFronts || shouldReveal) ? 'rotateY(0deg)' : 'rotateY(180deg)'
+                        }}
+                      >
+                        {/* Card Front (when showing) */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white to-blue-50 rounded-2xl border-4 border-blue-300 shadow-xl flex flex-col items-center justify-center p-4"
+                          style={{
+                            backfaceVisibility: 'hidden',
+                            WebkitBackfaceVisibility: 'hidden'
+                          }}
+                        >
+                          <div className="text-7xl mb-2">{card?.image}</div>
+                          <p className="text-lg font-bold text-gray-800">{card?.name}</p>
+                        </div>
+
+                        {/* Card Back (when hidden) */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 rounded-2xl border-4 border-purple-600 shadow-xl flex items-center justify-center"
+                          style={{
+                            backfaceVisibility: 'hidden',
+                            WebkitBackfaceVisibility: 'hidden',
+                            transform: 'rotateY(180deg)'
+                          }}
+                        >
+                          <div className="text-6xl animate-pulse-gentle">❓</div>
+                          <div className="absolute top-2 left-2 text-2xl">✨</div>
+                          <div className="absolute bottom-2 right-2 text-2xl">🌟</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }) : (
+                  <div className="text-center text-2xl text-gray-500 py-20">
+                    Loading cards... 🎴
+                  </div>
+                )}
+              </div>
+
+              {/* Score Display */}
+              <div className="bg-gradient-to-r from-green-100 to-blue-100 rounded-2xl p-4 border-3 border-green-300 text-center">
+                <div className="flex justify-center items-center space-x-6">
+                  <div className="bg-white/70 rounded-xl px-4 py-2 border-2 border-green-200">
+                    <p className="text-sm text-gray-600">Correct</p>
+                    <p className="text-3xl font-bold text-green-600">{memoryCorrectAnswers}</p>
+                  </div>
+                  <div className="bg-white/70 rounded-xl px-4 py-2 border-2 border-red-200">
+                    <p className="text-sm text-gray-600">Wrong</p>
+                    <p className="text-3xl font-bold text-red-600">{memoryWrongAnswers}</p>
+                  </div>
+                  <div className="bg-white/70 rounded-xl px-4 py-2 border-2 border-blue-200">
+                    <p className="text-sm text-gray-600">Total</p>
+                    <p className="text-3xl font-bold text-blue-600">{memoryAttempts}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Feedback Message */}
+              {showMemoryFeedback && (
+                <div className={`
+                  fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50
+                  bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-4
+                  ${memoryFeedbackType === 'correct' ? 'border-green-400' : 'border-red-400'}
+                  animate-modal-appear
+                `}>
+                  <div className="text-8xl mb-4 text-center animate-bounce-gentle">
+                    {memoryFeedbackType === 'correct' ? '🎉' : '❌'}
+                  </div>
+                  <p className={`text-2xl font-bold text-center ${
+                    memoryFeedbackType === 'correct' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {memoryFeedbackMessage}
+                  </p>
+                </div>
+              )}
             </div>
           ) : isMatchingGame ? (
             /* Modern Interactive Matching Game UI */
@@ -5329,7 +5921,21 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   className="flex-1 bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 hover:from-green-600 hover:via-blue-600 hover:to-purple-600 text-white px-8 py-4 rounded-2xl text-xl font-bold transition-all duration-300 shadow-2xl transform hover:scale-105 flex items-center justify-center space-x-3 border-2 border-white/30 backdrop-blur-sm group"
                   onClick={() => {
                     setShowBadgeModal(false);
-                    onComplete(score, total);
+                    // For memory game, pass detailed score
+                    if (isMemoryGame || activity === "Visual Memory Challenge") {
+                      const accuracyPercentage = memoryAttempts > 0 ? Math.round((memoryCorrectAnswers / memoryAttempts) * 100) : 0;
+                      const detailedScore = {
+                        correctAnswers: memoryCorrectAnswers,
+                        wrongAnswers: memoryWrongAnswers,
+                        totalAttempts: memoryAttempts,
+                        accuracyPercentage,
+                        finalScore: memoryCorrectAnswers,
+                        maxPossibleScore: 3
+                      };
+                      onComplete(score, total, detailedScore);
+                    } else {
+                      onComplete(score, total);
+                    }
                   }}
                 >
                   <span className="text-2xl animate-bounce-gentle group-hover:animate-spin-slow">🚀</span>
@@ -5599,6 +6205,69 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         
         .animate-draw-line {
           animation: draw-line 0.8s ease-in-out forwards;
+        }
+        
+        /* Memory Game Card Shuffle Animation - Physical Movement */
+        @keyframes card-shuffle {
+          0% {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+          }
+          20% {
+            transform: translateY(-30px) scale(1.05);
+            opacity: 0.9;
+          }
+          50% {
+            transform: translateY(-40px) scale(1.1) rotateZ(5deg);
+            opacity: 0.8;
+            z-index: 100;
+          }
+          80% {
+            transform: translateY(-30px) scale(1.05);
+            opacity: 0.9;
+          }
+          100% {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+          }
+        }
+        
+        .animate-card-shuffle {
+          animation: card-shuffle 1.8s ease-in-out;
+        }
+        
+        /* Card Flip Animation */
+        @keyframes flip-card {
+          0% {
+            transform: rotateY(0deg);
+          }
+          50% {
+            transform: rotateY(90deg);
+          }
+          100% {
+            transform: rotateY(180deg);
+          }
+        }
+        
+        .rotate-y-180 {
+          transform: rotateY(180deg);
+        }
+        
+        .backface-hidden {
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+        }
+        
+        /* Memory Timer Pulse */
+        @keyframes timer-pulse {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.1);
+            opacity: 0.8;
+          }
         }
         
         /* Accessibility: Reduce motion for users who prefer it */
