@@ -31,6 +31,12 @@ const FlashcardsPage = () => {
   // Handle category selection
   const handleSelectCategory = (category) => {
     setSelectedCategory(category);
+    
+    // Skip difficulty selection for Social / Daily Life Skill category
+    if (category === "Social / Daily Life Skill") {
+      setSelectedDifficulty("Easy"); // Set a default difficulty
+      setShowActivityModal(true); // Go directly to activity selection
+    }
   };
 
   // Handle difficulty selection - show activity modal

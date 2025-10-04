@@ -101,6 +101,15 @@ const activities = [
     hoverColor: "hover:bg-emerald-100",
     category: "Social / Daily Life Skill"
   },
+  { 
+    id: 12, 
+    name: "Household Chores Helper", 
+    icon: "🏠", 
+    color: "from-orange-500 to-yellow-600",
+    bgColor: "bg-orange-50",
+    hoverColor: "hover:bg-orange-100",
+    category: "Social / Daily Life Skill"
+  },
 ];
 
 const ActivitySelectorModal = ({ isOpen, onClose, onSelect, selectedCategory }) => {

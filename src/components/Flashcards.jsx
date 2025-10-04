@@ -90,6 +90,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const [totalSpent, setTotalSpent] = useState(0);
   const [showBadgeCompletion, setShowBadgeCompletion] = useState(false);
   const [isRoundComplete, setIsRoundComplete] = useState(false);
+  
+  // Enhanced scoring tracking
+  const [moneyCorrectAnswers, setMoneyCorrectAnswers] = useState(0);
+  const [moneyWrongAnswers, setMoneyWrongAnswers] = useState(0);
+  const [moneyTotalAttempts, setMoneyTotalAttempts] = useState(0);
+  const [roundScores, setRoundScores] = useState([]);
+  const [currentRoundAttempts, setCurrentRoundAttempts] = useState(0);
 
   // Matching Game specific state
   const [matchingScore, setMatchingScore] = useState(0);
@@ -118,6 +125,36 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const [puzzleRound, setPuzzleRound] = useState(1);
   const [currentPuzzleType, setCurrentPuzzleType] = useState('math'); // 'math', 'spelling', 'logic', 'sequence'
   const [isPuzzleGameActive, setIsPuzzleGameActive] = useState(false);
+
+  // Household Chores Helper Game specific state
+  const [currentChore, setCurrentChore] = useState(null);
+  const [currentChoreId, setCurrentChoreId] = useState(null);
+  const [currentChoreStep, setCurrentChoreStep] = useState(1);
+  const [choreScore, setChoreScore] = useState(0);
+  const [isChoreGameActive, setIsChoreGameActive] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState([]);
+  const [completedChoreSteps, setCompletedChoreSteps] = useState([]);
+  const [showChoreAnimation, setShowChoreAnimation] = useState(false);
+  const [choreAnimationType, setChoreAnimationType] = useState(''); // 'success', 'completion'
+  const [showChoreThought, setShowChoreThought] = useState(false);
+  const [choreCharacterThought, setChoreCharacterThought] = useState('');
+  const [characterThought, setCharacterThought] = useState('');
+  const [showCharacterSpeech, setShowCharacterSpeech] = useState(false);
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [draggedChoreItems, setDraggedChoreItems] = useState([]);
+  const [droppedChoreItems, setDroppedChoreItems] = useState([]);
+  const [dropZones, setDropZones] = useState({});
+  const [choreProgress, setChoreProgress] = useState(0);
+  const [showStepFeedback, setShowStepFeedback] = useState(false);
+  const [stepFeedbackMessage, setStepFeedbackMessage] = useState('');
+  const [isChoreComplete, setIsChoreComplete] = useState(false);
+  const [showChoreFeedback, setShowChoreFeedback] = useState(false);
+  const [choreFeedbackType, setChoreFeedbackType] = useState('');
+  const [choreFeedbackMessage, setChoreFeedbackMessage] = useState('');
+  const [choreToolsAvailable, setChoreToolsAvailable] = useState([]);
+  const [choreEnvironmentItems, setChoreEnvironmentItems] = useState([]);
+  const [showChoreCompletion, setShowChoreCompletion] = useState(false);
+  const [earnedChoreBadge, setEarnedChoreBadge] = useState(null);
   const [puzzleFeedbackMessage, setPuzzleFeedbackMessage] = useState('');
   const [showPuzzleFeedback, setShowPuzzleFeedback] = useState(false);
   const [puzzleFeedbackType, setPuzzleFeedbackType] = useState(''); // 'correct' or 'incorrect'
@@ -201,7 +238,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   // Sample questions data - you can organize this by category, difficulty, and activity
   const questionsData = {
     Academic: {
-      Easy: {
+                                                                //  EASY - LEVEL OF DIFFICULTY
+      Easy: {       
         Identification: [
           {
             questionText: "What are they doing?", 
@@ -357,6 +395,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           }
         ]
       },
+
+
+                                            // MEDIUM - LEVEL OF DIFFICULTY
       Medium: {
         Identification: [
           {
@@ -434,27 +475,27 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             questionText: "Categories & School Concepts - Match the pairs!",
             gameType: "matching",
             leftItems: [
-              { id: 1, content: "👩‍🏫 Teacher", type: "text" },
-              { id: 2, content: "✏️ Pencil", type: "text" },
+              { id: 1, content: "6 x 4 = ?", type: "text" },
+              { id: 2, content: "13 + 9 = ?", type: "text" },
               { id: 3, content: "🕒 Clock", type: "text" },
-              { id: 4, content: "👟 Shoes", type: "text" },
+              { id: 4, content: "3 x 7 = ?", type: "text" },
              
-              { id: 6, content: "🐦 Bird", type: "text" },
+              { id: 6, content: "10,15,20,__,30", type: "text" },
               { id: 7, content: "🛏️ Bed", type: "text" },
-              { id: 8, content: "🌧️ Rain", type: "text" },
+              { id: 8, content: "✏️ Pencil", type: "text" },
               // { id: 9, content: "🔥 Fire", type: "text" },
               // { id: 10, content: "🎵 Music", type: "text" }
             ],
             rightItems: [
-              { id: "a", content: "Fly", type: "text", matchId: 6 },
+              { id: "a", content: "25", type: "text", matchId: 6 },
               { id: "b", content: "Time", type: "text", matchId: 3 },
-              { id: "c", content: "Classroom", type: "text", matchId: 1 },
-              { id: "d", content: "Wet", type: "text", matchId: 8 },
-              { id: "e", content: "Write", type: "text", matchId: 2 },
+              { id: "c", content: "24", type: "text", matchId: 1 },
+              { id: "d", content: "Student", type: "text", matchId: 8 },
+              { id: "e", content: "22", type: "text", matchId: 2 },
               // { id: "f", content: "Hot", type: "text", matchId: 9 },
               { id: "g", content: "Sleep", type: "text", matchId: 7 },
               // { id: "h", content: "Dance", type: "text", matchId: 10 },
-              { id: "i", content: "Feet", type: "text", matchId: 4 },
+              { id: "i", content: "21", type: "text", matchId: 4 },
              
             ]
           }
@@ -505,6 +546,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           }
         ]
       },
+
+
+                                            // HARD - LEVEL OF DIFFICULTY  
       Hard: {
         "Matching Type": [
           {
@@ -512,27 +556,27 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             gameType: "matching",
             leftItems: [
               // { id: 1, content: "🔥 Fire", type: "text" },
-              { id: 2, content: "🌧️ Rain", type: "text" },
-              { id: 3, content: "👨‍⚕️ Doctor", type: "text" },
+              { id: 2, content: "9 x 8 = ?", type: "text" },
+              { id: 3, content: "Half of 100", type: "text" },
               { id: 4, content: "👩‍ Chef", type: "text" },
               { id: 5, content: "🌱 Plant", type: "text" },
-              { id: 6, content: "🕒 Clock", type: "text" },
+              { id: 6, content: "Doctor", type: "text" },
               { id: 7, content: "👩‍🎓 Student", type: "text" },
               // { id: 8, content: "🌙 Night", type: "text" },
-              { id: 9, content: "📚 Library", type: "text" },
+              { id: 9, content: "36 divided by 6", type: "text" },
               // { id: 10, content: "💧 Water", type: "text" }
             ],
             rightItems: [
-              { id: "a", content: "☂️ Umbrella", type: "text", matchId: 2 },
+              { id: "a", content: "72", type: "text", matchId: 2 },
               { id: "b", content: "📚 School", type: "text", matchId: 7 },
               // { id: "c", content: "Warmth", type: "text", matchId: 1 },
               { id: "d", content: "🌳 Grow", type: "text", matchId: 5 },
-              { id: "e", content: "🏥 Hospital", type: "text", matchId: 3 },
+              { id: "e", content: "50", type: "text", matchId: 3 },
               // { id: "f", content: "🌟 Sleep", type: "text", matchId: 8 },
-              { id: "g", content: "Tells Time", type: "text", matchId: 6 },
-              { id: "h", content: "🍴 Kitchen", type: "text", matchId: 4 },
+              { id: "g", content: "🩺", type: "text", matchId: 6 },
+              { id: "h", content: "🍴", type: "text", matchId: 4 },
               // { id: "i", content: "💧 Drink", type: "text", matchId: 10 },
-              { id: "j", content: "📖 Books", type: "text", matchId: 9 }
+              { id: "j", content: "6", type: "text", matchId: 9 }
             ]
           }
         ],
@@ -567,6 +611,39 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             videoSrc: "/src/assets/flashcards/Numbers_Hard/36_multiplication.mp4",
             answerChoices: ["36", "40", "38", "35"],
             correctAnswer: "36"
+          }
+        ],
+
+        Identification: [
+          {
+            questionText: "What is the national Animal of the Philippines??", 
+            videoSrc: "/src/assets/flashcards/Identification-Hard/Carabao.mp4",
+            answerChoices: ["Carabao", "Cow", "Horse", "Goat"],
+            correctAnswer: "Carabao"   
+          },
+          {
+            questionText: "What is the national Fruit of the Philippines?",
+            videoSrc: "/src/assets/flashcards/Identification-Hard/Mango.mp4",
+            answerChoices: ["Banana", "Watermelon", "Durian", "Mango"],
+            correctAnswer: "Mango"
+          },
+          {
+            questionText: "Who is the national hero of the Philippines?",
+            videoSrc: "/src/assets/flashcards/Identification-Hard/Joserizal.mp4",
+            answerChoices: ["Andres Bonifacio", "Jose Rizal", "Emilio Aguinaldo", "Apolinario Mabini"],
+            correctAnswer: "Jose Rizal"
+          },
+          {
+            questionText: "What is the national sport of the Philippines?",
+            videoSrc: "/src/assets/flashcards/Identification-Hard/Arnis.mp4",
+            answerChoices: ["Basketball", "Arnis", "Volleyball", "Soccer"],
+            correctAnswer: "Arnis"
+          },
+          {
+            questionText: "What animal is the national flower of the Philippines?",
+            videoSrc: "/src/assets/flashcards/Identification-Hard/Sampaguita.mp4",
+            answerChoices: ["Rose", "Orchid", "Sunflower", "Sampaguita"],
+            correctAnswer: "Sampaguita"
           }
         ],
       
@@ -619,149 +696,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       }
     },
     "Social / Daily Life Skill": {
-      Easy: {
-        "Cashier Game": [
-          {
-            questionText: "Count the objects and drag the correct number!",
-            instruction: "How many 🍎 do you see?",
-            objects: ["🍎", "🍎", "🍎"],
-            correctAnswer: 3,
-            options: [1, 2, 3, 4],
-            hint: "Count each apple one by one!",
-            gameType: "puzzle"
-          },
-          {
-            puzzleType: "spelling",
-            questionText: "Drag the letters to spell the word!",
-            instruction: "Spell the word for this picture: 🐱",
-            targetWord: "CAT",
-            letters: ["C", "A", "T", "X", "B"],
-            hint: "The word starts with 'C'",
-            gameType: "puzzle"
-          },
-          {
-            puzzleType: "logic",
-            questionText: "Complete the pattern!",
-            instruction: "What comes next in the pattern?",
-            sequence: ["🔴", "🔵", "🔴", "🔵", "?"],
-            correctAnswer: "🔴",
-            options: ["🔴", "🔵", "🟡", "🟢"],
-            hint: "Look at the repeating colors!",
-            gameType: "puzzle"
-          },
-          {
-            puzzleType: "sequence",
-            questionText: "Put the pictures in the right order!",
-            instruction: "Show the steps of brushing teeth:",
-            items: [
-              { id: 1, content: "🦷 Clean teeth", order: 3 },
-              { id: 2, content: "🪥 Get toothbrush", order: 1 },
-              { id: 3, content: "✨ Rinse mouth", order: 4 },
-              { id: 4, content: "🧴 Add toothpaste", order: 2 }
-            ],
-            hint: "Think about what you do first!",
-            gameType: "puzzle"
-          }
-        ],
-
-        Medium: [
-          {
-            puzzleType: "math",
-            questionText: "Solve the addition puzzle!",
-            instruction: "Drag numbers to complete: 4 + ? = 7",
-            equation: { first: 4, operator: "+", result: 7 },
-            correctAnswer: 3,
-            options: [1, 2, 3, 4, 5],
-            hint: "What number plus 4 equals 7?",
-            gameType: "puzzle"
-          },
-          {
-            puzzleType: "spelling",
-            questionText: "Build the word with syllables!",
-            instruction: "Put syllables together to make: 🏠",
-            targetWord: "HOUSE",
-            syllables: ["HOU", "SE", "CAR", "DOG"],
-            hint: "A place where people live",
-            gameType: "puzzle"
-          },
-          {
-            puzzleType: "logic",
-            questionText: "Shape sorting puzzle!",
-            instruction: "Group shapes by their properties:",
-            shapes: [
-              { id: 1, shape: "🔴", category: "circle" },
-              { id: 2, shape: "🔺", category: "triangle" },
-              { id: 3, shape: "🟦", category: "square" },
-              { id: 4, shape: "🟣", category: "circle" },
-              { id: 5, shape: "🔶", category: "triangle" }
-            ],
-            categories: ["circle", "triangle", "square"],
-            hint: "Look at the shapes, not the colors!",
-            gameType: "puzzle"
-          },
-          {
-            puzzleType: "sequence",
-            questionText: "Daily routine puzzle!",
-            instruction: "Put these activities in order from morning to night:",
-            items: [
-              { id: 1, content: "🌙 Go to bed", order: 4 },
-              { id: 2, content: "☀️ Wake up", order: 1 },
-              { id: 3, content: "🍽️ Eat dinner", order: 3 },
-              { id: 4, content: "🏫 Go to school", order: 2 }
-            ],
-            hint: "Think about your daily schedule!",
-            gameType: "puzzle"
-          }
-        ],
-        Hard: [
-          {
-            puzzleType: "math",
-            questionText: "Multi-step math puzzle!",
-            instruction: "Complete the equation: (3 × ?) + 2 = 11",
-            equation: { first: 3, operator1: "×", operator2: "+", second: 2, result: 11 },
-            correctAnswer: 3,
-            options: [1, 2, 3, 4, 5],
-            hint: "Work backwards: 11 - 2 = 9, then 9 ÷ 3 = ?",
-            gameType: "puzzle"
-          },
-          {
-            puzzleType: "spelling",
-            questionText: "Advanced word building!",
-            instruction: "Use letter tiles to spell: 🌈",
-            targetWord: "RAINBOW",
-            letters: ["R", "A", "I", "N", "B", "O", "W", "X", "Y", "Z"],
-            hint: "A colorful arc in the sky after rain",
-            gameType: "puzzle"
-          },
-          {
-            puzzleType: "logic",
-            questionText: "Complex pattern puzzle!",
-            instruction: "Complete this number pattern:",
-            sequence: [2, 4, 8, 16, "?"],
-            correctAnswer: 32,
-            options: [20, 24, 32, 64],
-            hint: "Each number is double the previous one!",
-            gameType: "puzzle"
-          },
-          {
-            puzzleType: "sequence",
-            questionText: "Science experiment steps!",
-            instruction: "Put the steps in order to grow a plant:",
-            items: [
-              { id: 1, content: "🌱 Seedling grows", order: 3 },
-              { id: 2, content: "🌰 Plant seed", order: 1 },
-              { id: 3, content: "🌸 Flower blooms", order: 4 },
-              { id: 4, content: "💧 Water daily", order: 2 }
-            ],
-            hint: "Think about how plants grow step by step!",
-            gameType: "puzzle"
-          }
-        ]
-      }
-    },
-    "Social / Daily Life Skill": {
-      Easy: {
-        "Cashier Game": [
+      "Cashier Game": [
           {
             questionText: "I want a burger and fries, please!",
             orderItems: ["Burger", "Fries"],
@@ -956,7 +891,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           {
             id: 4,
             title: "Saying Goodbye After School",
-            situation: "The school bell rings and it's time to say goodbye to everyone",
+            situation: "",
             context: "afternoon",
             background: "🎒 School Classroom",
             character: "👩‍🏫",
@@ -1035,7 +970,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🤲",
             backgroundImage: "🏠",
             characterEmoji: "😟",
-            answerChoices: ["Wash my hands", "Brush my teeth", "Take a shower", "Cut my hair", "Wipe my nose", "Clean my ears", "Use tissue"],
+            answerChoices: ["Brush my teeth", "Take a shower", "Wash my hands", "Cut my hair", "Wipe my nose", "Use tissue"],
             correctAnswer: "Wash my hands",
             gameType: "hygiene",
             successAnimation: "🧼✨",
@@ -1043,7 +978,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           },
           {
             scenario: "messy_hair",
-            questionText: "😅 Your hair looks messy and needs styling!",
+            questionText: "😅 Your hair is messy!",
             scenarioImage: "💇‍♂️",
             backgroundImage: "🪞",
             characterEmoji: "😵‍💫",
@@ -1055,11 +990,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           },
           {
             scenario: "runny_nose",
-            questionText: "🤧 Achoo! Your nose is running!",
+            questionText: "🤧 Achoo! Your nose is runnings!",
             scenarioImage: "👃",
             backgroundImage: "🏠",
             characterEmoji: "🤧",
-            answerChoices: ["Wipe my nose", "Wash my hands", "Take a shower", "Cut my hair", "Brush my teeth", "Clean my ears", "Use tissue"],
+            answerChoices: ["Wash my hands", "Wipe my nose", "Take a shower", "Cut my hair", "Brush my teeth", "Use tissue"],
             correctAnswer: "Wipe my nose",
             gameType: "hygiene",
             successAnimation: "🧻✨",
@@ -1071,7 +1006,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🪥",
             backgroundImage: "🚿",
             characterEmoji: "😬",
-            answerChoices: ["Brush my teeth", "Wash my hands", "Take a shower", "Cut my hair", "Wipe my nose", "Clean my ears", "Use tissue"],
+            answerChoices: ["Wash my hands", "Take a shower", "Cut my hair", "Brush my teeth", "Wipe my nose", "Clean my ears", "Use tissue"],
             correctAnswer: "Brush my teeth",
             gameType: "hygiene",
             successAnimation: "🪥✨",
@@ -1083,7 +1018,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🧽",
             backgroundImage: "🚿",
             characterEmoji: "😵",
-            answerChoices: ["Clean my ears", "Wash my hands", "Take a shower", "Cut my hair", "Wipe my nose", "Brush my teeth", "Use tissue"],
+            answerChoices: [ "Wash my hands", "Take a shower", "Cut my hair", "Wipe my nose", "Clean my ears", "Brush my teeth", "Use tissue"],
             correctAnswer: "Clean my ears",
             gameType: "hygiene",
             successAnimation: "🧽✨",
@@ -1095,7 +1030,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🚿",
             backgroundImage: "🛁",
             characterEmoji: "😅",
-            answerChoices: ["Take a shower", "Wash my hands", "Brush my teeth", "Cut my hair", "Wipe my nose", "Clean my ears", "Use tissue"],
+            answerChoices: ["Wash my hands", "Take a shower", "Brush my teeth", "Cut my hair", "Wipe my nose", "Clean my ears", "Use tissue"],
             correctAnswer: "Take a shower",
             gameType: "hygiene",
             successAnimation: "🚿✨",
@@ -1107,7 +1042,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🤲",
             backgroundImage: "🍽️",
             characterEmoji: "😝",
-            answerChoices: ["Wash my hands", "Brush my teeth", "Take a shower", "Cut my hair", "Wipe my nose", "Clean my ears", "Use tissue"],
+            answerChoices: ["Brush my teeth", "Take a shower", "Cut my hair", "Wipe my nose", "Wash my hands", "Clean my ears", "Use tissue"],
             correctAnswer: "Wash my hands",
             gameType: "hygiene",
             successAnimation: "🧼✨",
@@ -1126,6 +1061,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             successMessage: "Smart! Covering sneezes keeps everyone healthy!"
           }
         ],
+
+
+
         "Safe Street Crossing": [
           {
             scenario: "green_walk_signal",
@@ -1255,24 +1193,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             successMessage: "Hero move! Let emergency vehicles go first!",
             feedbackMessage: "Amazing! Emergency vehicles always have the right of way!"
           }
-        ]
-      },
-      Medium: {
-        "Cashier Game": [
-          {
-            questionText: "I want two burgers and one large drink!",
-            orderItems: ["Burger", "Burger", "Drink"],
-            menuOptions: [
-              { name: "Burger", image: "🍔", price: "$3.99" },
-              { name: "Fries", image: "🍟", price: "$2.49" },
-              { name: "Pizza", image: "🍕", price: "$4.99" },
-              { name: "Hot Dog", image: "🌭", price: "$2.99" },
-              { name: "Drink", image: "🥤", price: "$1.99" },
-              { name: "Ice Cream", image: "🍦", price: "$2.99" }
-            ],
-            correctAnswer: ["Burger", "Burger", "Drink"],
-            gameType: "cashier"
-          }
         ],
         "Money Value Game": [
           {
@@ -1323,30 +1243,259 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               }
             }
           }
-        ]
-      },
-      Hard: {
-        "Cashier Game": [
+        ],
+
+        "Household Chores Helper": [
           {
-            questionText: "Family meal: 3 burgers, 2 large fries, 3 drinks, and 1 ice cream!",
-            orderItems: ["Burger", "Burger", "Burger", "Fries", "Fries", "Drink", "Drink", "Drink", "Ice Cream"],
-            menuOptions: [
-              { name: "Burger", image: "🍔", price: "$3.99" },
-              { name: "Fries", image: "🍟", price: "$2.49" },
-              { name: "Pizza", image: "🍕", price: "$4.99" },
-              { name: "Hot Dog", image: "🌭", price: "$2.99" },
-              { name: "Drink", image: "🥤", price: "$1.99" },
-              { name: "Ice Cream", image: "🍦", price: "$2.99" }
+            choreId: "washing_dishes",
+            choreName: "Washing Dishes",
+            choreIcon: "🍽️",
+            description: "Learn to wash dishes step by step!",
+            difficulty: "Easy",
+            steps: [
+              {
+                stepId: 1,
+                instruction: "🍽️ Gather dirty dishes",
+                emoji: "🍽️",
+                action: "collect",
+                target: "dishes",
+                feedback: "Great! All the dirty dishes are ready to wash!",
+                character_thought: "Let's collect all the dishes that need washing! 🍽️"
+              },
+              {
+                stepId: 2,
+                instruction: "💦 Rinse dishes with water",
+                emoji: "💦", 
+                action: "rinse",
+                target: "sink",
+                feedback: "Perfect! The dishes are getting clean!",
+                character_thought: "Rinse away the food scraps first! 💦"
+              },
+              {
+                stepId: 3,
+                instruction: "🧽 Apply soap and scrub",
+                emoji: "🧽",
+                action: "scrub",
+                target: "dishes",
+                feedback: "Excellent scrubbing! The dishes are sparkling!",
+                character_thought: "Scrub, scrub, scrub! Making them shine! 🧽"
+              },
+              {
+                stepId: 4,
+                instruction: "💧 Rinse off soap",
+                emoji: "💧",
+                action: "final_rinse",
+                target: "sink", 
+                feedback: "Amazing! All the soap is washed away!",
+                character_thought: "Almost done! Just need to rinse off the soap! 💧"
+              },
+              {
+                stepId: 5,
+                instruction: "🧴 Dry dishes with towel",
+                emoji: "🧴",
+                action: "dry",
+                target: "towel",
+                feedback: "Perfect! The dishes are clean and dry!",
+                character_thought: "All clean and ready to use! Great job! 🌟"
+              }
             ],
-            correctAnswer: ["Burger", "Burger", "Burger", "Fries", "Fries", "Drink", "Drink", "Drink", "Ice Cream"],
-            gameType: "cashier"
+            gameType: "household_chores",
+            totalSteps: 5,
+            successMessage: "Fantastic! You've mastered dish washing!",
+            badge: "🏆 Dish Washing Expert!"
+          },
+          {
+            choreId: "sweeping_floor",
+            choreName: "Sweeping Floor",
+            choreIcon: "🧹",
+            description: "Clean the floor by sweeping away the dirt!",
+            difficulty: "Easy-Medium",
+            steps: [
+              {
+                stepId: 1,
+                instruction: "🧹 Pick up big trash first",
+                emoji: "🧹",
+                action: "pick_up",
+                target: "trash",
+                feedback: "Good! Now the floor is ready for sweeping!",
+                character_thought: "Let's pick up the big pieces first! 🧹"
+              },
+              {
+                stepId: 2,
+                instruction: "🧹 Sweep dirt into a pile",
+                emoji: "🧹",
+                action: "sweep",
+                target: "dirt_spots",
+                feedback: "Nice sweeping! Gathering all the dirt together!",
+                character_thought: "Sweep, sweep! Pushing all the dirt together! 💨"
+              },
+              {
+                stepId: 3,
+                instruction: "🗑️ Throw dirt into the trash bin",
+                emoji: "🗑️",
+                action: "dispose",
+                target: "trash_bin",
+                feedback: "Perfect! All the dirt is gone!",
+                character_thought: "Into the trash it goes! �️"
+              },
+              {
+                stepId: 4,
+                instruction: "🧼 Optional: Mop the floor",
+                emoji: "🧼",
+                action: "mop",
+                target: "floor",
+                feedback: "Excellent! The floor is spotless!",
+                character_thought: "Now it's super clean and shiny! 🧼"
+              }
+            ],
+            gameType: "household_chores",
+            totalSteps: 4,
+            successMessage: "Outstanding! You're a sweeping superstar!",
+            badge: "🏆 Floor Cleaning Champion!"
+          },
+          {
+            choreId: "making_bed",
+            choreName: "Making Bed",
+            choreIcon: "🛏️",
+            description: "Make your bed neat and tidy!",
+            difficulty: "Easy",
+            steps: [
+              {
+                stepId: 1,
+                instruction: "🛏️ Remove pillows",
+                emoji: "🛏️",
+                action: "remove",
+                target: "pillows",
+                feedback: "Great! The pillows are safely set aside!",
+                character_thought: "Let's take the pillows off first! 🛏️"
+              },
+              {
+                stepId: 2,
+                instruction: "🛏️ Spread bedsheet evenly",
+                emoji: "🛏️",
+                action: "spread",
+                target: "bedsheet",
+                feedback: "Perfect! The sheet is nice and smooth!",
+                character_thought: "Make sure the sheet is flat and even! 🛏️"
+              },
+              {
+                stepId: 3,
+                instruction: "🛏️ Place blanket neatly",
+                emoji: "🛏️",
+                action: "place",
+                target: "blanket",
+                feedback: "Wonderful! The blanket looks perfect!",
+                character_thought: "Almost done! Just need to add the blanket! 🛏️"
+              },
+              {
+                stepId: 4,
+                instruction: "🛏️ Arrange pillows",
+                emoji: "🛏️",
+                action: "arrange",
+                target: "pillow_area",
+                feedback: "Amazing! Your bed looks fantastic!",
+                character_thought: "Perfect! Now it's ready for a good night's sleep! 😴"
+              }
+            ],
+            gameType: "household_chores",
+            totalSteps: 4,
+            successMessage: "Incredible! You're a bed-making expert!",
+            badge: "🏆 Bedroom Organization Star!"
+          },
+          {
+            choreId: "putting_toys_away",
+            choreName: "Putting Toys Away",
+            choreIcon: "🧸",
+            description: "Clean up by putting all toys in their proper place!",
+            steps: [
+              {
+                stepId: 1,
+                instruction: "Pick up the teddy bear",
+                action: "drag",
+                target: "toy_box",
+                feedback: "Great! Teddy bear is safely in the toy box!",
+                character_thought: "Time to clean up and put everything away! 🧸"
+              },
+              {
+                stepId: 2,
+                instruction: "Put the blocks in the toy box",
+                action: "drag",
+                target: "toy_box",
+                feedback: "Excellent! The blocks are organized!",
+                character_thought: "One by one, everything goes in its place! 🔵"
+              },
+              {
+                stepId: 3,
+                instruction: "Place the toy car in the garage",
+                action: "drag",
+                target: "toy_garage",
+                feedback: "Perfect! The car is parked safely!",
+                character_thought: "Vroom vroom! The car goes in the garage! 🚗"
+              },
+              {
+                stepId: 4,
+                instruction: "Put the puzzle pieces in their container",
+                action: "drag",
+                target: "puzzle_box",
+                feedback: "Amazing! Everything is organized and tidy!",
+                character_thought: "All done! The room looks so clean now! ✨"
+              }
+            ],
+            gameType: "household_chores",
+            totalSteps: 4,
+            successMessage: "Fantastic! You're a toy organization master!",
+            badge: "🏆 Cleanup Champion!"
+          },
+          {
+            choreId: "taking_out_trash",
+            choreName: "Taking Out the Trash",
+            choreIcon: "🗑️",
+            description: "Help keep the house clean by taking out the trash!",
+            steps: [
+              {
+                stepId: 1,
+                instruction: "Tie the trash bag closed",
+                action: "click",
+                target: "trash_bag",
+                feedback: "Good! The trash bag is securely closed!",
+                character_thought: "Let's get this trash ready to go out! 🗑️"
+              },
+              {
+                stepId: 2,
+                instruction: "Lift the trash bag out of the bin",
+                action: "drag",
+                target: "lift_area",
+                feedback: "Great lifting! You've got it!",
+                character_thought: "Careful! This bag might be a little heavy! 💪"
+              },
+              {
+                stepId: 3,
+                instruction: "Carry the bag to the outdoor trash bin",
+                action: "drag",
+                target: "outdoor_bin",
+                feedback: "Excellent! You carried it all the way outside!",
+                character_thought: "Almost there! Just need to get it outside! 🚶‍♂️"
+              },
+              {
+                stepId: 4,
+                instruction: "Put a new bag in the indoor trash bin",
+                action: "drag",
+                target: "indoor_bin",
+                feedback: "Perfect! The trash bin is ready for more trash!",
+                character_thought: "All set! The bin is ready for next time! 🌟"
+              }
+            ],
+            gameType: "household_chores",
+            totalSteps: 4,
+            successMessage: "Outstanding! You're a trash management expert!",
+            badge: "🏆 Cleanliness Hero!"
           }
         ]
-      }
     }
   };
 
-  const questions = questionsData[category]?.[difficulty]?.[activity] || [];
+  const questions = questionsData[category]?.[difficulty]?.[activity] || 
+                   questionsData[category]?.[activity] || [];
   const total = questions.length;
   
   // Fisher-Yates shuffle algorithm
@@ -1411,6 +1560,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const isStreetGame = activity === "Safe Street Crossing";
   const isGreetingsGame = activity === "Social Greetings";
   const isMoneyGame = activity === "Money Value Game";
+  const isChoreGame = activity === "Household Chores Helper";
 
   // Hygiene game functions
   const getRandomScenario = () => {
@@ -1435,10 +1585,14 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       setTimeout(() => {
         setShowSuccessAnimation(false);
         setShowCorrect(false);
+        // Don't auto-proceed - let handleNextClick handle progression
       }, 2000);
     } else {
       setShowWrong(true);
-      setTimeout(() => setShowWrong(false), 1500);
+      setTimeout(() => {
+        setShowWrong(false);
+        // Don't auto-proceed - let handleNextClick handle progression
+      }, 1500);
     }
   };
 
@@ -1468,78 +1622,145 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   };
 
   // Safe Street Crossing game functions
-  
   const getRandomStreetScenario = () => {
-    const streetQuestions = questionsData[category]?.[difficulty]?.["Safe Street Crossing"] || [];
+    console.log('Getting random street scenario...');
+    const streetQuestions = questionsData[category]?.["Safe Street Crossing"] || [];
+    console.log('Available street questions:', streetQuestions.length);
+    console.log('Used scenarios:', usedScenarios);
+    
     const availableScenarios = streetQuestions.filter(q => !usedScenarios.includes(q.scenario));
-    if (availableScenarios.length === 0) return streetQuestions[0]; // Fallback
-    return availableScenarios[Math.floor(Math.random() * availableScenarios.length)];
+    console.log('Available scenarios after filtering:', availableScenarios.length);
+    
+    if (availableScenarios.length === 0) {
+      console.log('⚠️ No more unused scenarios, returning first one as fallback');
+      return streetQuestions[0]; // Fallback
+    }
+    
+    const selectedScenario = availableScenarios[Math.floor(Math.random() * availableScenarios.length)];
+    console.log('🎲 Selected scenario:', selectedScenario?.scenario);
+    return selectedScenario;
   };
 
   const handleStreetAnswer = (choice) => {
-    if (isAnswered) return;
+    console.log('🚶‍♂️ Street answer clicked:', choice);
+    console.log('State check - isAnswered:', isAnswered, 'showStreetFeedback:', showStreetFeedback);
     
+    if (isAnswered || showStreetFeedback) {
+      console.log('❌ Answer blocked - already answered or showing feedback');
+      return;
+    }
+    
+    console.log('✅ Processing answer:', choice);
     setSelectedAnswer(choice);
     setIsAnswered(true);
 
-    const isCorrect = choice === currentScenario.correctAnswer;
-    const isSafeChoice = (choice === "CROSS" && currentScenario.safetyLevel === "safe") || 
-                        (choice === "WAIT" && currentScenario.safetyLevel === "unsafe");
+    const currentStreetScenario = streetScenario || currentScenario;
+    console.log('📋 Current scenario:', currentStreetScenario);
+    
+    if (!currentStreetScenario) {
+      console.error('❌ No current scenario available!');
+      console.log('streetScenario:', streetScenario, 'currentScenario:', currentScenario);
+      return;
+    }
 
-    if (isCorrect && isSafeChoice) {
+    const isCorrect = choice === currentStreetScenario.correctAnswer;
+    console.log('🎯 Answer check - Selected:', choice, 'Expected:', currentStreetScenario.correctAnswer, 'Correct:', isCorrect);
+
+    if (isCorrect) {
       setStreetScore(prev => prev + 1);
       setScore(prev => prev + 1);
       setStreetFeedbackType('safe');
-      setStreetFeedbackMessage(currentScenario.feedbackMessage);
+      setStreetFeedbackMessage(currentStreetScenario.feedbackMessage || currentStreetScenario.successMessage);
       
-      if (choice === "CROSS" && currentScenario.safetyLevel === "safe") {
+      if (choice === "CROSS") {
         setShowWalkingAnimation(true);
         setTimeout(() => setShowWalkingAnimation(false), 2000);
       }
       
       setShowCorrect(true);
-      setTimeout(() => setShowCorrect(false), 2000);
+      
+      setTimeout(() => {
+        setShowCorrect(false);
+        setShowStreetFeedback(false);
+        setShowWalkingAnimation(false);
+        
+        // Move to next round or end game
+        if (streetRound < 5) {
+          setStreetRound(prev => prev + 1);
+          setSelectedAnswer(null);
+          setIsAnswered(false);
+          
+          // Get next scenario
+          const nextScenario = getRandomStreetScenario();
+          console.log('Next scenario:', nextScenario);
+          setStreetScenario(nextScenario);
+          setCurrentScenario(nextScenario);
+          setUsedScenarios(prev => [...prev, nextScenario.scenario]);
+        } else {
+          // End game after 5 rounds
+          console.log('Game complete!');
+          setShowModal(true);
+        }
+      }, 3000);
     } else {
       setStreetFeedbackType('unsafe');
-      setStreetFeedbackMessage("Not safe yet! Always check for safety first.");
+      setStreetFeedbackMessage(currentStreetScenario.feedbackMessage || "Not safe! Always check before crossing.");
       setShowWrong(true);
-      setTimeout(() => setShowWrong(false), 2000);
+      
+      setTimeout(() => {
+        setShowWrong(false);
+        setShowStreetFeedback(false);
+        
+        // Move to next round or end game even on wrong answer
+        if (streetRound < 5) {
+          setStreetRound(prev => prev + 1);
+          setSelectedAnswer(null);
+          setIsAnswered(false);
+          
+          // Get next scenario
+          const nextScenario = getRandomStreetScenario();
+          console.log('Next scenario after wrong answer:', nextScenario);
+          setStreetScenario(nextScenario);
+          setCurrentScenario(nextScenario);
+          setUsedScenarios(prev => [...prev, nextScenario.scenario]);
+        } else {
+          // End game after 5 rounds
+          console.log('Game complete after wrong answer!');
+          setShowModal(true);
+        }
+      }, 3000);
     }
 
     setShowStreetFeedback(true);
-    setTimeout(() => {
-      setShowStreetFeedback(false);
-      if (streetRound < 5) {
-        // Move to next round
-        setStreetRound(prev => prev + 1);
-        const nextScenario = getRandomStreetScenario();
-        setCurrentScenario(nextScenario);
-        setUsedScenarios(prev => [...prev, nextScenario.scenario]);
-        setIsAnswered(false);
-        setSelectedAnswer(null);
-      } else {
-        // Game complete
-        setTimeout(() => {
-          setShowModal(true);
-        }, 1000);
-      }
-    }, 3000);
   };
 
   const initializeStreetGame = () => {
-    if (activity === "Safe Street Crossing" && !isStreetGameActive) {
-      setIsStreetGameActive(true);
-      setStreetRound(1);
-      setStreetScore(0);
-      setUsedScenarios([]);
-      
-      // Set up first scenario
-      const firstScenario = getRandomStreetScenario();
+    console.log('🚦 Initializing Safe Street Crossing game');
+    console.log('Activity:', activity, 'isStreetGameActive:', isStreetGameActive);
+    
+    // Reset all states first
+    setIsStreetGameActive(true);
+    setStreetRound(1);
+    setStreetScore(0);
+    setUsedScenarios([]);
+    setSelectedAnswer(null);
+    setIsAnswered(false);
+    setShowStreetFeedback(false);
+    setShowWalkingAnimation(false);
+    setStreetFeedbackMessage('');
+    setStreetFeedbackType('');
+    
+    // Set up first scenario
+    const firstScenario = getRandomStreetScenario();
+    console.log('🎯 First scenario loaded:', firstScenario);
+    
+    if (firstScenario) {
       setStreetScenario(firstScenario);
       setCurrentScenario(firstScenario);
-      if (firstScenario) {
-        setUsedScenarios([firstScenario.scenario]);
-      }
+      setUsedScenarios([firstScenario.scenario]);
+      console.log('✅ Street game initialized successfully');
+    } else {
+      console.error('❌ Failed to load first scenario');
     }
   };
 
@@ -1556,7 +1777,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
   // Social Greetings game functions
   const getRandomGreetingScenario = () => {
-    const greetingQuestions = questionsData[category]?.[difficulty]?.["Social Greetings"] || [];
+    const greetingQuestions = questionsData[category]?.[difficulty]?.["Social Greetings"] || 
+                              questionsData[category]?.["Social Greetings"] || [];
     const availableScenarios = greetingQuestions.filter(q => !usedScenarios.includes(q.id));
     if (availableScenarios.length === 0) return greetingQuestions[0]; // Fallback
     return availableScenarios[Math.floor(Math.random() * availableScenarios.length)];
@@ -1581,6 +1803,21 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         setShowGreetingAnimation(false);
         setShowGreetingFeedback(false);
         setShowCorrect(false);
+        
+        // Auto-proceed to next greeting scenario
+        if (greetingsRound < 5) {
+          setGreetingsRound(prev => prev + 1);
+          setGreetingAnswered(false);
+          setGreetingSelectedChoice(null);
+          
+          const nextScenario = getRandomGreetingScenario();
+          setCurrentGreetingScenario(nextScenario);
+          setUsedScenarios(prev => [...prev, nextScenario.id]);
+          setCharacterSpeech(nextScenario.otherCharacterSpeech);
+          setShowCharacterThought(true);
+        } else {
+          setShowModal(true);
+        }
       }, 3000);
     } else {
       setGreetingFeedbackType('incorrect');
@@ -1591,6 +1828,21 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       setTimeout(() => {
         setShowGreetingFeedback(false);
         setShowWrong(false);
+        
+        // Auto-proceed to next greeting scenario even on wrong answer
+        if (greetingsRound < 5) {
+          setGreetingsRound(prev => prev + 1);
+          setGreetingAnswered(false);
+          setGreetingSelectedChoice(null);
+          
+          const nextScenario = getRandomGreetingScenario();
+          setCurrentGreetingScenario(nextScenario);
+          setUsedScenarios(prev => [...prev, nextScenario.id]);
+          setCharacterSpeech(nextScenario.otherCharacterSpeech);
+          setShowCharacterThought(true);
+        } else {
+          setShowModal(true);
+        }
       }, 2500);
     }
   };
@@ -1706,6 +1958,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       setIsRoundComplete(false);
       setShowBadgeCompletion(false);
       
+      // Reset enhanced scoring
+      setMoneyCorrectAnswers(0);
+      setMoneyWrongAnswers(0);
+      setMoneyTotalAttempts(0);
+      setRoundScores([]);
+      setCurrentRoundAttempts(0);
+      
       // Get first round data
       const gameData = questions[0];
       if (gameData && gameData.rounds) {
@@ -1721,11 +1980,17 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
     const isAffordable = item.price <= currentBudget;
     
+    // Track attempt
+    setMoneyTotalAttempts(prev => prev + 1);
+    setCurrentRoundAttempts(prev => prev + 1);
+    
     if (isAffordable) {
       // Correct purchase
       setSelectedPurchases(prev => [...prev, item]);
       setTotalSpent(prev => prev + item.price);
       setMoneyScore(prev => prev + 1);
+      setMoneyCorrectAnswers(prev => prev + 1);
+      setScore(prev => prev + 1); // Update main score for progress tracking
       setMoneyFeedbackType('correct');
       setMoneyFeedbackMessage(`✔️ Correct! You can afford the ${item.name} for ₱${item.price.toLocaleString()}`);
       setShowPurchaseAnimation(true);
@@ -1734,32 +1999,61 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       setTimeout(() => {
         setShowPurchaseAnimation(false);
         setShowCorrect(false);
+        setShowMoneyFeedback(false);
       }, 2000);
     } else {
       // Wrong purchase - too expensive
+      setMoneyWrongAnswers(prev => prev + 1);
       setMoneyFeedbackType('wrong');
       setMoneyFeedbackMessage(`❌ Sorry! The ${item.name} costs ₱${item.price.toLocaleString()}, but you only have ₱${currentBudget.toLocaleString()}`);
       setShowWrong(true);
       
+      // Auto-advance to next round after wrong answer
       setTimeout(() => {
         setShowWrong(false);
+        setShowMoneyFeedback(false);
+        
+        // Save current round score and proceed
+        const roundData = {
+          round: moneyRound,
+          attempts: currentRoundAttempts + 1,
+          correctPurchases: selectedPurchases.length,
+          totalPossibleCorrect: currentMoneyItems.filter(i => i.price <= currentBudget).length,
+          completed: true
+        };
+        setRoundScores(prev => [...prev, roundData]);
+        
+        // Proceed to next round or complete game
+        if (moneyRound < 3) {
+          proceedToNextMoneyRound();
+        } else {
+          completeMoneyGame();
+        }
       }, 2500);
     }
     
     setShowMoneyFeedback(true);
-    setTimeout(() => {
-      setShowMoneyFeedback(false);
-    }, 3000);
   };
 
   const proceedToNextMoneyRound = () => {
     if (moneyRound < 3) {
+      // Save current round score before proceeding
+      const roundData = {
+        round: moneyRound,
+        attempts: currentRoundAttempts,
+        correctPurchases: selectedPurchases.length,
+        totalPossibleCorrect: currentMoneyItems.filter(i => i.price <= currentBudget).length,
+        completed: true
+      };
+      setRoundScores(prev => [...prev, roundData]);
+      
       // Move to next round
       const nextRound = moneyRound + 1;
       setMoneyRound(nextRound);
       setSelectedPurchases([]);
       setTotalSpent(0);
       setIsRoundComplete(false);
+      setCurrentRoundAttempts(0);
       
       const gameData = questions[0];
       if (gameData && gameData.rounds) {
@@ -1768,16 +2062,54 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         setCurrentMoneyItems(nextRoundData.items);
       }
     } else {
-      // Game completed - show badge
-      setShowBadgeCompletion(true);
-      setIsRoundComplete(true);
-      
-      // Play celebration sound
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-        audioRef.current.play();
-      }
+      completeMoneyGame();
     }
+  };
+  
+  const completeMoneyGame = () => {
+    // Save final round score
+    const finalRoundData = {
+      round: moneyRound,
+      attempts: currentRoundAttempts,
+      correctPurchases: selectedPurchases.length,
+      totalPossibleCorrect: currentMoneyItems.filter(i => i.price <= currentBudget).length,
+      completed: true
+    };
+    setRoundScores(prev => [...prev, finalRoundData]);
+    
+    // Calculate final statistics
+    const totalPossibleCorrect = 6; // 2 affordable items per round × 3 rounds = 6 total possible
+    const accuracyPercentage = moneyTotalAttempts > 0 ? Math.round((moneyCorrectAnswers / moneyTotalAttempts) * 100) : 0;
+    const completionPercentage = Math.round((moneyCorrectAnswers / totalPossibleCorrect) * 100);
+    
+    // Update main score for progress tracking
+    setScore(moneyCorrectAnswers);
+    
+    // Game completed - show badge
+    setShowBadgeCompletion(true);
+    setIsRoundComplete(true);
+    
+    // Play celebration sound
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(console.error);
+    }
+    
+    // Call onComplete with detailed scoring after badge animation
+    setTimeout(() => {
+      const detailedScore = {
+        correctAnswers: moneyCorrectAnswers,
+        wrongAnswers: moneyWrongAnswers,
+        totalAttempts: moneyTotalAttempts,
+        accuracyPercentage,
+        completionPercentage,
+        roundBreakdown: roundScores,
+        finalScore: moneyCorrectAnswers,
+        maxPossibleScore: totalPossibleCorrect
+      };
+      
+      onComplete(moneyCorrectAnswers, totalPossibleCorrect, detailedScore);
+    }, 3000);
   };
 
   const resetMoneyGame = () => {
@@ -1794,6 +2126,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     setTotalSpent(0);
     setShowBadgeCompletion(false);
     setIsRoundComplete(false);
+    
+    // Reset enhanced scoring
+    setMoneyCorrectAnswers(0);
+    setMoneyWrongAnswers(0);
+    setMoneyTotalAttempts(0);
+    setRoundScores([]);
+    setCurrentRoundAttempts(0);
   };
 
   const restartMoneyGame = () => {
@@ -1821,10 +2160,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
   // Initialize street crossing game when activity starts
   useEffect(() => {
-    if (activity === "Safe Street Crossing") {
+    if (activity === "Safe Street Crossing" && !isStreetGameActive) {
+      console.log('Effect: Initializing Street Game');
       initializeStreetGame();
     }
-  }, [currentQuestionIndex, activity]);
+  }, [activity]); // Remove currentQuestionIndex dependency
 
   // Initialize social greetings game when activity starts
   useEffect(() => {
@@ -1846,6 +2186,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       initializePuzzleGame();
     }
   }, [currentQuestionIndex, isPuzzleGame]);
+
+  // Initialize household chores game when activity starts
+  useEffect(() => {
+    if (isChoreGame) {
+      initializeChoreGame();
+    }
+  }, [isChoreGame]);
 
   // Handle moving to item selection step
   const handleStartSelecting = () => {
@@ -2175,6 +2522,207 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     setMatchingScore(0);
   };
 
+  // Household Chores Helper Game Functions
+  const getRandomChore = () => {
+    if (!questions || questions.length === 0) return null;
+    const randomIndex = Math.floor(Math.random() * questions.length);
+    return questions[randomIndex];
+  };
+
+  const initializeChoreGame = () => {
+    if (!questions || questions.length === 0) return;
+    
+    const choreData = getRandomChore();
+    if (!choreData) return;
+    
+    setCurrentChoreId(choreData.choreId);
+    setCurrentChoreStep(0);
+    setChoreProgress([]);
+    setCompletedChoreSteps([]);
+    setCompletedSteps([]);
+    setDraggedChoreItems([]);
+    setDroppedChoreItems([]);
+    setDraggedItem(null);
+    setChoreScore(0);
+    setIsChoreComplete(false);
+    setShowChoreFeedback(false);
+    setChoreFeedbackType('');
+    setChoreFeedbackMessage('');
+    setCharacterThought(`Let's learn how to ${choreData.choreName.toLowerCase()}! Watch carefully and follow the steps.`);
+    setShowCharacterSpeech(true);
+    
+    // Set up the tools and environment for this chore
+    const steps = choreData.steps;
+    const allTools = [];
+    const allEnvironmentItems = [];
+    
+    steps.forEach(step => {
+      if (step.requiredTools) allTools.push(...step.requiredTools);
+      if (step.environmentItems) allEnvironmentItems.push(...step.environmentItems);
+    });
+    
+    setChoreToolsAvailable([...new Set(allTools)]);
+    setChoreEnvironmentItems([...new Set(allEnvironmentItems)]);
+    
+    setTimeout(() => setShowCharacterSpeech(false), 3000);
+  };
+
+  const handleChoreAction = (actionType, itemId) => {
+    if (isChoreComplete || !currentChoreId) return;
+    
+    const choreData = questions.find(q => q.choreId === currentChoreId);
+    if (!choreData) return;
+    
+    const currentStep = choreData.steps[currentChoreStep];
+    if (!currentStep) return;
+    
+    let isCorrectAction = false;
+    
+    // Check if this action is correct for the current step
+    if (actionType === 'use_tool' && currentStep.requiredTools?.includes(itemId)) {
+      isCorrectAction = true;
+    } else if (actionType === 'interact' && currentStep.environmentItems?.includes(itemId)) {
+      isCorrectAction = true;
+    } else if (actionType === 'sequence' && currentStep.actionType === 'sequence') {
+      isCorrectAction = true;
+    }
+    
+    if (isCorrectAction) {
+      // Add to progress
+      const newProgress = [...choreProgress, { step: currentChoreStep, action: actionType, item: itemId }];
+      setChoreProgress(newProgress);
+      setCompletedChoreSteps([...completedChoreSteps, currentChoreStep]);
+      
+      // Update character feedback
+      const feedbackMessages = [
+        "Great job! You're doing it right!",
+        "Perfect! Keep going!",
+        "Excellent work! That's exactly right!",
+        "You're learning so well!"
+      ];
+      setCharacterThought(feedbackMessages[Math.floor(Math.random() * feedbackMessages.length)]);
+      setShowCharacterSpeech(true);
+      
+      // Move to next step or complete
+      if (currentChoreStep < choreData.steps.length - 1) {
+        setTimeout(() => {
+          setCurrentChoreStep(prev => prev + 1);
+          setShowCharacterSpeech(false);
+        }, 2000);
+      } else {
+        // Complete the chore
+        setIsChoreComplete(true);
+        setChoreScore(choreData.steps.length);
+        setChoreFeedbackType('correct');
+        setChoreFeedbackMessage(`🎉 Amazing! You completed "${choreData.title}"! You've learned an important life skill!`);
+        setShowChoreFeedback(true);
+        setCharacterThought("You did it! I'm so proud of you! You're becoming very independent!");
+        
+        // Award badge
+        setTimeout(() => {
+          setIsAnswered(true);
+        }, 3000);
+      }
+    } else {
+      // Incorrect action - provide guidance
+      setChoreFeedbackType('incorrect');
+      setChoreFeedbackMessage(`Not quite right. Try ${currentStep.instruction}`);
+      setShowChoreFeedback(true);
+      setCharacterThought(`Remember: ${currentStep.instruction}. You can do it!`);
+      setShowCharacterSpeech(true);
+      
+      setTimeout(() => {
+        setShowChoreFeedback(false);
+        setShowCharacterSpeech(false);
+      }, 3000);
+    }
+  };
+
+  const handleChoreDrag = (item, isCorrectPlacement) => {
+    if (isCorrectPlacement) {
+      setDroppedChoreItems([...droppedChoreItems, item]);
+      handleChoreAction('drag', item);
+    } else {
+      setChoreFeedbackType('incorrect');
+      setChoreFeedbackMessage('Try placing that item in the right spot!');
+      setShowChoreFeedback(true);
+      setTimeout(() => setShowChoreFeedback(false), 2000);
+    }
+  };
+
+  const resetChoreState = () => {
+    setCurrentChoreId('');
+    setCurrentChoreStep(0);
+    setChoreProgress([]);
+    setCompletedChoreSteps([]);
+    setCompletedSteps([]);
+    setChoreToolsAvailable([]);
+    setChoreEnvironmentItems([]);
+    setDraggedChoreItems([]);
+    setDroppedChoreItems([]);
+    setDraggedItem(null);
+    setChoreScore(0);
+    setIsChoreComplete(false);
+    setShowChoreFeedback(false);
+    setChoreFeedbackType('');
+    setChoreFeedbackMessage('');
+    setCharacterThought('');
+    setShowCharacterSpeech(false);
+    setSelectedAnswer(null);
+    setIsAnswered(false);
+  };
+
+  // Handle student answers for chore steps
+  const handleChoreStepAnswer = (isCorrect, selectedChoice) => {
+    setIsAnswered(true);
+    
+    if (isCorrect) {
+      setCharacterThought("Excellent! That's exactly right!");
+      setShowCharacterSpeech(true);
+      setTimeout(() => setShowCharacterSpeech(false), 2000);
+    } else {
+      setCharacterThought("Not quite! Think about what you need to do for this chore.");
+      setShowCharacterSpeech(true);
+      setTimeout(() => setShowCharacterSpeech(false), 3000);
+    }
+  };
+
+  // Helper functions for chore game icons
+  const getToolIcon = (tool) => {
+    const toolIcons = {
+      'soap': '🧼',
+      'sponge': '🧽',
+      'towel': '🪣',
+      'broom': '🧹',
+      'dustpan': '🗑️',
+      'vacuum': '🔌',
+      'pillow': '🛏️',
+      'sheet': '🛏️',
+      'blanket': '🛌',
+      'toy box': '📦',
+      'basket': '🧺',
+      'trash bag': '🗑️'
+    };
+    return toolIcons[tool] || '🔧';
+  };
+
+  const getEnvironmentIcon = (item) => {
+    const envIcons = {
+      'sink': '🚿',
+      'dishes': '🍽️',
+      'floor': '🏠',
+      'bed': '🛏️',
+      'living room': '🛋️',
+      'toys': '🧸',
+      'trash can': '🗑️',
+      'kitchen': '🍳',
+      'bedroom': '🛏️',
+      'water': '💧',
+      'counter': '🏠'
+    };
+    return envIcons[item] || '🏠';
+  };
+
   // Handle answer selection
   const handleAnswerClick = (choice) => {
     if (isAnswered) return;
@@ -2185,7 +2733,10 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     setSelectedAnswer(choice);
     setIsAnswered(true);
 
-    if (choice === questions[currentQuestionIndex].correctAnswer) {
+    const isCorrect = choice === questions[currentQuestionIndex].correctAnswer;
+    const isSocialDailyLifeSkill = category === "Social / Daily Life Skill";
+
+    if (isCorrect) {
       setScore(prev => prev + 1);
       setShowCorrect(true);
       
@@ -2213,10 +2764,40 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         setTimeout(() => setShowBadgePreview(false), 3000);
       }
       
-      setTimeout(() => setShowCorrect(false), 1500);
+      setTimeout(() => {
+        setShowCorrect(false);
+        // Auto-proceed for Social / Daily Life Skill activities
+        if (isSocialDailyLifeSkill) {
+          if (currentQuestionIndex < questions.length - 1) {
+            setCurrentQuestionIndex(currentQuestionIndex + 1);
+            setSelectedAnswer(null);
+            setIsAnswered(false);
+            resetCashierState();
+            resetStreetState();
+            resetMatchingGame();
+          } else {
+            setShowModal(true);
+          }
+        }
+      }, 1500);
     } else {
       setShowWrong(true);
-      setTimeout(() => setShowWrong(false), 1500);
+      setTimeout(() => {
+        setShowWrong(false);
+        // Auto-proceed for Social / Daily Life Skill activities
+        if (isSocialDailyLifeSkill) {
+          if (currentQuestionIndex < questions.length - 1) {
+            setCurrentQuestionIndex(currentQuestionIndex + 1);
+            setSelectedAnswer(null);
+            setIsAnswered(false);
+            resetCashierState();
+            resetStreetState();
+            resetMatchingGame();
+          } else {
+            setShowModal(true);
+          }
+        }
+      }, 1500);
     }
     
     // Update session stats with timing
@@ -2445,11 +3026,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           <div className="-mt-20 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl px-6 py-1 border border-blue-200/30 inline-block">
             <div className="text-base font-bold text-gray-700 flex items-center justify-center space-x-2">
               <span className="text-2xl animate-bounce-gentle">
-                {isHygieneGame ? "🧼" : "📝"}
+                {isHygieneGame ? "🧼" : isChoreGame ? "🏠" : "📝"}
               </span>
               <span>
                 {isHygieneGame 
-                  ? `Round ${currentRound} of 5` 
+                  ? `Round ${currentRound} of 5`
+                  : isChoreGame && currentChoreId
+                  ? `Learning: ${questions.find(q => q.choreId === currentChoreId)?.choreName || 'Chore'}`
                   : `Question ${currentQuestionIndex + 1} of ${total}`
                 }
               </span>
@@ -2458,12 +3041,10 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           </div>
 
           {/* Question with improved typography */}
-          <h3 className="text-3xl font-bold text-gray-800  leading-relaxed px-4">
-            {questions[currentQuestionIndex].questionText}
-          </h3>
+         
 
           {/* Image/Video with modern container */}
-          <div className="flex justify-center flex-wrap gap-4 mb-8">
+          <div className="flex justify-center flex-wrap gap-4 mb-4">
             {questions[currentQuestionIndex].imageSrc && (
               <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-4 border-2 border-blue-200/30 shadow-lg">
                 <img
@@ -2491,7 +3072,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           </div>
 
           {/* Answer Choices with autism-friendly design */}
-          {!isCashierGame && !isHygieneGame && !isStreetGame && !isGreetingsGame && !isMoneyGame && !isMatchingGame && !isPuzzleGame ? (
+          {!isCashierGame && !isHygieneGame && !isStreetGame && !isGreetingsGame && !isMoneyGame && !isMatchingGame && !isPuzzleGame && !isChoreGame ? (
             <div className="grid grid-cols-2 gap-6">
               {questions[currentQuestionIndex].answerChoices.map((choice, index) => (
                 <button
@@ -2532,7 +3113,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               </div> */}
 
               {/* Main Scenario Area */}
-              <div className="bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 rounded-3xl p-8 border-4 border-blue-200 relative overflow-hidden">
+              <div className="bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 rounded-3xl pb-8 border-4 border-blue-200 relative overflow-hidden">
                 {/* Background Character */}
                 <div className="absolute top-4 right-4 text-6xl opacity-20 animate-float">
                   {currentQuestion?.backgroundImage || "🏠"}
@@ -2550,13 +3131,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   )}
 
                   {/* Main Character */}
-                  <div className={`text-[12rem] mb-4 transition-all duration-500 ${showSuccessAnimation ? 'scale-110' : ''}`}>
+                  <div className={`text-[8rem] mb-4 -mt-7 transition-all duration-500 ${showSuccessAnimation ? 'scale-110' : ''}`}>
                     {currentQuestion?.characterEmoji || "😊"}
                   </div>
 
                   {/* Scenario Visual */}
-                  <div className="bg-white rounded-2xl p-6 border-3 border-blue-300 shadow-xl mb-6">
-                    <div className="text-6xl mb-4">{currentQuestion?.scenarioImage}</div>
+                  <div className="bg-white rounded-2xl p-6 border-3 border-blue-300 shadow-xl  -mt-8">
+                    <div className="text-6xl -mt-3">{currentQuestion?.scenarioImage}</div>
                     <div className="text-xl font-bold text-gray-800 leading-relaxed">
                       {currentQuestion?.questionText}
                     </div>
@@ -2602,61 +3183,187 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               </div>
             </div>
           ) : isStreetGame ? (
-            /* Interactive Safe Street Crossing Game UI */
-            <div className="space-y-8">
-              {/* Round Indicator */}
-              {/* <div className="text-center mb-6">
-                <div className="inline-flex bg-gradient-to-r from-green-100 to-blue-100 rounded-full px-8 py-4 border-3 border-green-300 shadow-lg">
-                  <span className="text-2xl font-bold text-green-800 flex items-center space-x-3">
+            /* 🚦 ENHANCED INTERACTIVE SAFE STREET CROSSING GAME 🚦 */
+            <div className="space-y-6">
+              {/* Game Status Debug Info (remove in production) */}
+              {/* <div className="text-xs text-gray-500 text-center">
+                Game Active: {isStreetGameActive ? '✅' : '❌'} | 
+                Round: {streetRound}/5 | 
+                Answered: {isAnswered ? '✅' : '❌'} | 
+                Feedback: {showStreetFeedback ? '✅' : '❌'} |
+                Scenario: {(streetScenario || currentScenario) ? '✅' : '❌'}
+              </div> */}
+              
+              {/* Round Progress Indicator */}
+              <div className="text-center mb-6">
+                <div className="inline-flex bg-gradient-to-r from-green-100 to-blue-100 rounded-full px-8 py-2 border-3 border-green-300 shadow-xl">
+                  <span className="text-xl font-bold text-green-800 flex items-center space-x-3">
                     <span className="text-3xl animate-bounce-gentle">🚦</span>
-                    <span>Round {streetRound} of 5</span>
+                    <span>Round {streetRound} of 5 - Street Safety</span>
                     <span className="text-3xl animate-pulse-gentle">🚶‍♂️</span>
                   </span>
                 </div>
-              </div> */}
+                {/* Animated Progress Bar */}
+                {/* <div className="w-80 bg-gray-200 rounded-full h-5 mt-3 mx-auto shadow-inner border-2 border-gray-300">
+                  <div 
+                    className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 h-5 rounded-full transition-all duration-1000 ease-out shadow-lg"
+                    style={{ width: `${(streetRound / 5) * 100}%` }}
+                  ></div>
+                </div> */}
+              </div>
 
-              {/* Main Street Scenario Area */}
-              <div className="bg-gradient-to-br from-blue-50 via-gray-50 to-green-50 rounded-3xl p-8 border-4 border-gray-300 relative overflow-hidden">
-                {/* Background Street */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                  <div className="text-[20rem]">🛣️</div>
+              {/* 🏙️ MAIN INTERACTIVE STREET ENVIRONMENT 🏙️ */}
+              <div className="bg-gradient-to-br from-sky-100 via-blue-50 to-green-100 rounded-3xl p-8 border-4 border-blue-300 relative overflow-hidden shadow-2xl min-h-[600px]">
+                {/* Animated Sky Background */}
+                <div className="absolute inset-0 bg-gradient-to-b from-blue-200/30 to-green-200/30 rounded-3xl">
+                  <div className="absolute top-4 left-8 text-4xl animate-float">☁️</div>
+                  <div className="absolute top-8 right-12 text-3xl animate-float-delayed">☁️</div>
+                  <div className="absolute top-12 left-1/3 text-2xl animate-bounce-gentle">🌞</div>
+                </div>
+                
+                {/* City Buildings Background */}
+                <div className="absolute bottom-0 left-0 right-0 flex justify-between items-end px-4 opacity-20">
+                  <div className="text-8xl">🏢</div>
+                  <div className="text-6xl">🏬</div>
+                  <div className="text-7xl">🏪</div>
+                  <div className="text-9xl">🏢</div>
+                  <div className="text-5xl">🏠</div>
                 </div>
 
-                {/* Street Scene */}
+                {/* 🚶‍♂️ INTERACTIVE STREET CROSSING SCENE 🚶‍♂️ */}
                 <div className="flex flex-col items-center mb-8 relative z-10">
-                  {/* Walking Animation */}
+                  
+                  {/* SUCCESS WALKING ANIMATION OVERLAY */}
                   {showWalkingAnimation && (
-                    <div className="absolute inset-0 flex items-center justify-center z-20">
-                      <div className="text-8xl animate-slide-right">
-                        🚶‍♂️➡️➡️➡️
+                    <div className="absolute inset-0 flex items-center justify-center z-50 bg-green-100/90 rounded-3xl backdrop-blur-sm">
+                      <div className="text-center">
+                        <div className="text-9xl mb-4">
+                          <span className="animate-slide-right">🚶‍♂️</span>
+                          <span className="animate-pulse text-green-500">➡️</span>
+                          <span className="animate-bounce-gentle">🎉</span>
+                        </div>
+                        <div className="text-3xl font-bold text-green-600 animate-bounce-gentle">
+                          ✅ SAFE CROSSING! WELL DONE! 🌟
+                        </div>
+                        <div className="text-lg text-green-700 mt-2">
+                          You made the right choice! 🏆
+                        </div>
                       </div>
                     </div>
                   )}
 
-                  {/* Traffic Light and Scenario */}
-                  <div className="flex items-center space-x-8 mb-6">
-                    {/* Traffic Light */}
-                    <div className="bg-gray-800 rounded-xl p-4 shadow-xl">
-                      <div className="text-8xl">{currentScenario?.trafficLight}</div>
-                    </div>
-
-                    {/* Scenario Image */}
-                    <div className="bg-white rounded-2xl p-6 border-3 border-gray-400 shadow-xl">
-                      <div className="text-6xl mb-2">{currentScenario?.scenarioImage}</div>
-                    </div>
-
-                    {/* Character */}
-                    <div className="text-[8rem]">
-                      {currentScenario?.characterEmoji}
+                  {/* 🚦 STREET LAYOUT WITH TRAFFIC ELEMENTS 🚦 */}
+                  <div className="relative w-full max-w-4xl mx-auto">
+                    
+                    {/* Street Layout */}
+                    <div className="flex items-end justify-between mb-6">
+                      
+                   
+                      
+                      {/* Traffic Light Post */}
+                      <div className="flex flex-col items-center mx-4">
+                        <div className="bg-gray-800 rounded-xl p-6 shadow-2xl border-4 border-gray-600 relative">
+                          <div className={`text-8xl transition-all duration-500 ${
+                            (streetScenario || currentScenario)?.trafficLight === '🟢' ? 'animate-pulse-gentle drop-shadow-lg scale-110' :
+                            (streetScenario || currentScenario)?.trafficLight === '🔴' ? 'animate-pulse drop-shadow-lg scale-110' :
+                            (streetScenario || currentScenario)?.trafficLight === '🟡' ? 'animate-bounce-gentle drop-shadow-lg' :
+                            'animate-pulse-gentle'
+                          }`}>
+                            {(streetScenario || currentScenario)?.trafficLight || '🚦'}
+                          </div>
+                          {/* Light status indicator */}
+                          <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2">
+                            <div className={`px-4 py-2 rounded-full text-sm font-bold shadow-lg ${
+                              (streetScenario || currentScenario)?.lightStatus === 'walk' ? 'bg-green-200 text-green-800 animate-pulse-gentle' :
+                              (streetScenario || currentScenario)?.lightStatus === 'stop' ? 'bg-red-200 text-red-800 animate-pulse' :
+                              'bg-yellow-200 text-yellow-800 animate-bounce-gentle'
+                            }`}>
+                              {(streetScenario || currentScenario)?.lightStatus?.toUpperCase() || 'LOOK'}
+                            </div>
+                          </div>
+                        </div>
+                        {/* Traffic light pole */}
+                        <div className="w-2 h-16 bg-gray-600 shadow-lg"></div>
+                      </div>
+                      
+                      {/* Road with Dynamic Elements */}
+                      <div className="flex-1 relative mx-4">
+                        {/* Road surface */}
+                        <div className="bg-gradient-to-r from-gray-600 to-gray-700 h-56 rounded-lg border-4 border-gray-500 shadow-xl relative overflow-hidden">
+                          {/* Road markings */}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-full h-4 bg-yellow-300 opacity-80 rounded flex space-x-6">
+                              <div className="flex-1 bg-yellow-400 rounded"></div>
+                              <div className="w-8 bg-transparent"></div>
+                              <div className="flex-1 bg-yellow-400 rounded"></div>
+                              <div className="w-8 bg-transparent"></div>
+                              <div className="flex-1 bg-yellow-400 rounded"></div>
+                            </div>
+                          </div>
+                          
+                          {/* Dynamic scenario elements */}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-8xl animate-pulse-gentle">
+                              {(streetScenario || currentScenario)?.scenarioImage || '🛣️'}
+                            </div>
+                          </div>
+                          
+                          {/* Moving cars if scenario has them */}
+                          {(streetScenario || currentScenario)?.scenarioImage?.includes('🚗') && (
+                            <div className="absolute top-3 left-6 text-5xl animate-slide-right">
+                              🚗💨
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Crosswalk stripes */}
+                        <div className="absolute bottom-0 left-0 right-0 h-10 bg-white opacity-60 flex space-x-1">
+                          {[...Array(8)].map((_, i) => (
+                            <div key={i} className="flex-1 bg-white"></div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Right Sidewalk (destination) */}
+                      {/* <div className="flex flex-col items-center">
+                        <div className="bg-gray-300 w-24 h-32 rounded-t-lg relative border-2 border-gray-400 mb-2">
+                          <div className="absolute inset-2 bg-gray-200 rounded"></div>
+                          
+                          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl">
+                            🏁
+                          </div>
+                        </div>
+                        <div className="text-lg font-bold text-green-600">SAFE ZONE</div>
+                      </div> */}
+                      
                     </div>
                   </div>
 
-                  {/* Question */}
-                  <div className="bg-white rounded-2xl p-6 border-3 border-blue-300 shadow-xl mb-8 max-w-2xl">
-                    <div className="text-2xl font-bold text-gray-800 text-center leading-relaxed">
-                      {currentScenario?.questionText}
+                  {/* 💬 ENHANCED QUESTION DISPLAY 💬 */}
+                  {/* <div className="bg-gradient-to-r from-white via-blue-50 to-white rounded-3xl p-8 border-4 border-blue-300 shadow-2xl mb-8 max-w-4xl relative"> */}
+                    {/* <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                      <div className="bg-blue-500 text-white px-6 py-2 rounded-full text-lg font-bold shadow-lg">
+                        🤔 What Should You Do?
+                      </div>
                     </div>
-                  </div>
+                    <div className="text-4xl font-bold text-gray-800 text-center leading-relaxed pt-6">
+                      {(streetScenario || currentScenario)?.questionText || 'Loading street scenario...'}
+                    </div>
+                     */}
+                    {/* Scenario context */}
+                    {/* <div className="mt-4 text-center">
+                      <div className="inline-flex items-center space-x-2 bg-blue-100 rounded-full px-4 py-2">
+                        <span className="text-sm font-medium text-blue-700">
+                          Safety Level: 
+                        </span>
+                        <span className={`text-sm font-bold ${
+                          (streetScenario || currentScenario)?.safetyLevel === 'safe' ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {(streetScenario || currentScenario)?.safetyLevel?.toUpperCase() || 'UNKNOWN'}
+                        </span>
+                      </div>
+                    </div> */}
+                  {/* </div> */}
 
                   {/* Feedback Message */}
                   {showStreetFeedback && (
@@ -2676,60 +3383,119 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   )}
                 </div>
 
-                {/* Action Buttons - Large and Clear */}
-                <div className="flex justify-center space-x-8 mb-8">
+                {/* 🎮 COMPACT INTERACTIVE ACTION BUTTONS 🎮 */}
+                <div className="flex justify-center space-x-6 mb-8">
                   <button
-                    onClick={() => handleStreetAnswer('CROSS')}
-                    disabled={isAnswered}
+                    onClick={() => {
+                      console.log('🚶‍♂️ CROSS button clicked!');
+                      handleStreetAnswer('CROSS');
+                    }}
+                    disabled={isAnswered || showStreetFeedback}
                     className={`
+                      group relative overflow-hidden
                       ${
-                        selectedAnswer === 'CROSS' && currentScenario?.correctAnswer === 'CROSS'
-                          ? "bg-gradient-to-r from-green-400 to-green-500 text-white border-green-300 scale-110 shadow-2xl animate-success-pulse"
-                          : selectedAnswer === 'CROSS' && currentScenario?.correctAnswer !== 'CROSS'
-                          ? "bg-gradient-to-r from-red-400 to-red-500 text-white border-red-300 scale-110 shadow-2xl"
-                          : "bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white border-blue-300 hover:border-blue-400"
+                        selectedAnswer === 'CROSS' && (streetScenario || currentScenario)?.correctAnswer === 'CROSS'
+                          ? "bg-gradient-to-r from-green-400 via-green-500 to-green-600 text-white border-green-300 scale-105 shadow-xl animate-success-pulse"
+                          : selectedAnswer === 'CROSS' && (streetScenario || currentScenario)?.correctAnswer !== 'CROSS'
+                          ? "bg-gradient-to-r from-red-400 via-red-500 to-red-600 text-white border-red-300 scale-105 shadow-xl animate-pulse"
+                          : "bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white border-blue-300 hover:border-blue-400"
                       } 
-                      text-3xl font-bold py-8 px-16 rounded-3xl cursor-pointer transition-all duration-300 border-4 shadow-2xl transform
-                      focus:outline-none focus:ring-6 focus:ring-blue-300
-                      ${!isAnswered ? 'hover:scale-110 hover:shadow-3xl' : ''}
-                      min-w-[200px] flex flex-col items-center justify-center
+                      text-xl font-bold py-6 px-12 rounded-2xl transition-all duration-300 border-3 shadow-lg transform
+                      focus:outline-none focus:ring-4 focus:ring-blue-300/50
+                      ${(!isAnswered && !showStreetFeedback) ? 'hover:scale-105 hover:shadow-xl cursor-pointer active:scale-100' : 'cursor-not-allowed opacity-60'}
+                      min-w-[270px] min-h-[180px] flex flex-col items-center justify-center
                     `}
                   >
-                    <span className="text-6xl mb-2">🚶‍♂️</span>
-                    <span>CROSS</span>
+                    {/* Button glow effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/15 via-white/8 to-transparent opacity-40 rounded-2xl group-hover:opacity-60 transition-opacity"></div>
+                    
+                    {/* Animated walking icon */}
+                    <span className="text-4xl mb-2 relative z-10 animate-bounce-gentle group-hover:animate-pulse">
+                      🚶‍♂️
+                    </span>
+                    <span className="relative z-10 text-lg font-black">CROSS NOW</span>
+                   
+                    
+                    {/* Directional arrow */}
+                    <div className="absolute top-2 right-2 text-lg opacity-50 group-hover:opacity-80 transition-opacity">
+                      ➡️
+                    </div>
                   </button>
 
                   <button
-                    onClick={() => handleStreetAnswer('WAIT')}
-                    disabled={isAnswered}
+                    onClick={() => {
+                      console.log('✋ WAIT button clicked!');
+                      handleStreetAnswer('WAIT');
+                    }}
+                    disabled={isAnswered || showStreetFeedback}
                     className={`
+                      group relative overflow-hidden
                       ${
-                        selectedAnswer === 'WAIT' && currentScenario?.correctAnswer === 'WAIT'
-                          ? "bg-gradient-to-r from-green-400 to-green-500 text-white border-green-300 scale-110 shadow-2xl animate-success-pulse"
-                          : selectedAnswer === 'WAIT' && currentScenario?.correctAnswer !== 'WAIT'
-                          ? "bg-gradient-to-r from-red-400 to-red-500 text-white border-red-300 scale-110 shadow-2xl"
-                          : "bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white border-orange-300 hover:border-orange-400"
+                        selectedAnswer === 'WAIT' && (streetScenario || currentScenario)?.correctAnswer === 'WAIT'
+                          ? "bg-gradient-to-r from-green-400 via-green-500 to-green-600 text-white border-green-300 scale-105 shadow-xl animate-success-pulse"
+                          : selectedAnswer === 'WAIT' && (streetScenario || currentScenario)?.correctAnswer !== 'WAIT'
+                          ? "bg-gradient-to-r from-red-400 via-red-500 to-red-600 text-white border-red-300 scale-105 shadow-xl animate-pulse"
+                          : "bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 hover:from-orange-600 hover:via-orange-700 hover:to-orange-800 text-white border-orange-300 hover:border-orange-400"
                       } 
-                      text-3xl font-bold py-8 px-16 rounded-3xl cursor-pointer transition-all duration-300 border-4 shadow-2xl transform
-                      focus:outline-none focus:ring-6 focus:ring-orange-300
-                      ${!isAnswered ? 'hover:scale-110 hover:shadow-3xl' : ''}
-                      min-w-[200px] flex flex-col items-center justify-center
+                      text-xl font-bold py-6 px-12 rounded-2xl transition-all duration-300 border-3 shadow-lg transform
+                      focus:outline-none focus:ring-4 focus:ring-orange-300/50
+                      ${(!isAnswered && !showStreetFeedback) ? 'hover:scale-105 hover:shadow-xl cursor-pointer active:scale-100' : 'cursor-not-allowed opacity-60'}
+                       min-w-[270px] min-h-[180px] flex flex-col items-center justify-center
                     `}
                   >
-                    <span className="text-6xl mb-2">✋</span>
-                    <span>WAIT</span>
+                    {/* Button glow effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/15 via-white/8 to-transparent opacity-40 rounded-2xl group-hover:opacity-60 transition-opacity"></div>
+                    
+                    {/* Animated stop hand icon */}
+                    <span className="text-4xl mb-2 relative z-10 animate-pulse-gentle group-hover:animate-bounce">
+                      ✋
+                    </span>
+                    <span className="relative z-10 text-lg font-black">WAIT HERE</span>
+                  
+                    
+                    {/* Safety shield icon */}
+                    <div className="absolute top-2 right-2 text-lg opacity-50 group-hover:opacity-80 transition-opacity">
+                      🛡️
+                    </div>
                   </button>
                 </div>
 
-                {/* Score Display */}
-                <div className="text-center">
-                  <div className="inline-flex bg-green-100 rounded-full px-6 py-3 border-2 border-green-300">
-                    <span className="text-xl font-bold text-green-800 flex items-center space-x-2">
-                      <span className="text-2xl">🏆</span>
+                {/* 🏆 ENHANCED SCORE & PROGRESS DISPLAY 🏆 */}
+                <div className="text-center space-y-4">
+                  {/* <div className="inline-flex bg-gradient-to-r from-green-100 via-blue-100 to-green-100 rounded-full px-8 py-4 border-3 border-green-300 shadow-xl">
+                    <span className="text-2xl font-bold text-green-800 flex items-center space-x-4">
+                      <span className="text-4xl animate-bounce-gentle">🏆</span>
                       <span>Safety Score: {streetScore}/5</span>
-                      <span className="text-2xl animate-pulse-gentle">🚦</span>
+                      <span className="text-4xl animate-pulse-gentle">🚦</span>
                     </span>
                   </div>
+                   */}
+                  {/* Encouraging Progress Message */}
+                  {/* <div className="mt-4">
+                    <span className={`text-lg font-bold px-6 py-2 rounded-full shadow-lg ${
+                      streetScore === 5 ? 'bg-gold-100 text-gold-800 border-2 border-gold-300' :
+                      streetScore >= 4 ? 'bg-green-100 text-green-800 border-2 border-green-300' :
+                      streetScore >= 3 ? 'bg-blue-100 text-blue-800 border-2 border-blue-300' :
+                      streetScore >= 2 ? 'bg-purple-100 text-purple-800 border-2 border-purple-300' :
+                      'bg-pink-100 text-pink-800 border-2 border-pink-300'
+                    }`}>
+                      {streetScore === 5 ? "🌟 PERFECT SAFETY CHAMPION! 🌟" :
+                       streetScore >= 4 ? "🎉 EXCELLENT STREET SAFETY! 🎉" :
+                       streetScore >= 3 ? "💪 GREAT JOB LEARNING! 💪" :
+                       streetScore >= 2 ? "📚 KEEP GOING! YOU'RE LEARNING! 📚" :
+                       streetScore >= 1 ? "🌱 EVERY STEP MAKES YOU SAFER! 🌱" :
+                       "🚀 LET'S LEARN TOGETHER! 🚀"}
+                    </span>
+                  </div> */}
+                  
+                  {/* Safety Tips */}
+                  {/* <div className="mt-4 max-w-2xl mx-auto">
+                    <div className="bg-blue-50 rounded-2xl p-4 border-2 border-blue-200">
+                      <div className="text-blue-700 font-semibold text-sm">
+                        💡 <strong>Safety Reminder:</strong> Always look both ways, wait for the green light, and watch for cars before crossing!
+                      </div>
+                    </div>
+                  </div> */}
                 </div>
               </div>
             </div>
@@ -2902,7 +3668,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           ) : isCashierGame ? (
             <div className="space-y-6">
               {/* Main Game Area */}
-              <div className="bg-gradient-to-b from-blue-50 to-green-50 rounded-3xl p-4 -mt-2 border-4 border-blue-200 relative">
+              <div className="bg-gradient-to-b from-blue-50 to-green-50 rounded-3xl p-4 border-4 border-blue-200 relative">
                 
                 {/* Characters with simplified design */}
                 <div className="flex justify-between items-center relative min-h-[300px]">
@@ -3090,15 +3856,15 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                           <div className="w-0 h-0 border-l-8 border-r-8 border-t-16 border-l-transparent border-r-transparent border-t-white"></div>
                         </div>
                       </div>
-                    )}
+                    )}  
                     
                     {/* Student Character - Head only */}
                     <div className="text-center">
                       {/* Head - larger */}
-                      <div className="text-[12rem] mb-4">👦</div>
+                      <div className="text-[11rem] ">👦</div>
                       
                       {/* Label */}
-                      <div className="bg-blue-500 text-white px-8 py-4 rounded-full text-2xl font-bold shadow-lg">
+                      <div className="bg-blue-500 text-white px-8 py-3 -mt-6 rounded-full text-2xl font-bold shadow-lg">
                         You
                       </div>
                     </div>
@@ -3120,7 +3886,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   <div className="flex flex-col items-center relative">
                     {/* Speech Bubble for Other Character */}
                     {currentGreetingScenario?.otherCharacterSpeech && (
-                      <div className="absolute -top-32 left-1/2 transform -translate-x-1/2 bg-white rounded-3xl p-8 border-4 border-pink-300 shadow-2xl max-w-lg z-10 animate-bounce-gentle">
+                      <div className="absolute -top-15 left-1/2 transform -translate-x-1/2 bg-white rounded-3xl p-4 border-4 border-pink-300 shadow-2xl w-[250px] z-10 animate-bounce-gentle">
                         <div className="text-xl font-bold text-gray-800 text-center leading-relaxed">
                           {currentGreetingScenario.otherCharacterSpeech}
                         </div>
@@ -3134,12 +3900,12 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                     {/* Other Character - Head only */}
                     <div className="text-center">
                       {/* Head - larger */}
-                      <div className="text-[12rem] mb-4">
+                      <div className="text-[11rem]">
                         {currentGreetingScenario?.character}
                       </div>
                       
                       {/* Label */}
-                      <div className="bg-pink-500 text-white px-8 py-4 rounded-full text-2xl font-bold shadow-lg">
+                      <div className="bg-pink-500 text-white px-4 -mt-6 py-3 rounded-full text-2xl font-bold shadow-lg">
                         {currentGreetingScenario?.characterType}
                       </div>
                     </div>
@@ -3149,27 +3915,27 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {/* Scenario Title and Context */}
                 <div className="text-center mb-6">
                   <div className="bg-gradient-to-r from-purple-100 to-blue-100 border-4 border-purple-300 rounded-2xl p-6">
-                    <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                    {/* <h2 className="text-xl font-bold text-gray-800 mb-2">
                       🌟 Social Greetings Adventure 🌟
-                    </h2>
-                    <p className="text-xl font-semibold text-gray-700">
+                    </h2> */}
+                    <p className="text-xl -mt-3 font-bold text-gray-800">
                       Round {greetingsRound}/5 - {currentGreetingScenario?.title}
                     </p>
-                    <p className="text-lg text-gray-600 mt-2">
+                    <p className="text-lg text-gray-600">
                       {currentGreetingScenario?.situation}
                     </p>
                   </div>
                 </div>
 
                 {/* Greeting Choice Buttons */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                   {currentGreetingScenario?.choices?.map((choice, index) => (
                     <button
                       key={index}
                       onClick={() => handleGreetingAnswer(choice)}
                       disabled={greetingAnswered}
                       className={`
-                        p-6 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg border-4
+                        p-2 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg border-4
                         ${choice.correct && greetingAnswered 
                           ? 'bg-green-100 border-green-400 text-green-800' 
                           : !choice.correct && greetingAnswered
@@ -3190,115 +3956,77 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   ))}
                 </div>
 
-                {/* Feedback Section */}
-                {greetingAnswered && (
-                  <div className="bg-gradient-to-r from-blue-100 to-green-100 border-4 border-blue-300 rounded-2xl p-6 text-center">
-                    <div className="text-6xl mb-4">
-                      {greetingSelectedChoice?.correct ? '🎉' : '🤔'}
-                    </div>
-                    <div className="text-2xl font-bold text-gray-800 mb-3">
-                      {greetingSelectedChoice?.correct ? 'Excellent greeting!' : 'Let\'s try again!'}
-                    </div>
-                    <div className="text-lg text-gray-700 mb-4">
-                      {greetingSelectedChoice?.feedback}
-                    </div>
-                    {greetingSelectedChoice?.correct && (
-                      <div className="text-xl font-bold text-green-600">
-                        +20 points! 🌟 (Score: {greetingsScore}/100)
-                      </div>
-                    )}
-                  </div>
-                )}
+               
 
-                {/* Progress Bar */}
-                <div className="bg-gray-200 rounded-full h-4 mb-4">
-                  <div 
-                    className="bg-gradient-to-r from-green-400 to-blue-500 h-4 rounded-full transition-all duration-500"
-                    style={{ width: `${(greetingsScore / 100) * 100}%` }}
-                  ></div>
-                </div>
-                <div className="text-center text-lg font-semibold text-gray-700">
-                  Progress: {greetingsScore}/100 points
-                </div>
+              
               </div>
             </div>
           ) : isMoneyGame ? (
-            <div className="space-y-6">
+            <div className="space-y-6 -mt-5">
               {/* Money Value Game Main Area */}
-              <div className="bg-gradient-to-b from-green-50 to-blue-50 rounded-3xl p-6 border-4 border-green-200 relative overflow-hidden">
+              <div className="bg-gradient-to-b from-green-50 to-blue-50 rounded-3xl p-4 border-4 border-green-200 relative overflow-hidden">
                 
                 {/* Game Header */}
                 <div className="text-center mb-6">
                   <div className="bg-gradient-to-r from-yellow-100 to-green-100 border-4 border-yellow-300 rounded-2xl p-6 relative">
                     <div className="absolute -top-2 -right-2 text-6xl animate-bounce-gentle">💰</div>
                     <div className="absolute -top-2 -left-2 text-4xl animate-float">🏪</div>
-                    <h2 className="text-4xl font-bold text-gray-800 mb-2">
+                    <h2 className="text-xl font-bold text-gray-800 mb-2">
                       💱 Money Value Adventure 💱
                     </h2>
-                    <p className="text-xl font-semibold text-gray-700">
+                    <p className="text-lg font-semibold -mb-4 text-gray-700">
                       Round {moneyRound}/3 - Learn Philippine Peso Values!
                     </p>
                   </div>
                 </div>
 
                 {/* Budget Display */}
-                <div className="bg-gradient-to-r from-blue-100 to-purple-100 border-4 border-blue-300 rounded-2xl p-6 mb-6 text-center relative">
+                <div className="bg-gradient-to-r from-blue-100 to-purple-100 border-4 border-blue-300 rounded-2xl p-3 mb-6 text-center relative">
                   <div className="absolute -top-3 -left-3 text-5xl animate-pulse-gentle">💳</div>
-                  <h3 className="text-3xl font-bold text-gray-800 mb-3">Your Budget</h3>
-                  <div className="text-6xl font-extrabold text-green-600 bg-white/70 backdrop-blur-sm rounded-xl p-4 border-2 border-green-200">
+                  <h3 className="text-2xl font-bold text-gray-800 mb-3">Your Budget</h3>
+                  <div className="text-4xl font-extrabold text-green-600 bg-white/70 backdrop-blur-sm rounded-xl p-2 border-2 border-green-200">
                     ₱{currentBudget.toLocaleString()}
                   </div>
                   <p className="text-lg text-gray-600 mt-3">Choose items you can afford!</p>
                 </div>
 
-                {/* Shopping Items */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {/* Shopping Items - 4 items in 1 horizontal row */}
+                <div className="grid grid-cols-4 gap-3 mb-3">
                   {currentMoneyItems.map((item, index) => {
-                    const isAffordable = item.price <= currentBudget;
                     const isPurchased = selectedPurchases.some(p => p.id === item.id);
                     
                     return (
                       <div
                         key={item.id}
                         className={`
-                          relative bg-white/90 backdrop-blur-xl rounded-2xl p-6 border-4 shadow-xl transition-all duration-300 transform hover:scale-105
-                          ${isAffordable ? 'border-green-300 hover:border-green-500' : 'border-gray-300 hover:border-gray-400'}
-                          ${isPurchased ? 'ring-4 ring-green-400 bg-green-50' : ''}
+                          relative bg-white/90 backdrop-blur-xl rounded-lg p-4 border-2 shadow transition-all duration-300
+                          border-blue-300 hover:border-blue-500
+                          ${isPurchased ? 'ring-2 ring-green-400 bg-green-50' : ''}
                         `}
                       >
-                        {/* Affordability Indicator */}
-                        <div className={`absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center text-xl ${
-                          isAffordable ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                        }`}>
-                          {isAffordable ? '✓' : '❌'}
-                        </div>
-                        
                         {/* Item Display */}
                         <div className="text-center">
-                          <div className="text-8xl mb-4">{item.image}</div>
-                          <h4 className="text-2xl font-bold text-gray-800 mb-3">{item.name}</h4>
-                          <div className={`text-3xl font-bold mb-4 p-3 rounded-xl ${
-                            isAffordable ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100'
-                          }`}>
+                          <div className="mb-1" style={{ fontSize: '55px' }}>{item.image}</div>
+                          <h4 className="font-bold text-gray-800 mb-1 leading-tight" style={{ fontSize: '23px' }}>{item.name}</h4>
+                          <div className="font-bold mb-2 p-1 rounded text-green-600 bg-blue-100" style={{ fontSize: '18px' }}>
                             ₱{item.price.toLocaleString()}
                           </div>
                           
-                          {/* Purchase Button */}
+                          {/* Purchase Button - all buttons look the same */}
                           <button
                             onClick={() => handlePurchaseItem(item)}
                             disabled={isPurchased || isRoundComplete}
                             className={`
-                              w-full py-4 px-6 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 shadow-lg
+                              w-full py-1 px-2 rounded font-bold transition-all duration-300 shadow-sm
                               ${isPurchased 
                                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                                : isAffordable
-                                  ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white cursor-pointer'
-                                  : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white cursor-pointer'
+                                : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white cursor-pointer'
                               }
                               ${isRoundComplete ? 'opacity-50 cursor-not-allowed' : ''}
                             `}
+                            style={{ fontSize: '18px' }}
                           >
-                            {isPurchased ? '✅ Purchased!' : '🛒 Purchase'}
+                            {isPurchased ? '✅ Bought!' : '🛒 Buy'}
                           </button>
                         </div>
                       </div>
@@ -3680,6 +4408,246 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   </div>
                 )}
               </div>
+            </div>
+          ) : isChoreGame ? (
+            /* Modern Interactive Household Chores Helper */
+            <div className="max-w-5xl mx-auto space-y-4 md:space-y-6 px-4">
+              {/* Clean Header with Animation */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 md:p-6 shadow-lg border border-blue-200 text-center relative overflow-hidden"
+                   role="banner" aria-live="polite">
+                <div className="absolute top-2 right-2 text-2xl md:text-3xl animate-bounce">🏠</div>
+                <div className="absolute bottom-2 left-2 text-xl md:text-2xl animate-pulse">✨</div>
+                <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                  {questions.find(q => q.choreId === currentChoreId)?.choreName || 'Household Chores'}
+                </h3>
+                <div className="text-xs md:text-sm font-medium text-gray-600 bg-white rounded-full px-3 md:px-4 py-1 inline-block">
+                  Step {currentChoreStep + 1} of {questions.find(q => q.choreId === currentChoreId)?.steps?.length || 0}
+                </div>
+              </div>
+
+              {/* Interactive Question Card */}
+              {(() => {
+                const choreData = questions.find(q => q.choreId === currentChoreId);
+                const currentStep = choreData?.steps?.[currentChoreStep];
+                
+                // Better error handling
+                if (!currentStep || !choreData) {
+                  return (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
+                      <div className="text-4xl mb-4">⚠️</div>
+                      <div className="text-red-800 font-semibold">Oops! Something went wrong.</div>
+                      <div className="text-red-600 text-sm mt-2">Unable to load the current step. Please try again.</div>
+                    </div>
+                  );
+                }
+
+                // Enhanced choice generation with better educational options
+                const generateChoices = (step, choreData) => {
+                  const correctAnswer = step.instruction;
+                  
+                  // Create contextual wrong answers based on the chore type
+                  const choreSpecificWrongAnswers = {
+                    "washing_dishes": [
+                      "🔥 Put dishes in microwave",
+                      "❄️ Put dishes in freezer", 
+                      "🧹 Sweep the dishes",
+                      "📱 Take a photo first",
+                      "🛏️ Put dishes on bed"
+                    ],
+                    "sweeping_floor": [
+                      "💦 Pour water on dirt",
+                      "🍽️ Eat the dirt",
+                      "📺 Watch TV instead",
+                      "🛏️ Sleep on the floor",
+                      "🎵 Dance on the dirt"
+                    ],
+                    "making_bed": [
+                      "🔥 Set bed on fire",
+                      "💦 Pour water on bed",
+                      "🍕 Put pizza on pillow",
+                      "🐱 Let cat sleep there",
+                      "📚 Stack books on bed"
+                    ]
+                  };
+
+                  const currentChoreWrongAnswers = choreSpecificWrongAnswers[choreData.choreId] || [
+                    "🚫 Skip this step completely",
+                    "⏰ Do it much later",
+                    "👥 Ask someone else to do it",
+                    "📱 Google how to do it",
+                    "🎮 Play games instead"
+                  ];
+
+                  // Get 3 random wrong answers
+                  const shuffledWrongAnswers = [...currentChoreWrongAnswers].sort(() => Math.random() - 0.5);
+                  const wrongAnswers = shuffledWrongAnswers.slice(0, 3);
+
+                  // Combine and shuffle all choices
+                  const allChoices = [correctAnswer, ...wrongAnswers];
+                  return allChoices.sort(() => Math.random() - 0.5);
+                };
+
+                const choices = generateChoices(currentStep, choreData);
+
+                return (
+                  <div className="bg-white rounded-xl p-8 shadow-xl border border-gray-100 relative overflow-hidden">
+                    {/* Decorative background elements */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-100/30 to-transparent rounded-full -mr-16 -mt-16"></div>
+                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-100/30 to-transparent rounded-full -ml-12 -mb-12"></div>
+                    
+                    {/* Question Section */}
+                    <div className="text-center mb-8 md:mb-10 relative z-10">
+                      <div className="text-6xl md:text-8xl mb-4 md:mb-6 animate-bounce-gentle">
+                        {currentStep.emoji || choreData.choreIcon || '🏠'}
+                      </div>
+                      <h4 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 leading-relaxed px-4">
+                        What's the next step for {choreData.choreName.toLowerCase()}?
+                      </h4>
+                      <div className="w-12 md:w-16 h-1 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full mx-auto"></div>
+                    </div>
+
+                    {/* Interactive Answer Choices */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
+                      {choices.map((choice, index) => (
+                        <button
+                          key={index}
+                          disabled={showChoreFeedback}
+                          onClick={() => {
+                            if (showChoreFeedback) return; // Prevent multiple clicks
+                            
+                            const isCorrect = choice === currentStep.instruction;
+                            
+                            // Always move to next question regardless of answer
+                            if (isCorrect) {
+                              setScore(prev => prev + 1);
+                              setShowCorrect(true);
+                              setShowChoreFeedback(true);
+                              setChoreFeedbackMessage(currentStep.feedback || "Perfect! Great job! 🌟");
+                              setChoreFeedbackType('correct');
+                              setCompletedChoreSteps(prev => [...prev, currentChoreStep]);
+                            } else {
+                              setShowChoreFeedback(true);
+                              setChoreFeedbackMessage(`Not quite! The correct step was: ${currentStep.instruction}`);
+                              setChoreFeedbackType('incorrect');
+                            }
+                            
+                            // Auto-advance to next question after 2.5 seconds
+                            setTimeout(() => {
+                              if (currentChoreStep < choreData.steps.length - 1) {
+                                setCurrentChoreStep(prev => prev + 1);
+                              } else {
+                                setIsChoreComplete(true);
+                              }
+                              setShowCorrect(false);
+                              setShowChoreFeedback(false);
+                            }, 2500);
+                          }}
+                          className={`group transition-all duration-300 transform focus:outline-none focus:ring-4 focus:ring-blue-300 relative overflow-hidden rounded-xl p-6 text-left ${
+                            showChoreFeedback 
+                              ? 'cursor-not-allowed opacity-60' 
+                              : 'hover:scale-105 hover:shadow-lg cursor-pointer bg-gradient-to-r from-gray-50 to-blue-50 hover:from-blue-100 hover:to-purple-100 border-2 border-gray-200 hover:border-blue-400'
+                          }`}
+                          aria-label={`Choice ${String.fromCharCode(65 + index)}: ${choice}`}
+                        >
+                          {/* Button highlight effect */}
+                          {!showChoreFeedback && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                          )}
+                          
+                          <div className="relative z-10 flex items-center space-x-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all duration-300 ${
+                              showChoreFeedback && choice === currentStep.instruction
+                                ? 'bg-gradient-to-r from-green-500 to-emerald-500 animate-bounce-gentle'
+                                : showChoreFeedback
+                                ? 'bg-gray-400'
+                                : 'bg-gradient-to-r from-blue-400 to-purple-400'
+                            }`}>
+                              {showChoreFeedback && choice === currentStep.instruction ? '✓' : String.fromCharCode(65 + index)}
+                            </div>
+                            <div className={`font-semibold text-lg leading-relaxed transition-colors duration-300 ${
+                              showChoreFeedback && choice === currentStep.instruction
+                                ? 'text-green-800'
+                                : showChoreFeedback
+                                ? 'text-gray-500'
+                                : 'text-gray-800'
+                            }`}>
+                              {choice}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Enhanced Progress Section */}
+              
+
+              {/* Enhanced Feedback Display with Loading State */}
+              {showChoreFeedback && choreFeedbackMessage && (
+                <div className={`rounded-xl p-4 md:p-6 text-center shadow-lg border-2 transform transition-all duration-300 animate-fade-in ${
+                  choreFeedbackType === 'correct' 
+                    ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 text-green-800'
+                    : 'bg-gradient-to-r from-red-50 to-pink-50 border-red-300 text-red-800'
+                }`} role="alert" aria-live="assertive">
+                  <div className="text-3xl md:text-4xl mb-2">
+                    {choreFeedbackType === 'correct' ? '🎉' : '💡'}
+                  </div>
+                  <div className="text-base md:text-lg font-semibold mb-2">{choreFeedbackMessage}</div>
+                  {choreFeedbackType === 'incorrect' && (
+                    <div className="text-xs md:text-sm mt-2 opacity-80 flex items-center justify-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      <span>Moving to next step...</span>
+                    </div>
+                  )}
+                  {choreFeedbackType === 'correct' && (
+                    <div className="text-xs md:text-sm mt-2 opacity-80 flex items-center justify-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      <span>Great! Moving to next step...</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Interactive Navigation */}
+              <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-4 px-4">
+                {isChoreComplete && (
+                  <button
+                    onClick={() => {
+                      if (currentQuestionIndex < questions.length - 1) {
+                        setCurrentQuestionIndex(prev => prev + 1);
+                        resetChoreState();
+                      } else {
+                        setShowModal(true);
+                      }
+                    }}
+                    className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-base md:text-lg transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2"
+                    aria-label={currentQuestionIndex < questions.length - 1 ? "Continue to next chore challenge" : "Complete the mission"}
+                  >
+                    <span className="text-xl md:text-2xl">
+                      {currentQuestionIndex < questions.length - 1 ? "🎯" : "🏆"}
+                    </span>
+                    <span className="text-center">
+                      {currentQuestionIndex < questions.length - 1 ? "Next Chore Challenge" : "Complete Mission"}
+                    </span>
+                  </button>
+                )}
+                
+               
+              </div>
+
+              {/* Enhanced Success Celebration */}
+              {showCorrect && isChoreComplete && (
+                <div className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 border-2 border-green-300 rounded-xl p-8 text-center shadow-xl relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-green-100/20 via-blue-100/20 to-purple-100/20 animate-pulse"></div>
+                  <div className="relative z-10">
+                    <div className="text-6xl mb-4 animate-bounce">🎉</div>
+                    <div className="text-green-800 text-2xl font-bold mb-2">Fantastic Work!</div>
+                    <div className="text-green-700 text-lg">You've mastered this household chore! 🌟</div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : null}
         </div>
@@ -4160,6 +5128,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         </div>
       )}
 
+
+
       {/* Badge Preview Notification */}
       {showBadgePreview && previewBadge && (
         <div className="fixed top-20 right-4 z-40 animate-slide-in-right">
@@ -4403,7 +5373,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       )}
       
       {/* Custom Styles for Autism-Friendly Animations */}
-      <style jsx>{`
+      <style>{`
         /* Gentle floating animations */
         @keyframes float {
           0%, 100% { 
