@@ -334,7 +334,7 @@ const HomePage = () => {
         student_id: currentStudent.id, // This is now UUID from students table
         emotion: selectedEmotion.toLowerCase(),
         intensity: selectedLevel,
-        note: (isNegativeHigh && note) ? note.trim() : null
+        note: (isNegativeHigh && emotionNote) ? emotionNote.trim() : null
       };
 
       console.log('Submitting expression:', expressionData);
@@ -380,14 +380,14 @@ const HomePage = () => {
 
       // Check if this is a high-intensity negative emotion that needs an alert
       if (isNegativeHigh) {
-        await createAlert(userProfile.id, selectedEmotion, selectedLevel, expressionResult.id, note);
+        await createAlert(userProfile.id, selectedEmotion, selectedLevel, expressionResult.id, emotionNote);
       }
       
       // Don't add to local state immediately - let the refresh handle it
       // This ensures we're showing data from the database, not local state
       setShowModal(false);
       setSelectedLevel(3);
-      setNote('');
+      setEmotionNote('');
       
       // Refresh expressions from database to show the new one
       console.log('Refreshing expressions from database...');
@@ -831,20 +831,24 @@ const HomePage = () => {
                   </p> */}
                 </div>
 
-                {/* Optional Note Section */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Note (Optional)
-                  </label>
-                  <textarea
-                    value={emotionNote}
-                    onChange={(e) => setEmotionNote(e.target.value)}
-                    placeholder="why?"
-                    className="w-full h-16 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 resize-none text-gray-700 placeholder-gray-400"
-                    maxLength={100}
-                  />
-                  
-                </div>
+                {/* Optional Note Section - Only for negative emotions with high intensity */}
+                {(selectedEmotion === 'Sad' || selectedEmotion === 'Angry') && selectedLevel >= 4 && (
+                  <div className="space-y-2 mt-6">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Would you like to tell us why you're feeling this way? (Optional)
+                    </label>
+                    <textarea
+                      value={emotionNote}
+                      onChange={(e) => setEmotionNote(e.target.value)}
+                      placeholder="What made you feel this way? You can share if you want to..."
+                      className="w-full h-20 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 resize-none text-gray-700 placeholder-gray-400"
+                      maxLength={200}
+                    />
+                    <div className="text-xs text-gray-500 text-right">
+                      {emotionNote.length}/200 characters
+                    </div>
+                  </div>
+                )}
               </div>
 
             
@@ -855,6 +859,7 @@ const HomePage = () => {
                   onClick={() => {
                     setShowModal(false);
                     setEmotionNote("");
+                    setSelectedLevel(3);
                   }}
                   className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
