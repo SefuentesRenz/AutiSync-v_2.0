@@ -394,7 +394,6 @@ const HomePage = () => {
       await fetchExpressions();
       
       console.log('Emotion submitted and refreshed successfully!');
-      alert('Emotion submitted successfully!');
     } catch (error) {
       console.error('Unexpected error saving expression:', error);
       alert('An unexpected error occurred. Please try again.');
@@ -602,45 +601,48 @@ const HomePage = () => {
                   <span className="text-4xl mr-3 animate-float">📖</span>
                   Community Expression Wall
                 </h2>
-                
+                <p className="text-sm text-gray-500 italic">Scroll down to see more emotions shared! 👇</p>
               </div>
               
-              <div className="grid md:grid-cols-4 gap-6">
-                {expressions.map((expr, index) => (
-                  <div 
-                    key={index} 
-                    className="card-autism-friendly bg-gradient-to-r from-blue-100 to-white p-6 rounded-2xl shadow-lg border-l-4 border-blue-500 w-82"
-                    style={{animationDelay: `${index * 0.1}s`}}
-                  >
-                    {/* Emotions shared container */}```
-                    <div className="flex items-center space-x-4">                
-                      <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg">
-                        <img
-                          src={expr.image}
-                          alt={expr.emotion}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <span className="text-xl font-bold text-gray-800">{expr.emotion}</span>
-                          <div className={`px-3 py-1 ${getLevelColor(expr.level)} rounded-full text-white text-sm font-semibold flex items-center space-x-1`}>
-                            <span>Level {expr.level}</span>
-                          </div>
+              {/* Scrollable container - shows 3 rows, scroll for more */}
+              <div className="max-h-[350px] overflow-y-auto pr-2 scrollbar-autism-friendly">
+                <div className="grid md:grid-cols-4 gap-6">
+                  {expressions.map((expr, index) => (
+                    <div 
+                      key={index} 
+                      className="card-autism-friendly bg-gradient-to-r from-blue-100 to-white p-6 rounded-2xl shadow-lg border-l-4 border-blue-500 w-82"
+                      style={{animationDelay: `${index * 0.1}s`}}
+                    >
+                      {/* Emotions shared container */}
+                      <div className="flex items-center space-x-4">                
+                        <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg">
+                          <img
+                            src={expr.image}
+                            alt={expr.emotion}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
-                        
-                        <p className="text-gray-700 mb-2">{expr.description}</p>
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-lg">👤</span>
-                            <span className="text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded-lg">{expr.userName}</span>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <span className="text-xl font-bold text-gray-800">{expr.emotion}</span>
+                            <div className={`px-3 py-1 ${getLevelColor(expr.level)} rounded-full text-white text-sm font-semibold flex items-center space-x-1`}>
+                              <span>Level {expr.level}</span>
+                            </div>
                           </div>
-                          <span className="text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">{expr.time}</span>
+                          
+                          <p className="text-gray-700 mb-2">{expr.description}</p>
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-lg">👤</span>
+                              <span className="text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded-lg">{expr.userName}</span>
+                            </div>
+                            <span className="text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">{expr.time}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
             
@@ -996,12 +998,50 @@ const HomePage = () => {
           animation: shimmer 2s ease-in-out infinite;
         }
         
+        /* Autism-friendly scrollbar for Community Expression Wall */
+        .scrollbar-autism-friendly::-webkit-scrollbar {
+          width: 12px;
+        }
+        
+        .scrollbar-autism-friendly::-webkit-scrollbar-track {
+          background: linear-gradient(to bottom, #e0f2fe, #ddd6fe);
+          border-radius: 10px;
+          margin: 4px 0;
+        }
+        
+        .scrollbar-autism-friendly::-webkit-scrollbar-thumb {
+          background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
+          border-radius: 10px;
+          border: 2px solid #e0f2fe;
+          transition: all 0.3s ease;
+        }
+        
+        .scrollbar-autism-friendly::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(to bottom, #2563eb, #7c3aed);
+          transform: scale(1.1);
+        }
+        
+        /* For Firefox */
+        .scrollbar-autism-friendly {
+          scrollbar-width: thin;
+          scrollbar-color: #8b5cf6 #e0f2fe;
+        }
+        
+        /* Smooth scrolling behavior */
+        .scrollbar-autism-friendly {
+          scroll-behavior: smooth;
+        }
+        
         /* Accessibility: Reduce motion for users who prefer it */
         @media (prefers-reduced-motion: reduce) {
           * {
             animation-duration: 0.01ms !important;
             animation-iteration-count: 1 !important;
             transition-duration: 0.01ms !important;
+          }
+          
+          .scrollbar-autism-friendly {
+            scroll-behavior: auto;
           }
         }
       `}</style>

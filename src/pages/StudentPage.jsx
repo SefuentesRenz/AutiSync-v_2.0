@@ -163,9 +163,7 @@ const StudentPage = () => {
             </nav>
             
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600 font-medium">
-                {currentTime.toLocaleTimeString()}
-              </div>
+              
               <div 
                 onClick={goToProfile}
                 className="cursor-pointer group flex items-center space-x-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-2 hover:shadow-lg transition-all duration-300"

@@ -25,7 +25,9 @@ const FlashcardsPage = () => {
     showChatBar,
     setShowChatBar,
     roomNumber,
-    setRoomNumber
+    setRoomNumber,
+    joinRoom,
+    isJoining
   } = useChat();
 
   // Handle category selection
@@ -84,13 +86,23 @@ const FlashcardsPage = () => {
   };
 
   // Function to handle "Join" button click
-  const handleJoinClick = () => {
-    if (roomNumber) {
-      setShowModal(false);
-      setShowChatBar(true);
-    } else {
+  const handleJoinClick = async () => {
+    if (!roomNumber || !roomNumber.trim()) {
       alert('Please enter a valid room number');
+      return;
     }
+
+    const { room, error } = await joinRoom(roomNumber);
+    
+    if (error) {
+      console.error('Failed to join room:', error);
+      alert(error.message || 'Failed to join room. Please try again.');
+      return;
+    }
+
+    // Success - close modal
+    setShowModal(false);
+    console.log('Successfully joined room:', room);
   };
 
   return (
@@ -276,16 +288,29 @@ const FlashcardsPage = () => {
               
               <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
                 <button
-                  className="flex-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 hover:from-purple-600 hover:via-pink-600 hover:to-purple-700 text-white px-6 py-4 rounded-2xl font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center justify-center space-x-3"
+                  className={`flex-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 hover:from-purple-600 hover:via-pink-600 hover:to-purple-700 text-white px-6 py-4 rounded-2xl font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center justify-center space-x-3 ${
+                    isJoining ? 'opacity-70 cursor-not-allowed' : ''
+                  }`}
                   onClick={handleJoinClick}
+                  disabled={isJoining}
                 >
-                  <span className="text-2xl animate-bounce-gentle">🚀</span>
-                  <span>Join Room</span>
-                  <span className="text-xl animate-pulse">✨</span>
+                  {isJoining ? (
+                    <>
+                      <span className="text-2xl animate-spin">⏳</span>
+                      <span>Joining...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-2xl animate-bounce-gentle">🚀</span>
+                      <span>Join Room</span>
+                      <span className="text-xl animate-pulse">✨</span>
+                    </>
+                  )}
                 </button>
                 <button
                   className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 px-6 py-4 rounded-2xl font-bold transition-all duration-300 transform hover:scale-105 shadow-lg"
                   onClick={() => setShowModal(false)}
+                  disabled={isJoining}
                 >
                   Cancel
                 </button>

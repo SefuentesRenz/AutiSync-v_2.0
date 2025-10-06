@@ -3764,14 +3764,14 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   return (
   <div className="relative">
   {/* Debug Test Button */}
-  <div className="mb-4 text-center">
+  {/* <div className="mb-4 text-center">
     <button
       onClick={testActivityCompletion}
       className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold"
     >
       🧪 Test Activity Completion
     </button>
-  </div>
+  </div> */}
   
   {/* Flashcard Container */}
   <div className="w-270 bg-white/90 backdrop-blur-xl rounded-3xl mx-auto shadow-2xl border border-white/20 p-6 text-center animate-fade-in-scale">
@@ -3823,11 +3823,10 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
           {/* Question with improved typography */}
           {!isCashierGame && !isHygieneGame && !isStreetGame && !isGreetingsGame && !isMoneyGame && !isMatchingGame && !isPuzzleGame && !isChoreGame && !isMemoryGame && (
-            <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-2xl p-6 mb-6 border-2 border-purple-200/30 shadow-lg">
               <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 leading-relaxed">
                 {questions[currentQuestionIndex].questionText}
               </h2>
-            </div>
+            
           )}
 
           {/* Image/Video with modern container */}
