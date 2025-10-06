@@ -26,6 +26,7 @@ const Tracking = () => {
         if (progressResult.error) {
           console.error('Error fetching progress:', progressResult.error);
         } else {
+          console.log('📊 Admin Dashboard - Progress data received:', progressResult.data);
           setProgressData(progressResult.data);
         }
 
@@ -107,15 +108,13 @@ const Tracking = () => {
     let scoresCount = 0;
     let completedActivities = 0;
 
-    progressData.forEach(student => {
-      if (student.stats) {
-        totalSessions += student.stats.total_sessions || 0;
-        if (student.stats.average_score !== null) {
-          totalScore += student.stats.average_score;
-          scoresCount++;
-        }
-        completedActivities += student.stats.activities_completed || 0;
+    progressData.students.forEach(student => {
+      totalSessions += student.totalActivities || 0;
+      if (student.averageScore !== null && student.averageScore > 0) {
+        totalScore += student.averageScore;
+        scoresCount++;
       }
+      completedActivities += student.completedActivities || 0;
     });
 
     const averageScore = scoresCount > 0 ? (totalScore / scoresCount).toFixed(1) : '0';
@@ -159,7 +158,7 @@ const Tracking = () => {
       {
         title: 'ACTIVE STUDENTS',
         value: activeStudents,
-        change: `${progressData ? progressData.length : 0} with progress`,
+        change: `${progressData?.students ? progressData.students.length : 0} with progress`,
         icon: <UsersIcon className="w-8 h-8 text-indigo-600" />,
         bgColor: 'bg-indigo-50',
         textColor: 'text-indigo-600'
@@ -171,7 +170,7 @@ const Tracking = () => {
 
   // Calculate category progress from real data
   const calculateCategoryProgress = () => {
-    if (!progressData || !activities.length) return [];
+    if (!progressData?.students || !activities.length) return [];
     
     const categoryStats = {};
     
@@ -191,10 +190,10 @@ const Tracking = () => {
     });
 
     // Calculate completion stats
-    progressData.forEach(student => {
-      if (student.recent_activities) {
-        student.recent_activities.forEach(activity => {
-          const category = activity.Activities?.category || 'Other';
+    progressData.students.forEach(student => {
+      if (student.activities) {
+        student.activities.forEach(activity => {
+          const category = activity.categoryId || 'Other';
           if (categoryStats[category]) {
             categoryStats[category].sessions++;
             if (activity.score !== null) {
@@ -239,10 +238,10 @@ const Tracking = () => {
       }
     });
 
-    progressData.forEach(student => {
-      if (student.recent_activities) {
-        student.recent_activities.forEach(activity => {
-          const difficulty = activity.Activities?.difficulty || 'Easy';
+    progressData.students.forEach(student => {
+      if (student.activities) {
+        student.activities.forEach(activity => {
+          const difficulty = activity.difficultyId || 'Easy';
           if (difficultyStats[difficulty]) {
             difficultyStats[difficulty].completed++;
           }
@@ -264,21 +263,21 @@ const Tracking = () => {
 
   // Get recent activities from real data
   const getRecentActivities = () => {
-    if (!progressData) return [];
+    if (!progressData?.students) return [];
     
     const recentActivities = [];
-    progressData.forEach(student => {
-      if (student.recent_activities && student.recent_activities.length > 0) {
-        student.recent_activities.slice(0, 2).forEach(activity => {
+    progressData.students.forEach(student => {
+      if (student.activities && student.activities.length > 0) {
+        student.activities.slice(0, 2).forEach(activity => {
           recentActivities.push({
-            title: activity.Activities?.title || 'Unknown Activity',
-            user: student.student?.user_profiles?.username || 'Unknown Student',
-            category: activity.Activities?.category || 'Other',
-            time: new Date(activity.completed_at).toLocaleString(),
-            difficulty: activity.Activities?.difficulty || 'Easy',
+            title: activity.activityTitle || 'Unknown Activity',
+            user: student.studentName || 'Unknown Student',
+            category: activity.categoryId || 'Other',
+            time: new Date(activity.dateCompleted).toLocaleString(),
+            difficulty: activity.difficultyId || 'Easy',
             score: activity.score ? `${activity.score}%` : 'No score',
-            difficultyColor: activity.Activities?.difficulty === 'Easy' ? 'bg-green-100 text-green-800' :
-                            activity.Activities?.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+            difficultyColor: activity.difficultyId === 'Easy' ? 'bg-green-100 text-green-800' :
+                            activity.difficultyId === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
                             'bg-red-100 text-red-800',
             avatar: (student.student?.user_profiles?.username || 'U').substring(0, 2).toUpperCase()
           });

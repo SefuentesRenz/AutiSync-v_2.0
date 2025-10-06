@@ -197,7 +197,7 @@ const LinkChildModal = ({ isOpen, onClose, onChildLinked }) => {
       
       // Success - call the callback
       if (onChildLinked) {
-        onChildLinked({
+        const callbackData = {
           id: studentProfile.id,
           name: (studentProfile.first_name && studentProfile.last_name) 
             ? `${studentProfile.first_name} ${studentProfile.last_name}` 
@@ -206,7 +206,9 @@ const LinkChildModal = ({ isOpen, onClose, onChildLinked }) => {
           username: studentProfile.username,
           user_id: studentProfile.user_id,
           relation_id: relationData[0]?.id
-        });
+        };
+        console.log('LinkChildModal: Calling onChildLinked with data:', callbackData);
+        onChildLinked(callbackData);
       }
       
       // Clear form and close modal after a brief delay to show success
