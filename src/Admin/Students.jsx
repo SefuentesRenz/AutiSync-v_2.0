@@ -94,6 +94,24 @@ const Students = () => {
       }));
       
       console.log('Transformed students:', transformedStudents);
+      
+      // Debug male students in the final data
+      const maleStudents = transformedStudents.filter(s => s.gender && s.gender.toLowerCase() === 'male');
+      console.log(`👥 TOTAL MALE STUDENTS LOADED: ${maleStudents.length}`);
+      maleStudents.forEach(student => {
+        console.log(`  - ${student.name} (Gender: "${student.gender}", ID: ${student.id})`);
+      });
+      
+      // Check for the specific students mentioned
+      const targetNames = ['isaiah', 'kobe', 'xaian', 'gi'];
+      console.log('🎯 Checking for target students:');
+      targetNames.forEach(name => {
+        const found = transformedStudents.find(s => 
+          s.name && s.name.toLowerCase().includes(name.toLowerCase())
+        );
+        console.log(`  ${name}: ${found ? `✅ Found - ${found.name} (${found.gender})` : '❌ NOT FOUND'}`);
+      });
+      
       setStudents(transformedStudents);
     } catch (err) {
       console.error('Error in fetchStudents:', err);
@@ -323,8 +341,25 @@ const Students = () => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || student.status.toLowerCase() === statusFilter;
     const matchesGender = genderFilter === 'all' || student.gender.toLowerCase() === genderFilter;
+    
+    // Debug male students specifically
+    if (genderFilter === 'male') {
+      console.log(`🔍 Filtering student: ${student.name}`);
+      console.log(`  - Gender: "${student.gender}" (lowercase: "${student.gender.toLowerCase()}")`);
+      console.log(`  - Matches gender filter: ${matchesGender}`);
+      console.log(`  - Final result: ${matchesSearch && matchesStatus && matchesGender}`);
+    }
+    
     return matchesSearch && matchesStatus && matchesGender;
   });
+  
+  // Debug final filtered results
+  if (genderFilter === 'male') {
+    console.log(`📊 MALE FILTER RESULTS: Found ${filteredStudents.length} male students:`);
+    filteredStudents.forEach(student => {
+      console.log(`  - ${student.name} (Gender: "${student.gender}")`);
+    });
+  }
 
   const handleBackToDashboard = () => {
     navigate('/tracking');
