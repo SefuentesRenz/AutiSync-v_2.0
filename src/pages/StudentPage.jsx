@@ -204,10 +204,10 @@ const StudentPage = () => {
           <div className="lg:col-span-1 space-y-6">
             {/* Welcome Card */}
             <div className="card-autism-friendly bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/20">
-              <div className="flex items-center mb-3">
+              <div className="flex items-center mb-4">
                 <span className="text-3xl mr-3 animate-wiggle">👋</span>
-                <div className="flex items-baseline space-x-1">
-                  <h2 className="text-2xl font-bold pt-1 text-gray-800">Welcome,</h2>
+                <div className="flex">
+                  <h2 className="text-2xl font-bold pt-1 text-gray-800">Welcome, </h2>
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     {user?.user_metadata?.username || user?.user_metadata?.full_name?.split(' ')[0] || 'User'}!
                   </h1>

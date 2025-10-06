@@ -177,9 +177,16 @@ const HomePage = () => {
 
   const fetchExpressions = async () => {
     try {
-      console.log('Fetching expressions...');
+      console.log('Fetching expressions from last 24 hours...');
       
-      // Fetch all expressions with student and profile data using joins
+      // Calculate 24 hours ago timestamp
+      const twentyFourHoursAgo = new Date();
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+      const twentyFourHoursAgoISO = twentyFourHoursAgo.toISOString();
+      
+      console.log('Filtering expressions since:', twentyFourHoursAgoISO);
+      
+      // Fetch expressions from last 24 hours with student and profile data using joins
       const { data, error } = await supabase
         .from('Expressions')
         .select(`
@@ -194,17 +201,19 @@ const HomePage = () => {
             )
           )
         `)
+        .gte('created_at', twentyFourHoursAgoISO)
         .order('created_at', { ascending: false })
         .limit(50);
 
-      console.log('Expressions query result:', { data, error, count: data?.length });
+      console.log('Expressions query result (last 24h):', { data, error, count: data?.length });
 
       if (error) {
         console.error('Error fetching expressions:', error);
-        // Try a simpler query as fallback
+        // Try a simpler query as fallback (also with 24h filter)
         const { data: simpleData, error: simpleError } = await supabase
           .from('Expressions')
           .select('*')
+          .gte('created_at', twentyFourHoursAgoISO)
           .order('created_at', { ascending: false })
           .limit(50);
         
@@ -394,7 +403,8 @@ const HomePage = () => {
       await fetchExpressions();
       
       console.log('Emotion submitted and refreshed successfully!');
-      alert('Emotion submitted successfully!');
+      // Remove technical alert that confuses non-technical users
+      // alert('Emotion submitted successfully!');
     } catch (error) {
       console.error('Unexpected error saving expression:', error);
       alert('An unexpected error occurred. Please try again.');
@@ -602,7 +612,9 @@ const HomePage = () => {
                   <span className="text-4xl mr-3 animate-float">📖</span>
                   Community Expression Wall
                 </h2>
-                
+                <p className="text-gray-600 text-sm">
+                  Showing emotions from the last 24 hours • {expressions.length} expressions
+                </p>
               </div>
               
               <div className="grid md:grid-cols-4 gap-6">
@@ -816,7 +828,7 @@ const HomePage = () => {
                 
                 {/* Level description */}
                 <div className="text-center">
-                  <div className={`inline-flex px-6 py-3 ${getLevelColor(selectedLevel)} text-white mb-5 rounded-2xl font-bold text-xl shadow-xl border-2 border-white/30`}>
+                  <div className={`inline-flex px-6 py-3 ${getLevelColor(selectedLevel)} text-white rounded-2xl font-bold text-xl shadow-xl border-2 border-white/30`}>
                     <span className="mr-2">Level {selectedLevel}</span>
                     <span className="text-2xl animate-bounce-gentle">
                       {selectedLevel <= 2 ? '😌' : selectedLevel === 3 ? '😊' : selectedLevel === 4 ? '😄' : '🤗'}
@@ -834,18 +846,18 @@ const HomePage = () => {
                 {/* Optional Note Section - Only for negative emotions with high intensity */}
                 {(selectedEmotion === 'Sad' || selectedEmotion === 'Angry') && selectedLevel >= 4 && (
                   <div className="space-y-2 mt-6">
-                    <label className="block -mt-2 text-lg font-semibold text-gray-700">
-                      Why?
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Would you like to tell us why you're feeling this way? (Optional)
                     </label>
                     <textarea
                       value={emotionNote}
                       onChange={(e) => setEmotionNote(e.target.value)}
-                      placeholder="Share your thoughts..."
+                      placeholder="What made you feel this way? You can share if you want to..."
                       className="w-full h-20 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 resize-none text-gray-700 placeholder-gray-400"
                       maxLength={200}
                     />
                     <div className="text-xs text-gray-500 text-right">
-                      {emotionNote.length}/100 characters
+                      {emotionNote.length}/200 characters
                     </div>
                   </div>
                 )}
@@ -854,14 +866,14 @@ const HomePage = () => {
             
 
               {/* Action Buttons */}
-              <div className="flex -mt-5 space-x-4">
+              <div className="flex space-x-4">
                 <button
                   onClick={() => {
                     setShowModal(false);
                     setEmotionNote("");
                     setSelectedLevel(3);
                   }}
-                  className="cursor-pointer flex-1 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+                  className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
                   Cancel
                 </button>

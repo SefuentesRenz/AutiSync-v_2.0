@@ -220,12 +220,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const [memoryFeedbackType, setMemoryFeedbackType] = useState(''); // 'correct' or 'wrong'
   const [revealedCardPosition, setRevealedCardPosition] = useState(null);
 
-  // Shuffled questions state for Social/Daily Life activities
-  const [shuffledSocialQuestions, setShuffledSocialQuestions] = useState(null);
-  const [usedQuestionIndices, setUsedQuestionIndices] = useState([]); // Track which questions have been shown
-  const hasShuffledRef = useRef(false);
-  const lastActivityRef = useRef(null);
-
     const videoRef = useRef(null);
   const audioRef = useRef(null);
   const correctAudioRef = useRef(null);
@@ -292,164 +286,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       }
     };
   }, [activity, difficulty]);
-
-  // Reset state when activity changes
-  useEffect(() => {
-    console.log('🔄 Activity changed - resetting state:', { activity, category, difficulty });
-    setCurrentQuestionIndex(0);
-    setScore(0);
-    setIsAnswered(false);
-    setSelectedAnswer(null);
-    setShowCorrect(false);
-    setShowWrong(false);
-    setUsedQuestionIndices([]); // Reset used questions tracking
-    
-    // Reset game-specific states
-    setCurrentRound(1);
-    setHygieneScore(0);
-    setStreetScore(0);
-    setStreetRound(1);
-    setGreetingsScore(0);
-    setGreetingsRound(1);
-    setMoneyScore(0);
-    setMoneyRound(1);
-  }, [activity, category, difficulty]);
-
-  // Shuffle questions for Social/Daily Life activities
-  useEffect(() => {
-    const socialActivities = [
-      'Hygiene Hero',
-      'Cashier Game', 
-      'Safe Street Crossing',
-      'Tooth Brushing',
-      'Grocery Helper',
-      'Social Greetings',
-      'Money Value Game',
-      'Household Chores Helper'
-    ];
-
-    // Check if current activity is a Social/Daily Life activity
-    if (socialActivities.includes(activity)) {
-      // Check if activity has changed - if so, reset the shuffle flag
-      if (lastActivityRef.current !== activity) {
-        hasShuffledRef.current = false;
-        lastActivityRef.current = activity;
-      }
-
-      // Only shuffle once per activity to prevent React StrictMode double-shuffle
-      if (hasShuffledRef.current) {
-        console.log(`⏭️ Skipping shuffle - already shuffled for ${activity}`);
-        return;
-      }
-
-      // Social/Daily Life Skill category doesn't have difficulty levels
-      // It goes directly: questionsData[category][activity]
-      let rawQuestions = [];
-      
-      if (category === "Social / Daily Life Skill") {
-        rawQuestions = questionsData[category]?.[activity] || [];
-      } else {
-        // For other categories that have difficulty levels
-        rawQuestions = questionsData[category]?.[difficulty]?.[activity] || [];
-      }
-      
-      console.log(`🔍 DEBUG: Fetching questions for ${activity}:`, {
-        category,
-        difficulty,
-        activity,
-        foundQuestions: rawQuestions.length,
-        path: category === "Social / Daily Life Skill" ? `[${category}][${activity}]` : `[${category}][${difficulty}][${activity}]`
-      });
-      
-      if (rawQuestions.length > 0) {
-        hasShuffledRef.current = true;
-        // Fisher-Yates shuffle
-        const shuffled = [...rawQuestions];
-        for (let i = shuffled.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
-        setShuffledSocialQuestions(shuffled);
-        console.log(`\n🎲 ========== SHUFFLE COMPLETE FOR ${activity} ==========`);
-        console.log(`📊 Total Questions: ${shuffled.length}`);
-        console.log(`📝 Question Order:`);
-        shuffled.forEach((q, index) => {
-          const questionText = q.questionText || q.scenario || q.title || 'Unknown';
-          console.log(`   ${index + 1}. ${questionText}`);
-        });
-        console.log(`🎲 ===============================================\n`);
-      } else {
-        console.warn(`⚠️ No questions found for ${activity}`);
-      }
-    } else {
-      // Reset shuffled questions for non-social activities
-      setShuffledSocialQuestions(null);
-    }
-  }, [activity, category, difficulty]);
-
-  // Helper function to reshuffle questions for Social/Daily Life activities
-  const reshuffleSocialQuestions = () => {
-    const socialActivities = [
-      'Hygiene Hero',
-      'Cashier Game',
-      'Safe Street Crossing',
-      'Tooth Brushing',
-      'Grocery Helper',
-      'Social Greetings',
-      'Money Value Game',
-      'Household Chores Helper'
-    ];
-
-    // Reset used questions tracking
-    setUsedQuestionIndices([]);
-
-    if (socialActivities.includes(activity)) {
-      // Social/Daily Life Skill category doesn't have difficulty levels
-      let rawQuestions = [];
-      
-      if (category === "Social / Daily Life Skill") {
-        rawQuestions = questionsData[category]?.[activity] || [];
-      } else {
-        rawQuestions = questionsData[category]?.[difficulty]?.[activity] || [];
-      }
-      
-      console.log(`🔍 DEBUG RESHUFFLE: Fetching questions for ${activity}:`, {
-        category,
-        difficulty,
-        activity,
-        foundQuestions: rawQuestions.length
-      });
-      
-      if (rawQuestions.length > 0) {
-        const shuffled = [...rawQuestions];
-        for (let i = shuffled.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
-        setShuffledSocialQuestions(shuffled);
-        console.log(`\n� ========== RESHUFFLED ${activity} FOR REPLAY ==========`);
-        console.log(`📊 Total Questions: ${shuffled.length}`);
-        console.log(`📝 NEW Question Order:`);
-        shuffled.forEach((q, index) => {
-          const questionText = q.questionText || q.scenario || q.title || 'Unknown';
-          console.log(`   ${index + 1}. ${questionText}`);
-        });
-        console.log(`🔄 ================================================\n`);
-        
-        // Reset game state when reshuffling
-        setCurrentQuestionIndex(0);
-        setScore(0);
-        setCurrentRound(1);
-        setHygieneScore(0);
-        setStreetScore(0);
-        setStreetRound(1);
-        setGreetingsScore(0);
-        setGreetingsRound(1);
-        setMoneyScore(0);
-        setMoneyRound(1);
-      }
-    }
-  };
 
 
   // Sample questions data - you can organize this by category, difficulty, and activity
@@ -1095,8 +931,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             gameType: "cashier"
           },
           {
-            questionText: "Can I get ice cream, fries, and a drink?",
-            orderItems: ["Ice Cream", "Fries", "Drink"],
+            questionText: "Can I get a burger, fries, and a drink?",
+            orderItems: ["Burger", "Fries", "Drink"],
             menuOptions: [
               { name: "Burger", image: "🍔", price: "$3.99" },
               { name: "Fries", image: "🍟", price: "$2.49" },
@@ -1105,7 +941,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { name: "Drink", image: "🥤", price: "$1.99" },
               { name: "Ice Cream", image: "🍦", price: "$2.99" }
             ],
-            correctAnswer: ["Ice Cream", "Fries", "Drink"],
+            correctAnswer: ["Burger", "Fries", "Drink"],
             gameType: "cashier"
           }
         ],
@@ -1279,7 +1115,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             choices: [
               {
                 text: "Good evening! It was great, thank you!",
-                emoji: "🌛",
+                emoji: "�",
                 correct: true,
                 feedback: "Perfect! Evening greetings show you're polite and friendly!"
               },
@@ -1291,7 +1127,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               },
               {
                 text: "Good night!",
-                emoji: "😴",
+                emoji: "�",
                 correct: false,
                 feedback: "That's for when you're going to sleep! Try an evening greeting."
               },
@@ -1378,16 +1214,16 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             successMessage: "Amazing! You're fresh and clean now!"
           },
           {
-            scenario: "dirty_face",
-            questionText: "🧼 Your face is dirty after eating!",
-            scenarioImage: "😋",
+            scenario: "sticky_fingers",
+            questionText: "🍯 Your fingers are sticky after eating!",
+            scenarioImage: "🤲",
             backgroundImage: "🍽️",
             characterEmoji: "😝",
-            answerChoices: ["Brush my teeth", "Take a shower", "Wash my face", "Wipe my nose", "Wash my hands", "Clean my ears", "Use tissue"],
-            correctAnswer: "Wash my face",
+            answerChoices: ["Brush my teeth", "Take a shower", "Cut my hair", "Wipe my nose", "Wash my hands", "Clean my ears", "Use tissue"],
+            correctAnswer: "Wash my hands",
             gameType: "hygiene",
             successAnimation: "🧼✨",
-            successMessage: "Perfect! Your face is nice and clean!"
+            successMessage: "Perfect! No more sticky fingers!"
           },
           {
             scenario: "after_sneezing",
@@ -1835,48 +1671,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     }
   };
 
-  // Check if this is a Social/Daily Life activity that should use shuffled questions
-  const socialActivities = [
-    'Hygiene Hero',
-    'Cashier Game', 
-    'Safe Street Crossing',
-    'Tooth Brushing',
-    'Grocery Helper',
-    'Social Greetings',
-    'Money Value Game',
-    'Household Chores Helper'
-  ];
-  
-  const isSocialActivity = socialActivities.includes(activity);
-  
-  // Get questions with correct path based on category
-  let questions = [];
-  if (isSocialActivity && shuffledSocialQuestions) {
-    questions = shuffledSocialQuestions;
-  } else if (category === "Social / Daily Life Skill") {
-    // Social/Daily Life Skill doesn't use difficulty levels
-    questions = questionsData[category]?.[activity] || [];
-  } else {
-    // Other categories use difficulty levels
-    questions = questionsData[category]?.[difficulty]?.[activity] || [];
-  }
-  
-  // Debug logging
-  if (isSocialActivity) {
-    console.log(`\n📋 ========== USING QUESTIONS FOR ${activity} ==========`);
-    console.log(`📊 Is Social Activity: ${isSocialActivity}`);
-    console.log(`📊 Has Shuffled Questions: ${!!shuffledSocialQuestions}`);
-    console.log(`📊 Total Questions: ${questions.length}`);
-    console.log(`📊 Current Index: ${currentQuestionIndex}`);
-    console.log(`📝 Current Question Order:`);
-    questions.forEach((q, index) => {
-      const questionText = q.questionText || q.scenario || q.title || 'Unknown';
-      const marker = index === currentQuestionIndex ? '👉 ' : '   ';
-      console.log(`${marker}${index + 1}. ${questionText}`);
-    });
-    console.log(`📋 ============================================\n`);
-  }
-       
+  const questions = questionsData[category]?.[difficulty]?.[activity] || 
+                   questionsData[category]?.[activity] || [];
   const total = questions.length;
   
   // Fisher-Yates shuffle algorithm
@@ -2107,22 +1903,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
   // Hygiene game functions
   const getRandomScenario = () => {
-    // Use shuffled questions sequentially based on currentRound
-    const index = (currentRound - 1) % questions.length;
-    
-    // Track this question index to prevent repeats
-    if (!usedQuestionIndices.includes(index)) {
-      setUsedQuestionIndices(prev => [...prev, index]);
-    }
-    
-    return questions[index] || questions[0]; // Fallback to first question
+    const availableScenarios = questions.filter(q => !usedScenarios.includes(q.scenario));
+    if (availableScenarios.length === 0) return questions[0]; // Fallback
+    return availableScenarios[Math.floor(Math.random() * availableScenarios.length)];
   };
 
   const handleHygieneAnswer = (choice) => {
     if (isAnswered) return;
-    
-    const currentIndex = (currentRound - 1) % questions.length;
-    console.log(`🎮 Round ${currentRound}: Question index ${currentIndex}, Used indices: [${usedQuestionIndices.join(', ')}]`);
     
     setSelectedAnswer(choice);
     setIsAnswered(true);
@@ -2175,19 +1962,21 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
   // Safe Street Crossing game functions
   const getRandomStreetScenario = () => {
-    console.log('Getting street scenario...');
-    console.log('Current street round:', streetRound);
-    // Use shuffled questions sequentially based on streetRound
-    const index = (streetRound - 1) % questions.length;
+    console.log('Getting random street scenario...');
+    const streetQuestions = questionsData[category]?.["Safe Street Crossing"] || [];
+    console.log('Available street questions:', streetQuestions.length);
+    console.log('Used scenarios:', usedScenarios);
     
-    // Track this question index to prevent repeats
-    if (!usedQuestionIndices.includes(index)) {
-      setUsedQuestionIndices(prev => [...prev, index]);
+    const availableScenarios = streetQuestions.filter(q => !usedScenarios.includes(q.scenario));
+    console.log('Available scenarios after filtering:', availableScenarios.length);
+    
+    if (availableScenarios.length === 0) {
+      console.log('⚠️ No more unused scenarios, returning first one as fallback');
+      return streetQuestions[0]; // Fallback
     }
     
-    const selectedScenario = questions[index] || questions[0]; // Fallback to first question
-    console.log('🎲 Selected scenario for round', streetRound, ':', selectedScenario?.scenario);
-    console.log(`🚦 Round ${streetRound}: Question index ${index}, Used indices: [${usedQuestionIndices.join(', ')}]`);
+    const selectedScenario = availableScenarios[Math.floor(Math.random() * availableScenarios.length)];
+    console.log('🎲 Selected scenario:', selectedScenario?.scenario);
     return selectedScenario;
   };
 
@@ -2327,16 +2116,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
   // Social Greetings game functions
   const getRandomGreetingScenario = () => {
-    // Use shuffled questions sequentially based on greetingsRound
-    const index = (greetingsRound - 1) % questions.length;
-    
-    // Track this question index to prevent repeats
-    if (!usedQuestionIndices.includes(index)) {
-      setUsedQuestionIndices(prev => [...prev, index]);
-    }
-    
-    console.log(`👋 Round ${greetingsRound}: Question index ${index}, Used indices: [${usedQuestionIndices.join(', ')}]`);
-    return questions[index] || questions[0]; // Fallback to first question
+    const greetingQuestions = questionsData[category]?.[difficulty]?.["Social Greetings"] || 
+                              questionsData[category]?.["Social Greetings"] || [];
+    const availableScenarios = greetingQuestions.filter(q => !usedScenarios.includes(q.id));
+    if (availableScenarios.length === 0) return greetingQuestions[0]; // Fallback
+    return availableScenarios[Math.floor(Math.random() * availableScenarios.length)];
   };
 
   const handleGreetingAnswer = (choice) => {
@@ -2650,8 +2434,21 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       audioRef.current.play().catch(console.error);
     }
     
-    // Note: onComplete is now called only when user clicks "Continue Adventure" button
-    // This prevents auto-redirect and gives user control over when to leave
+    // Call onComplete with detailed scoring after badge animation
+    setTimeout(() => {
+      const detailedScore = {
+        correctAnswers: moneyCorrectAnswers,
+        wrongAnswers: moneyWrongAnswers,
+        totalAttempts: moneyTotalAttempts,
+        accuracyPercentage,
+        completionPercentage,
+        roundBreakdown: roundScores,
+        finalScore: moneyCorrectAnswers,
+        maxPossibleScore: totalPossibleCorrect
+      };
+      
+      onComplete(moneyCorrectAnswers, totalPossibleCorrect, detailedScore);
+    }, 3000);
   };
 
   const resetMoneyGame = () => {
@@ -2679,19 +2476,12 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
   const restartMoneyGame = () => {
     resetMoneyGame();
-    reshuffleSocialQuestions(); // Reshuffle questions for replay
     initializeMoneyGame();
   };
 
   // Initialize cashier game when question starts
   useEffect(() => {
     if (isCashierGame && gameStep === 1) {
-      console.log(`\n🍔 ========== CASHIER GAME QUESTION ==========`);
-      console.log(`📊 Question Index: ${currentQuestionIndex}`);
-      console.log(`📝 Customer Order: "${currentQuestion.questionText}"`);
-      console.log(`🍽️ Order Items:`, currentQuestion.orderItems);
-      console.log(`🍔 ==========================================\n`);
-      
       setTimeout(() => {
         setCurrentSpeaker('customer');
         setSpeechText(currentQuestion.questionText);
@@ -2707,13 +2497,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     }
   }, [currentQuestionIndex, isHygieneGame]);
 
-  // Initialize street crossing game when activity starts (only once)
+  // Initialize street crossing game when activity starts
   useEffect(() => {
     if (activity === "Safe Street Crossing" && !isStreetGameActive) {
       console.log('Effect: Initializing Street Game');
       initializeStreetGame();
     }
-  }, [activity, isStreetGameActive]); // Added isStreetGameActive to prevent re-initialization during game
+  }, [activity]); // Remove currentQuestionIndex dependency
 
   // Initialize social greetings game when activity starts
   useEffect(() => {
@@ -3780,40 +3570,17 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-bl from-pink-200/20 to-yellow-200/20 rounded-full blur-xl animate-float-delayed"></div>
         
         <div className="relative z-10 ">
-          {/* Question Counter with modern design - Works for ALL activities */}
+          {/* Question Counter with modern design */}
           <div className="-mt-20 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl px-6 py-1 border border-blue-200/30 inline-block">
             <div className="text-base font-bold text-gray-700 flex items-center justify-center space-x-2">
               <span className="text-2xl animate-bounce-gentle">
-                {isCashierGame ? "🍔" 
-                  : isHygieneGame ? "🧼" 
-                  : isStreetGame ? "🚦"
-                  : isGreetingsGame ? "👋"
-                  : isMoneyGame ? "💰"
-                  : isChoreGame ? "🏠" 
-                  : isMemoryGame ? "🧠"
-                  : isPuzzleGame ? "🧩"
-                  : isMatchingGame ? "🔗"
-                  : "📝"}
+                {isHygieneGame ? "🧼" : isChoreGame ? "🏠" : "📝"}
               </span>
               <span>
-                {isCashierGame 
-                  ? `Question ${currentQuestionIndex + 1} of ${total}`
-                  : isHygieneGame 
+                {isHygieneGame 
                   ? `Round ${currentRound} of 5`
-                  : isStreetGame
-                  ? `Round ${streetRound} of 5`
-                  : isGreetingsGame
-                  ? `Round ${greetingsRound} of 5`
-                  : isMoneyGame
-                  ? `Round ${moneyRound} of 3`
                   : isChoreGame && currentChoreId
                   ? `Learning: ${questions.find(q => q.choreId === currentChoreId)?.choreName || 'Chore'}`
-                  : isMemoryGame
-                  ? `Round ${memoryRound} of 3`
-                  : isPuzzleGame
-                  ? `Puzzle ${currentQuestionIndex + 1} of ${total}`
-                  : isMatchingGame
-                  ? `Match Challenge ${currentQuestionIndex + 1} of ${total}`
                   : `Question ${currentQuestionIndex + 1} of ${total}`
                 }
               </span>
@@ -5672,15 +5439,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             {/* Math Puzzle */}
             {currentPuzzleData.puzzleType === 'math' && (
               <div className="space-y-6">
-                {/* Question Text Display */}
-                {currentPuzzleData.questionText && (
-                  <div className="text-center mb-4">
-                    <h4 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
-                      {currentPuzzleData.questionText}
-                    </h4>
-                  </div>
-                )}
-                
                 <div className="text-center mb-6">
                   <p className="text-2xl font-bold text-indigo-700">{currentPuzzleData.instruction}</p>
                 </div>
@@ -5720,22 +5478,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             {/* Spelling Puzzle */}
             {currentPuzzleData.puzzleType === 'spelling' && (
               <div className="space-y-6">
-                {/* Question Text Display */}
-                {currentPuzzleData.questionText && (
-                  <div className="text-center mb-4">
-                    <h4 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
-                      {currentPuzzleData.questionText}
-                    </h4>
-                  </div>
-                )}
-                
-                {/* Instruction Text */}
-                {currentPuzzleData.instruction && (
-                  <div className="text-center mb-4">
-                    <p className="text-xl font-semibold text-indigo-700">{currentPuzzleData.instruction}</p>
-                  </div>
-                )}
-                
                 {/* Target Word Display */}
                 <div className="text-center">
                   <div className="flex justify-center space-x-3 mb-6">
@@ -5818,15 +5560,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             {/* Sorting Puzzle */}
             {currentPuzzleData.puzzleType === 'sorting' && (
               <div className="space-y-6">
-                {/* Question Text Display */}
-                {currentPuzzleData.questionText && (
-                  <div className="text-center mb-4">
-                    <h4 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">
-                      {currentPuzzleData.questionText}
-                    </h4>
-                  </div>
-                )}
-                
                 <div className="text-center mb-6">
                   <p className="text-2xl font-bold text-purple-700">{currentPuzzleData.instruction}</p>
                 </div>
@@ -5884,15 +5617,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             {/* Logic Puzzle */}
             {currentPuzzleData.puzzleType === 'logic' && (
               <div className="space-y-6">
-                {/* Question Text Display */}
-                {currentPuzzleData.questionText && (
-                  <div className="text-center mb-4">
-                    <h4 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-600">
-                      {currentPuzzleData.questionText}
-                    </h4>
-                  </div>
-                )}
-                
                 {/* Simple Multiple Choice Logic */}
                 {currentPuzzleData.options && !currentPuzzleData.sequence && !currentPuzzleData.shapes && (
                   <div className="text-center">
@@ -5970,15 +5694,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             {/* Sequence Puzzle */}
             {currentPuzzleData.puzzleType === 'sequence' && (
               <div className="space-y-6">
-                {/* Question Text Display */}
-                {currentPuzzleData.questionText && (
-                  <div className="text-center mb-4">
-                    <h4 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">
-                      {currentPuzzleData.questionText}
-                    </h4>
-                  </div>
-                )}
-                
                 {/* Pattern Completion Type */}
                 {currentPuzzleData.sequence && currentPuzzleData.options && (
                   <div className="text-center">

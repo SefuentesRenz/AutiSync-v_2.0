@@ -27,6 +27,19 @@ const Students = () => {
       
       console.log('Fetching students from database...');
       
+      // First, get ALL male profiles to see what we should have
+      const { data: allMaleProfiles, error: allMaleError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .ilike('gender', 'male');
+        
+      if (!allMaleError && allMaleProfiles) {
+        console.log('🔍 ALL MALE PROFILES IN DATABASE:', allMaleProfiles.length);
+        allMaleProfiles.forEach(profile => {
+          console.log(`  - ${profile.full_name} (ID: ${profile.id}, User ID: ${profile.user_id})`);
+        });
+      }
+      
       // Alternative approach: Get students and profiles separately to avoid join issues
       const { data: studentsData, error: studentsError } = await supabase
         .from('students')
@@ -64,20 +77,64 @@ const Students = () => {
       const transformedStudents = await Promise.all(studentsData.map(async (student, index) => {
         const profile = profilesData?.find(p => p.id === student.profile_id);
         
-        // Get real progress data for each student
+        // Get real progress data for each student using their user_id
         let progressStats = null;
+        let lastActivityTime = 'No recent activity';
+        
         try {
-          const statsResult = await getStudentProgressStats(profile?.id);
-          if (!statsResult.error) {
-            progressStats = statsResult.data;
+          // Use the profile's user_id (which is the auth user id) for progress lookup
+          const userAuthId = profile?.user_id;
+          
+          if (userAuthId) {
+            console.log(`Fetching progress for student: ${profile?.full_name} (${userAuthId})`);
+            
+            // Get recent progress directly from user_activity_progress table
+            const { data: recentProgress, error: progressError } = await supabase
+              .from('user_activity_progress')
+              .select('*')
+              .eq('student_id', userAuthId)
+              .order('date_completed', { ascending: false })
+              .limit(20);
+
+            if (!progressError && recentProgress && recentProgress.length > 0) {
+              console.log(`Found ${recentProgress.length} activities for ${profile?.full_name}`);
+              
+              const completedActivities = recentProgress.length;
+              const totalScore = recentProgress.reduce((sum, activity) => sum + (activity.score || 0), 0);
+              const averageScore = completedActivities > 0 ? Math.round(totalScore / completedActivities) : 0;
+              
+              // Get last activity time
+              const lastActivity = recentProgress[0];
+              const lastDate = new Date(lastActivity.date_completed);
+              const now = new Date();
+              const diffInHours = Math.floor((now - lastDate) / (1000 * 60 * 60));
+              
+              if (diffInHours < 1) {
+                lastActivityTime = 'Just now';
+              } else if (diffInHours < 24) {
+                lastActivityTime = `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+              } else {
+                const diffInDays = Math.floor(diffInHours / 24);
+                lastActivityTime = `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+              }
+              
+              progressStats = {
+                completedActivities,
+                averageScore,
+                lastActivityTime
+              };
+            } else {
+              console.log(`No activities found for ${profile?.full_name}`);
+            }
           }
         } catch (err) {
-          console.log('Could not fetch progress for student:', profile?.id);
+          console.log('Could not fetch progress for student:', profile?.full_name, err);
         }
         
         return {
           id: student.id,
-          profileId: profile?.id, // Add the profile UUID for navigation
+          profileId: profile?.user_id, // Use the auth user ID for navigation
+          profileUUID: profile?.id, // Also store the profile UUID for reference
           name: profile?.full_name || 'Unknown Student',
           age: profile?.age || 0,
           address: profile?.address || 'No address provided',
@@ -88,7 +145,7 @@ const Students = () => {
           status: 'Active',
           completedActivities: progressStats?.completedActivities || 0,
           averageScore: progressStats?.averageScore || 0,
-          lastActive: progressStats?.recentActivities > 0 ? '2 hours ago' : 'No recent activity',
+          lastActive: progressStats?.lastActivityTime || lastActivityTime,
           profileColor: ['bg-pink-500', 'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-yellow-500'][index % 5]
         };
       }));
@@ -99,7 +156,7 @@ const Students = () => {
       const maleStudents = transformedStudents.filter(s => s.gender && s.gender.toLowerCase() === 'male');
       console.log(`👥 TOTAL MALE STUDENTS LOADED: ${maleStudents.length}`);
       maleStudents.forEach(student => {
-        console.log(`  - ${student.name} (Gender: "${student.gender}", ID: ${student.id})`);
+        console.log(`  - ${student.name} (Gender: "${student.gender}", Activities: ${student.completedActivities}, Score: ${student.averageScore}%, Last: ${student.lastActive})`);
       });
       
       // Check for the specific students mentioned
@@ -109,8 +166,22 @@ const Students = () => {
         const found = transformedStudents.find(s => 
           s.name && s.name.toLowerCase().includes(name.toLowerCase())
         );
-        console.log(`  ${name}: ${found ? `✅ Found - ${found.name} (${found.gender})` : '❌ NOT FOUND'}`);
+        if (found) {
+          console.log(`  ${name}: ✅ Found - ${found.name} (${found.gender}) - Activities: ${found.completedActivities}, Score: ${found.averageScore}%, Last: ${found.lastActive}`);
+        } else {
+          console.log(`  ${name}: ❌ NOT FOUND`);
+        }
       });
+      
+      // Debug students with vs without progress
+      const studentsWithProgress = transformedStudents.filter(s => s.completedActivities > 0);
+      const studentsWithoutProgress = transformedStudents.filter(s => s.completedActivities === 0);
+      console.log(`📊 Students with progress: ${studentsWithProgress.length}, without progress: ${studentsWithoutProgress.length}`);
+      
+      // Debug gender counting to match the UI counters
+      const maleCount = transformedStudents.filter(s => s.gender && s.gender.toLowerCase() === 'male').length;
+      const femaleCount = transformedStudents.filter(s => s.gender && s.gender.toLowerCase() === 'female').length;
+      console.log(`📊 GENDER COUNTS: Male: ${maleCount}, Female: ${femaleCount}`);
       
       setStudents(transformedStudents);
     } catch (err) {
@@ -489,7 +560,7 @@ const Students = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Female Students</p>
                 <p className="text-3xl font-bold text-pink-600">
-                  {students.filter(s => s.gender === 'Female').length}
+                  {students.filter(s => s.gender && s.gender.toLowerCase() === 'female').length}
                 </p>
                 
               </div>
@@ -504,7 +575,7 @@ const Students = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Male Students</p>
                 <p className="text-3xl font-bold text-blue-600">
-                  {students.filter(s => s.gender === 'Male').length}
+                  {students.filter(s => s.gender && s.gender.toLowerCase() === 'male').length}
                 </p>
                 
               </div>

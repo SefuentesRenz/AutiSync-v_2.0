@@ -47,8 +47,8 @@ export async function getActivitiesWithDetails() {
     .from('activities')
     .select(`
       *,
-      categories(*),
-      difficulties(*)
+      Categories(*),
+      Difficulties(*)
     `)
     .order('created_at', { ascending: false });
   return { data, error };
@@ -70,8 +70,8 @@ export async function getActivityByIdWithDetails(id) {
     .from('activities')
     .select(`
       *,
-      categories(*),
-      difficulties(*)
+      Categories(*),
+      Difficulties(*)
     `)
     .eq('id', id)
     .single();

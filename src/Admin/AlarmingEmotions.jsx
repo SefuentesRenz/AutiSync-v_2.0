@@ -26,12 +26,18 @@ const AlarmingEmotions = () => {
   const fetchAlertsAndNotifications = async () => {
     setLoading(true);
     try {
-      // Fetch high priority emotions (angry/sad level 4-5) directly
+      // Calculate 24 hours ago timestamp
+      const twentyFourHoursAgo = new Date();
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+      const twentyFourHoursAgoISO = twentyFourHoursAgo.toISOString();
+      
+      // Fetch high priority emotions (angry/sad level 4-5) from last 24 hours only
       const { data: highPriorityData, error: highPriorityError } = await supabase
         .from('Expressions')
         .select('*')
         .in('emotion', ['angry', 'sad'])
         .gte('intensity', 4)
+        .gte('created_at', twentyFourHoursAgoISO)
         .order('created_at', { ascending: false });
 
       if (highPriorityError) {
@@ -119,10 +125,16 @@ const AlarmingEmotions = () => {
   // Function to fetch ALL student emotions (positive and negative)
   const fetchAllEmotions = async () => {
     try {
-      // Fetch all expressions first
+      // Calculate 24 hours ago timestamp
+      const twentyFourHoursAgo = new Date();
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+      const twentyFourHoursAgoISO = twentyFourHoursAgo.toISOString();
+      
+      // Fetch expressions from last 24 hours only
       const { data: expressionsData, error: expressionsError } = await supabase
         .from('Expressions')
         .select('*')
+        .gte('created_at', twentyFourHoursAgoISO)
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -131,7 +143,7 @@ const AlarmingEmotions = () => {
         return;
       }
 
-      console.log('Expressions data:', expressionsData);
+      console.log('Expressions data (last 24h):', expressionsData);
 
       if (!expressionsData || expressionsData.length === 0) {
         setAllEmotions([]);
@@ -346,7 +358,7 @@ const AlarmingEmotions = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold text-gray-900 mb-2">📊 Student Emotions Dashboard</h1>
-              <p className="text-lg text-gray-600">Monitor all student emotions and priority alerts</p>
+              <p className="text-lg text-gray-600">Monitor student emotions from the last 24 hours • Live updates every day</p>
             </div>
             <div className="flex space-x-4">
               <button
