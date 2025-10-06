@@ -36,11 +36,11 @@ const StudentProgress = () => {
         // Get student profile information - try different approaches due to RLS
         let profileData = null;
         
-        // First try direct query using 'id' column (which contains Supabase Auth UUIDs)
+        // First try direct query using 'user_id' column (which contains Supabase Auth UUIDs)
         const { data: directProfileData, error: directProfileError } = await supabase
           .from('user_profiles')
-          .select('id, full_name, email, age, gender, address, grade, school, created_at')
-          .eq('id', studentUUID)
+          .select('id, full_name, email, age, gender, address, grade, school, created_at, user_id')
+          .eq('user_id', studentUUID)
           .single();
 
         if (directProfileError) {
@@ -480,18 +480,29 @@ const StudentProgress = () => {
   const badges = generateBadges(fallbackStudent);
 
   // Use real recent progress data
-  const recentActivitiesDisplay = recentProgress?.slice(0, 6).map((progress, index) => ({
-    title: progress.activityTitle || 'Unknown Activity',
-    user: student?.name || 'Student',
-    category: progress.categoryId || 'Other',
-    time: new Date(progress.dateCompleted).toLocaleString(),
-    difficulty: progress.difficultyId || 'Easy',
-    score: progress.score ? `${progress.score}%` : 'No score',
-    difficultyColor: progress.difficultyId === 'Easy' ? 'bg-green-100 text-green-800' :
-                    progress.difficultyId === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800',
-    avatar: student?.name ? student.name.split(' ').map(n => n[0]).join('') : 'S'
-  })) || [];
+  const recentActivitiesDisplay = recentProgress?.slice(0, 6).map((progress, index) => {
+    // Get activity title from the progress data
+    const activityTitle = progress.activityTitle || 'Unknown Activity';
+    
+    // Get student name - try multiple sources
+    const studentName = progress.student_name || 
+                       progress.studentName || 
+                       student?.name || 
+                       `Student ${progress.student_id?.substring(0, 8)}`;
+    
+    return {
+      title: activityTitle,
+      user: studentName,
+      category: progress.categoryId || progress.category || 'Other',
+      time: new Date(progress.dateCompleted || progress.date_completed).toLocaleString(),
+      difficulty: progress.difficultyId || progress.difficulty || 'Easy',
+      score: progress.score ? `${progress.score}%` : 'No score',
+      difficultyColor: (progress.difficultyId || progress.difficulty) === 'Easy' ? 'bg-green-100 text-green-800' :
+                      (progress.difficultyId || progress.difficulty) === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800',
+      avatar: studentName ? studentName.split(' ').map(n => n[0]).join('') : 'S'
+    };
+  }) || [];
 
   const categories = [
     { name: 'Academic Skills', percent: Math.min(100, fallbackStudent.averageScore + 5), count: `${Math.floor(fallbackStudent.completedActivities * 0.7)}/${Math.floor(fallbackStudent.completedActivities * 0.8)}`, icon: '📚', color: 'bg-blue-500' },
@@ -676,7 +687,7 @@ const StudentProgress = () => {
                       <div>
                         <p className="font-semibold text-gray-800">{activity.title}</p>
                         <p className="text-sm text-gray-500">
-                          {activity.category} • {activity.time}
+                          {activity.user} • {activity.category} • {activity.time}
                         </p>
                       </div>
                     </div>

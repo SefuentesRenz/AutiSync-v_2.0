@@ -16,6 +16,22 @@ export async function recordActivityProgress(studentId, activityId, score, compl
       return { data: null, error: { message: 'Activity ID is required' } };
     }
 
+    // Get student's full name
+    console.log('👤 Getting student full name...');
+    const { data: studentProfile, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('full_name')
+      .eq('user_id', studentId)
+      .single();
+
+    if (profileError) {
+      console.error('❌ Error getting student profile:', profileError);
+      return { data: null, error: profileError };
+    }
+
+    const studentName = studentProfile?.full_name || 'Unknown Student';
+    console.log('👤 Student name:', studentName);
+
     // Check if progress already exists for this student and activity
     console.log('🔍 Checking for existing progress...');
     const { data: existingProgress, error: checkError } = await supabase
@@ -41,6 +57,7 @@ export async function recordActivityProgress(studentId, activityId, score, compl
         .update({
           score: score,
           completion_status: completionStatus,
+          student_name: studentName,
           date_completed: new Date().toISOString()
         })
         .eq('student_id', studentId)
@@ -57,6 +74,7 @@ export async function recordActivityProgress(studentId, activityId, score, compl
         activity_id: activityId,
         score: score,
         completion_status: completionStatus,
+        student_name: studentName,
         date_completed: new Date().toISOString()
       };
       console.log('📋 Progress record to insert:', progressRecord);
@@ -203,8 +221,8 @@ export async function getAllStudentsProgress() {
     // Get user profiles separately
     const { data: userProfiles, error: profilesError } = await supabase
       .from('user_profiles')
-      .select('id, full_name, username')
-      .in('id', userIds);
+      .select('user_id, full_name, username')
+      .in('user_id', userIds);
 
     if (profilesError) {
       console.error('Error fetching user profiles:', profilesError);
@@ -245,7 +263,7 @@ export async function getAllStudentsProgress() {
     
     progressRecords.forEach(record => {
       const studentId = record.student_id;
-      const userProfile = userProfiles?.find(p => p.id === studentId);
+      const userProfile = userProfiles?.find(p => p.user_id === studentId);
       const activity = activities?.find(a => a.id === record.activity_id);
       const category = categories?.find(c => c.id === activity?.category_id);
       
@@ -460,6 +478,8 @@ export async function getStudentProgress(studentId, limit = 50) {
         score: record.score,
         completionStatus: record.completion_status,
         dateCompleted: record.date_completed,
+        studentName: record.student_name,
+        student_id: record.student_id,
         timeSpent: record.time_spent || null
       };
     }) || [];
