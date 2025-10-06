@@ -816,7 +816,7 @@ const HomePage = () => {
                 
                 {/* Level description */}
                 <div className="text-center">
-                  <div className={`inline-flex px-6 py-3 ${getLevelColor(selectedLevel)} text-white rounded-2xl font-bold text-xl shadow-xl border-2 border-white/30`}>
+                  <div className={`inline-flex px-6 py-3 ${getLevelColor(selectedLevel)} text-white mb-5 rounded-2xl font-bold text-xl shadow-xl border-2 border-white/30`}>
                     <span className="mr-2">Level {selectedLevel}</span>
                     <span className="text-2xl animate-bounce-gentle">
                       {selectedLevel <= 2 ? '😌' : selectedLevel === 3 ? '😊' : selectedLevel === 4 ? '😄' : '🤗'}
@@ -834,18 +834,18 @@ const HomePage = () => {
                 {/* Optional Note Section - Only for negative emotions with high intensity */}
                 {(selectedEmotion === 'Sad' || selectedEmotion === 'Angry') && selectedLevel >= 4 && (
                   <div className="space-y-2 mt-6">
-                    <label className="block text-sm font-semibold text-gray-700">
-                      Would you like to tell us why you're feeling this way? (Optional)
+                    <label className="block -mt-2 text-lg font-semibold text-gray-700">
+                      Why?
                     </label>
                     <textarea
                       value={emotionNote}
                       onChange={(e) => setEmotionNote(e.target.value)}
-                      placeholder="What made you feel this way? You can share if you want to..."
+                      placeholder="Share your thoughts..."
                       className="w-full h-20 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 resize-none text-gray-700 placeholder-gray-400"
                       maxLength={200}
                     />
                     <div className="text-xs text-gray-500 text-right">
-                      {emotionNote.length}/200 characters
+                      {emotionNote.length}/100 characters
                     </div>
                   </div>
                 )}
@@ -854,14 +854,14 @@ const HomePage = () => {
             
 
               {/* Action Buttons */}
-              <div className="flex space-x-4">
+              <div className="flex -mt-5 space-x-4">
                 <button
                   onClick={() => {
                     setShowModal(false);
                     setEmotionNote("");
                     setSelectedLevel(3);
                   }}
-                  className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+                  className="cursor-pointer flex-1 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
                   Cancel
                 </button>
