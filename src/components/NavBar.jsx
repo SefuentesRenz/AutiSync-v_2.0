@@ -24,9 +24,9 @@ const NavBar = ({ onProfileClick }) => {
   return (
     <header className="bg-blue-500 text-white  ">
       
-      <div className=" container -my-1 mx-auto px-6 flex justify-between items-center">
+      <div className=" container -my-1 mx-auto px-6 flex items-center">
         
-            
+        {/* Logo - Left Side */}
         <div className="flex items-center space-x-4">
               <img
                   src="/src/assets/logo.png"
@@ -37,7 +37,9 @@ const NavBar = ({ onProfileClick }) => {
                 AutiSync v2.0
               </h1>
             </div>
-        <nav className="flex items-center text-lg space-x-6">
+        
+        {/* Navigation Links - Center */}
+        <nav className="flex-1 flex items-center justify-center text-lg space-x-6">
           <a href="/home" className="text-white hover:text-blue-900 transition-colors duration-200 flex items-center">
                 Home
               </a>
@@ -47,20 +49,22 @@ const NavBar = ({ onProfileClick }) => {
           <a href="/studentpage" className="text-white  hover:text-blue-900 transition-colors duration-200 flex items-center">
                 Learning Hub
               </a>
-          <div 
-              onClick={studentProfileRoute}
-              className="cursor-pointer group flex items-center space-x-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-1 w-23 hover:shadow-lg transition-all duration-300"
-            >
-              <img
-                src="/src/assets/kidprofile1.jpg"
-                alt="Profile"
-                className="w-8 h-8 rounded-xl object-cover border-2 border-white shadow-sm group-hover:scale-105 transition-transform duration-300"
-              />
-              <span className="hidden sm:block text-sm font-semibold text-gray-700">
-                {user?.user_metadata?.username || user?.user_metadata?.full_name?.split(' ')[0] || 'User'}
-              </span>
-            </div>
         </nav>
+
+        {/* Profile - Right Side */}
+        <div 
+            onClick={studentProfileRoute}
+            className="cursor-pointer group flex items-center space-x-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-1 w-23 hover:shadow-lg transition-all duration-300"
+          >
+            <img
+              src="/src/assets/kidprofile1.jpg"
+              alt="Profile"
+              className="w-8 h-8 rounded-xl object-cover border-2 border-white shadow-sm group-hover:scale-105 transition-transform duration-300"
+            />
+            <span className="hidden sm:block text-sm font-semibold text-gray-700">
+              {user?.user_metadata?.username || user?.user_metadata?.full_name?.split(' ')[0] || 'User'}
+            </span>
+          </div>
       </div>
     </header>
   );
