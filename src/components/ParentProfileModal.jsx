@@ -43,8 +43,21 @@ const ParentProfileModal = ({ isOpen, onClose }) => {
       });
     }
   }, [user, isOpen]);
-  const backtoLandingPage = () => {
-    navigate('/');
+  
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error logging out:', error);
+        setError('Failed to log out. Please try again.');
+      } else {
+        onClose(); // Close modal first
+        navigate('/'); // Redirect to LandingPage
+      }
+    } catch (error) {
+      console.error('Unexpected error during logout:', error);
+      setError('An unexpected error occurred.');
+    }
   };
 
   if (!isOpen) return null;
@@ -411,8 +424,8 @@ const ParentProfileModal = ({ isOpen, onClose }) => {
               Close Profile
             </button>
             <button
-              onClick={backtoLandingPage}
-              className=" cursor-pointer bg-red-700 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+              onClick={handleLogout}
+              className="cursor-pointer bg-red-700 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
             >
               Log out
             </button>

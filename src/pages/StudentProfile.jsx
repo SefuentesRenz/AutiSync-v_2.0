@@ -438,7 +438,7 @@ const StudentProfile = () => {
   const handleLogout = async () => {
     try {
       await signOut();
-      navigate('/login');
+      navigate('/'); // Redirect to LandingPage
     } catch (error) {
       console.error('Error signing out:', error);
       setError('Failed to sign out. Please try again.');
