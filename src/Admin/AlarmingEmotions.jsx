@@ -475,7 +475,7 @@ const AlarmingEmotions = () => {
                 <p className="text-gray-500 mt-2">All students are doing well emotionally.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {alerts.map(alert => (
                   <div key={alert.id} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-500">
                     <div className="flex items-start justify-between mb-4">

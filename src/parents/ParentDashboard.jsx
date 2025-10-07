@@ -643,65 +643,229 @@ const ParentDashboard = () => {
         {/* Emotions Section - REAL DATA */}
         {currentView === 'emotions' && (
           <div className="space-y-8">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                <HeartIcon className="w-6 h-6 mr-3 text-pink-600" />
-                Emotion Tracking
-                {selectedChild && (
-                  <span className="ml-3 text-lg text-gray-600">
-                    - {selectedChild.full_name || selectedChild.username}
-                  </span>
-                )}
-              </h2>
-              
+            {/* Header Section */}
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
+                    <HeartIcon className="w-8 h-8 mr-3 text-pink-600" />
+                    💖 Emotion Tracking Dashboard
+                  </h2>
+                  {selectedChild && (
+                    <p className="text-lg text-gray-600 ml-11">
+                      Monitoring: <span className="font-semibold text-blue-600">{selectedChild.full_name || selectedChild.username}</span>
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={() => loadChildEmotions(selectedChild?.user_id)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                >
+                  🔄 Refresh
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            {selectedChild && childEmotions.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <div className="flex items-center">
+                    <ExclamationTriangleIcon className="h-12 w-12 text-red-500" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">High Priority</p>
+                      <p className="text-3xl font-bold text-gray-900">
+                        {childEmotions.filter(e => 
+                          (e.emotion_name?.toLowerCase() === 'sad' || e.emotion_name?.toLowerCase() === 'angry') && 
+                          e.intensity >= 4
+                        ).length}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <div className="flex items-center">
+                    <div className="text-4xl mr-3">😊</div>
+                    <div className="ml-1">
+                      <p className="text-sm font-medium text-gray-600">Positive</p>
+                      <p className="text-3xl font-bold text-gray-900">
+                        {childEmotions.filter(e => 
+                          ['happy', 'excited', 'calm'].includes(e.emotion_name?.toLowerCase())
+                        ).length}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <div className="flex items-center">
+                    <ClockIcon className="h-12 w-12 text-blue-500" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Recent (7 days)</p>
+                      <p className="text-3xl font-bold text-gray-900">
+                        {childEmotions.filter(e => {
+                          const daysDiff = (new Date() - new Date(e.created_at)) / (1000 * 60 * 60 * 24);
+                          return daysDiff <= 7;
+                        }).length}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <div className="flex items-center">
+                    <HeartIcon className="h-12 w-12 text-purple-500" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Total Recorded</p>
+                      <p className="text-3xl font-bold text-gray-900">{childEmotions.length}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Emotions Grid */}
+            <div>
               {!selectedChild ? (
-                <div className="text-center py-12">
-                  <HeartIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-600 mb-2">No Child Selected</h3>
-                  <p className="text-gray-500">Please select a child from the Children section to view their emotional data.</p>
+                <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                  <HeartIcon className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-2xl font-semibold text-gray-600 mb-2">No Child Selected</h3>
+                  <p className="text-gray-500 text-lg">Please select a child from the Children section to view their emotional data.</p>
                 </div>
               ) : loadingEmotions ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading emotional data...</p>
+                <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                  <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600 text-lg">Loading emotional data...</p>
                 </div>
               ) : childEmotions.length === 0 ? (
-                <div className="text-center py-12">
-                  <HeartIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-600 mb-2">No Emotional Data Yet</h3>
-                  <p className="text-gray-500">
+                <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                  <div className="text-6xl mb-4">😊</div>
+                  <h3 className="text-2xl font-semibold text-gray-600 mb-2">No Emotional Data Yet</h3>
+                  <p className="text-gray-500 text-lg">
                     {selectedChild.full_name || selectedChild.username} hasn't recorded any emotions yet.
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {childEmotions.map((emotion, index) => (
-                    <div key={emotion.entry_id || index} className="p-6 rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="text-3xl">
-                            {getEmotionIcon(emotion.emotion_name)}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+                  {childEmotions.map((emotion, index) => {
+                    // Check if this is an alarming emotion (sad/angry with level 4-5)
+                    const isAlarmingEmotion = 
+                      (emotion.emotion_name?.toLowerCase() === 'sad' || emotion.emotion_name?.toLowerCase() === 'angry') && 
+                      (emotion.intensity >= 4 && emotion.intensity <= 5);
+                    
+                    const isPositive = ['happy', 'excited', 'calm'].includes(emotion.emotion_name?.toLowerCase());
+                    
+                    return (
+                      <div 
+                        key={emotion.entry_id || index} 
+                        className={`bg-white rounded-xl shadow-lg p-6 border-l-4 ${
+                          isAlarmingEmotion 
+                            ? 'border-red-500' 
+                            : isPositive 
+                              ? 'border-green-500' 
+                              : 'border-orange-400'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center">
+                            <div className="text-4xl mr-3">
+                              {getEmotionIcon(emotion.emotion_name)}
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-bold text-gray-900 capitalize">
+                                {emotion.emotion_name || 'Unknown'}
+                              </h3>
+                              {/* <p className="text-gray-600 text-sm">
+                                {new Date(emotion.created_at).toLocaleDateString('en-US', { 
+                                  month: 'short', 
+                                  day: 'numeric', 
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p> */}
+                              <p className="text-xs text-blue-600 font-semibold mt-1">
+                                👤 {selectedChild.username}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <h3 className="font-bold text-gray-800 capitalize">
-                              {emotion.emotion_name || 'Unknown'}
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                              {new Date(emotion.created_at).toLocaleDateString()}
-                            </p>
-                            <p className="text-xs text-blue-600 font-semibold">
-                              {selectedChild.username}
-                            </p>
+                          <div className="flex flex-col items-end">
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium mb-2 ${
+                              isAlarmingEmotion 
+                                ? 'bg-red-100 text-red-800' 
+                                : isPositive 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-orange-100 text-orange-800'
+                            }`}>
+                              Level {emotion.intensity || 0}
+                            </span>
+                            {/* {isAlarmingEmotion && (
+                              <span className="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                                🚨 High Priority
+                              </span>
+                            )} */}
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
-                            Level {emotion.intensity || 0}
+                        
+                        {/* Display note for alarming emotions */}
+                        {isAlarmingEmotion && emotion.emotion_description && emotion.emotion_description.trim() !== '' ? (
+                          <div className="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-4 mb-3">
+                            <div className="flex items-start">
+                              <div className="flex-shrink-0">
+                                <div className="text-blue-400 text-xl">💬</div>
+                              </div>
+                              <div className="ml-3 flex-1">
+                                <p className="text-sm font-semibold text-blue-800 mb-1">
+                                  📝 Student's Private Note
+                                </p>
+                                <p className="text-blue-700 text-sm leading-relaxed bg-white rounded p-3 italic">
+                                  "{emotion.emotion_description}"
+                                </p>
+                                <p className="text-xs text-blue-600 mt-2 flex items-center">
+                                  <ExclamationTriangleIcon className="w-3 h-3 mr-1" />
+                                  Requires attention and support
+                                </p>
+                              </div>
+                            </div>
                           </div>
+                        ) : isAlarmingEmotion ? (
+                          <div className="bg-gray-50 rounded-lg p-3 mb-3 text-center">
+                            <p className="text-sm text-gray-500 italic">No additional note provided by student</p>
+                          </div>
+                        ) : null}
+                        
+                        <div className="flex items-center justify-between text-sm text-gray-500 pt-3 border-t border-gray-100">
+                          <span className="flex items-center">
+                            <ClockIcon className="h-4 w-4 mr-1" />
+                            {(() => {
+                              const now = new Date();
+                              const emotionDate = new Date(emotion.created_at);
+                              const diffInMinutes = Math.floor((now - emotionDate) / (1000 * 60));
+                              
+                              if (diffInMinutes < 1) return "Just now";
+                              if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
+                              
+                              const diffInHours = Math.floor(diffInMinutes / 60);
+                              if (diffInHours < 24) return `${diffInHours} hours ago`;
+                              
+                              const diffInDays = Math.floor(diffInHours / 24);
+                              if (diffInDays === 1) return "Yesterday";
+                              if (diffInDays < 7) return `${diffInDays} days ago`;
+                              
+                              return emotionDate.toLocaleDateString();
+                            })()}
+                          </span>
+                          {isAlarmingEmotion && (
+                            <span className="flex items-center text-red-500 font-medium">
+                              <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
+                              Needs Support
+                            </span>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

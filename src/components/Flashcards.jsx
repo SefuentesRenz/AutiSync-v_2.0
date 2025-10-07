@@ -586,13 +586,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             hint: "Count each apple: 1, 2, 3!"
           },
           {
-            puzzleType: "matching",
-            questionText: "Number Matching",
-            instruction: "Number 6",
-            objects: [{id: 1, content: "Five", color: "red"}, {id: 2, content: "Seven", color: "blue"}, {id: 3, content: "Six", color: "green"}],
-            word: "BLUE",
-            correctAnswer: 3,
-            hint: "Match the 6 to number six!"
+            puzzleType: "math",
+            questionText: "Simple Addition Puzzle",
+            instruction: "What is 2 + 3?",
+            equation: { first: 2, operator1: "+", second: 3 },
+            options: [4, 5, 6],
+            correctAnswer: 5,
+            hint: "Count 2 fingers, then count 3 more!"
           },
           {
             puzzleType: "logic",
@@ -765,12 +765,12 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           },
           {
             puzzleType: "math",
-            questionText: "Simple Math Puzzle",
+            questionText: "Math Challenge Puzzle",
             instruction: "",
-            equation: { first: 2, operator1: "+", second: 1 },
-            options: [2, 3, 4],
-            correctAnswer: 3,
-            hint: "Add 2 and 1 together!"
+            equation: { first: 15, operator1: "-", second: 8 },
+            options: [5, 6, 7],
+            correctAnswer: 7,
+            hint: "Take away 8 from 15. Count backwards!"
           },
           {
             puzzleType: "sequence",
@@ -783,11 +783,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           },
           {
             puzzleType: "sorting",
-            questionText: "Sorting Puzzle",
-            instruction: "Choose the fruit into the FRUIT basket.",
-            items: [{id: 1, content: "🍎 Apple", category: "fruit"}, {id: 2, content: "🚗 Car", category: "vehicle"}, {id: 3, content: "🍌 Banana", category: "fruit"}],
-            correctItems: [1, 3],
-            hint: "Fruits are things you can eat!"
+            questionText: "Category Sorting Puzzle",
+            instruction: "Choose all the LIVING THINGS from the list.",
+            items: [{id: 1, content: "� Tree", category: "living"}, {id: 2, content: "⚽ Soccer Ball", category: "non-living"}, {id: 3, content: "🐝 Bee", category: "living"}, {id: 4, content: "🐠 Fish", category: "living"}, {id: 5, content: "📚 Book", category: "non-living"}],
+            correctItems: [1, 3, 4],
+            hint: "Living things can grow, breathe, and need food!"
           },
           {
             puzzleType: "logic",
@@ -950,10 +950,10 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             puzzleType: "math",
             questionText: "Advanced Math Puzzle",
             instruction: "",
-            equation: { first: 5, operator1: "-", second: 2 },
-            options: [2, 3, 4],
-            correctAnswer: 3,
-            hint: "Take away 2 from 5!"
+            equation: { first: 6, operator1: "x", second: 7},
+            options: [44, 43, 42],
+            correctAnswer: 42,
+            hint: "6 times 5 is 30!"
           },
           {
             puzzleType: "logic",
@@ -965,11 +965,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           },
           {
             puzzleType: "logic",
-            questionText: "Word Association Puzzle",
-            instruction: "Which one belongs with 'FISH'?",
-            options: ["🐟 Water", "🐕 Dog", "🍎 Apple"],
-            correctAnswer: "🐟 Water",
-            hint: "Where do fish live?"
+            questionText: "Cause and Effect Puzzle",
+            instruction: "If a plant doesn't get water for many days, what will happen?",
+            options: ["It will grow taller", "It will wilt and die", "It will change color to blue"],
+            correctAnswer: "It will wilt and die",
+            hint: "Think about what living things need to survive!"
           },
           {
             puzzleType: "sequence",
@@ -982,11 +982,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           },
           {
             puzzleType: "logic",
-            questionText: "Real-life Puzzle",
-            instruction: "The traffic light is 🔴Red. What should you do?",
-            options: ["Go", "Stop", "Jump"],
-            correctAnswer: "Stop",
-            hint: "Red means stop for safety!"
+            questionText: "Scientific Reasoning Puzzle",
+            instruction: "Ice is solid water. What happens when you heat ice?",
+            options: ["It becomes colder", "It melts into liquid water", "It turns into wood"],
+            correctAnswer: "It melts into liquid water",
+            hint: "Think about what happens to ice cream on a hot day!"
           }
         ],
         "Visual Memory Challenge": [
@@ -4286,20 +4286,20 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               </div>
             </div>
           ) : isCashierGame ? (
-            <div className="space-y-6">
+            <div className="space-y-3">
               {/* Main Game Area */}
-              <div className="bg-gradient-to-b from-blue-50 to-green-50 rounded-3xl p-4 -mt-2 border-4 border-blue-200 relative">
+              <div className="bg-gradient-to-b from-blue-50 to-green-50 rounded-2xl p-3 -mt-2 border-3 border-blue-200 relative">
                 
                 {/* Characters with simplified design */}
-                <div className="flex justify-between items-center relative min-h-[300px]">
+                <div className="flex justify-between items-center relative min-h-[180px]">
                   
                   {/* Customer Character */}
                   <div className="flex flex-col items-center relative">
-                    {/* Thought Bubble for Customer */}
-                    {showThoughtBubble && currentSpeaker === 'customer' && (
-                      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white rounded-3xl p-3 border-4 border-pink-300 shadow-2xl w-[250px] z-10 animate-bounce-gentle">
-                        <div className="text-xl font-bold text-gray-800 text-center leading-relaxed">
-                          {speechText}
+                    {/* Thought Bubble for Customer - Show in step 1 and step 2 */}
+                    {((showThoughtBubble && currentSpeaker === 'customer') || gameStep === 2) && currentQuestion.questionText && (
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-white rounded-2xl p-2 border-3 border-pink-300 shadow-xl w-[200px] z-10 animate-bounce-gentle">
+                        <div className="text-base font-bold text-gray-800 text-center leading-snug">
+                          {currentQuestion.questionText}
                         </div>
                         {/* Bubble pointer */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
@@ -4311,19 +4311,19 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                     {/* Customer - Head only */}
                     <div className="text-center">
                       {/* Head - larger */}
-                      <div className="text-[12rem] mb-4">👩‍🦱</div>
+                      <div className="text-7xl mb-2">👩‍🦱</div>
                       
                       {/* Label */}
-                      <div className="bg-pink-500 text-white px-8 py-4 rounded-full text-2xl font-bold shadow-lg">
+                      <div className="bg-pink-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
                         Customer
                       </div>
                     </div>
                   </div>
 
                   {/* Restaurant Counter */}
-                  <div className="flex-1 mx-16 mt-20">
-                    <div className="h-32 bg-gradient-to-t from-amber-400 to-amber-200 rounded-2xl border-4 border-amber-500 relative flex items-center justify-center shadow-lg">
-                      <span className="text-2xl font-bold text-amber-900">🏪 Restaurant Counter 🏪</span>
+                  <div className="flex-1 mx-8 mt-10">
+                    <div className="h-20 bg-gradient-to-t from-amber-400 to-amber-200 rounded-xl border-3 border-amber-500 relative flex items-center justify-center shadow-lg">
+                      <span className="text-base font-bold text-amber-900">🏪 Counter 🏪</span>
                     </div>
                   </div>
 
@@ -4331,8 +4331,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   <div className="flex flex-col items-center relative">
                     {/* Thought Bubble for Cashier */}
                     {showThoughtBubble && currentSpeaker === 'cashier' && (
-                      <div className="absolute -top-32 left-1/2 transform -translate-x-1/2 bg-white rounded-3xl p-8 border-4 border-blue-300 shadow-2xl max-w-lg z-10 animate-bounce-gentle">
-                        <div className="text-xl font-bold text-gray-800 text-center leading-relaxed">
+                      <div className="absolute -top-20 left-1/2 transform -translate-x-1/2 bg-white rounded-2xl p-3 border-3 border-blue-300 shadow-xl max-w-md z-10 animate-bounce-gentle">
+                        <div className="text-base font-bold text-gray-800 text-center leading-snug">
                           {speechText}
                         </div>
                         {/* Bubble pointer */}
@@ -4345,10 +4345,10 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                     {/* Cashier - Head only */}
                     <div className="text-center">
                       {/* Head - larger */}
-                      <div className="text-[12rem] mb-4">👨‍💼</div>
+                      <div className="text-7xl mb-2">👨‍💼</div>
                       
                       {/* Label */}
-                      <div className="bg-blue-500 text-white px-8 py-4 rounded-full text-2xl font-bold shadow-lg">
+                      <div className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
                         You (Cashier)
                       </div>
                     </div>
@@ -4357,7 +4357,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               </div>
 
               {/* Action Area */}
-              <div className="mt-8 space-y-6">
+              <div className="mt-4 space-y-3">
                 {/* Step 1: Customer speaks */}
                 {gameStep === 1 && (
                   <div className="text-center">
@@ -4376,24 +4376,24 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {/* Step 2: Select items */}
                 {gameStep === 2 && (
                   <div>
-                    <div className="bg-blue-100 border-4 border-blue-300 rounded-2xl p-6 mb-6 text-center">
-                      <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                    <div className="bg-blue-100 border-3 border-blue-300 rounded-xl p-3 mb-3 text-center">
+                      <h3 className="text-lg font-bold text-gray-800">
                         🍽️ Find the food the customer wants
                       </h3>
                     </div>
 
                     {/* Food Menu - Simple Grid */}
-                    <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="grid grid-cols-3 gap-3 mb-3">
                       {currentQuestion.menuOptions.map((item, index) => (
                         <button
                           key={index}
                           onClick={() => handleItemSelect(item)}
                           disabled={isAnswered}
-                          className="bg-white hover:bg-blue-50 border-4 border-gray-300 hover:border-blue-400 rounded-2xl p-6 transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg"
+                          className="bg-white hover:bg-blue-50 border-3 border-gray-300 hover:border-blue-400 rounded-xl p-3 transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg"
                         >
-                          <div className="text-5xl mb-3">{item.image}</div>
-                          <div className="font-bold text-gray-800 text-lg">{item.name}</div>
-                          <div className="text-green-600 font-semibold text-lg">{item.price}</div>
+                          <div className="text-4xl mb-2">{item.image}</div>
+                          <div className="font-bold text-gray-800 text-sm">{item.name}</div>
+                          <div className="text-green-600 font-semibold text-sm">{item.price}</div>
                         </button>
                       ))}
                     </div>
@@ -4449,176 +4449,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
-          ) : isCashierGame ? (
-            <div className="space-y-6">
-              {/* Main Game Area */}
-              <div className="bg-gradient-to-b from-blue-50 to-green-50 rounded-3xl p-4 border-4 border-blue-200 relative">
-                
-                {/* Characters with simplified design */}
-                <div className="flex justify-between items-center relative min-h-[300px]">
-                  
-                  {/* Customer Character */}
-                  <div className="flex flex-col items-center relative">
-                    {/* Thought Bubble for Customer */}
-                    {showThoughtBubble && currentSpeaker === 'customer' && (
-                      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white rounded-3xl p-3 border-4 border-pink-300 shadow-2xl w-[250px] z-10 animate-bounce-gentle">
-                        <div className="text-xl font-bold text-gray-800 text-center leading-relaxed">
-                          {speechText}
-                        </div>
-                        {/* Bubble pointer */}
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
-                          <div className="w-0 h-0 border-l-8 border-r-8 border-t-16 border-l-transparent border-r-transparent border-t-white"></div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Customer - Head only */}
-                    <div className="text-center">
-                      {/* Head - larger */}
-                      <div className="text-[12rem] mb-4">👩‍🦱</div>
-                      
-                      {/* Label */}
-                      <div className="bg-pink-500 text-white px-8 py-4 rounded-full text-2xl font-bold shadow-lg">
-                        Customer
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Restaurant Counter */}
-                  <div className="flex-1 mx-16 mt-20">
-                    <div className="h-32 bg-gradient-to-t from-amber-400 to-amber-200 rounded-2xl border-4 border-amber-500 relative flex items-center justify-center shadow-lg">
-                      <span className="text-2xl font-bold text-amber-900">🏪 Restaurant Counter 🏪</span>
-                    </div>
-                  </div>
-
-                  {/* Cashier Character (You) */}
-                  <div className="flex flex-col items-center relative">
-                    {/* Thought Bubble for Cashier */}
-                    {showThoughtBubble && currentSpeaker === 'cashier' && (
-                      <div className="absolute -top-32 left-1/2 transform -translate-x-1/2 bg-white rounded-3xl p-8 border-4 border-blue-300 shadow-2xl max-w-lg z-10 animate-bounce-gentle">
-                        <div className="text-xl font-bold text-gray-800 text-center leading-relaxed">
-                          {speechText}
-                        </div>
-                        {/* Bubble pointer */}
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
-                          <div className="w-0 h-0 border-l-8 border-r-8 border-t-16 border-l-transparent border-r-transparent border-t-white"></div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Cashier - Head only */}
-                    <div className="text-center">
-                      {/* Head - larger */}
-                      <div className="text-[12rem] mb-4">👨‍💼</div>
-                      
-                      {/* Label */}
-                      <div className="bg-blue-500 text-white px-8 py-4 rounded-full text-2xl font-bold shadow-lg">
-                        You (Cashier)
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Area */}
-              <div className="mt-8 space-y-6">
-                {/* Step 1: Customer speaks */}
-                {gameStep === 1 && (
-                  <div className="text-center">
-                    
-                    {showThoughtBubble && (
-                      <button
-                        onClick={handleStartSelecting}
-                        className="bg-green-500 hover:bg-green-600 text-white py-6 px-12 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg"
-                      >
-                        ✅ GET ORDER
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Step 2: Select items */}
-                {gameStep === 2 && (
-                  <div>
-                    <div className="bg-blue-100 border-4 border-blue-300 rounded-2xl p-6 mb-6 text-center">
-                      <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                        🍽️ Find the food the customer wants
-                      </h3>
-                      {/* <p className="text-xl text-gray-700 leading-relaxed">
-                        Click on the food from the menu. Pick what the customer said!
-                      </p> */}
-                    </div>
-
-                    {/* Food Menu - Simple Grid */}
-                    <div className="grid grid-cols-3 gap-4 mb-6">
-                      {currentQuestion.menuOptions.map((item, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleItemSelect(item)}
-                          disabled={isAnswered}
-                          className="bg-white hover:bg-blue-50 border-4 border-gray-300 hover:border-blue-400 rounded-2xl p-6 transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg"
-                        >
-                          <div className="text-5xl mb-3">{item.image}</div>
-                          <div className="font-bold text-gray-800 text-lg">{item.name}</div>
-                          <div className="text-green-600 font-semibold text-lg">{item.price}</div>
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Selected Items Display */}
-                    {selectedItems.length > 0 && (
-                      <div className="bg-green-100 border-4 border-green-300 rounded-2xl p-6 mb-6">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">
-                          ✅ Food I picked:
-                        </h3>
-                        <div className="flex flex-wrap gap-3 justify-center">
-                          {selectedItems.map((item, index) => (
-                            <div key={index} className="bg-white border-3 border-green-400 rounded-xl p-4 flex items-center space-x-3 shadow-md">
-                              <span className="text-3xl">{item.image}</span>
-                              <span className="font-semibold text-lg">{item.name}</span>
-                              <button
-                                onClick={() => handleRemoveItem(index)}
-                                disabled={isAnswered}
-                                className="bg-red-100 hover:bg-red-200 text-red-600 px-3 py-2 rounded-lg text-lg cursor-pointer font-bold"
-                              >
-                                ❌
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Submit Button */}
-                    {selectedItems.length > 0 && !isAnswered && (
-                      <div className="text-center">
-                        <button
-                          onClick={handleCashierSubmit}
-                          className="bg-purple-500 hover:bg-purple-600 text-white py-6 px-12 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg"
-                        >
-                          🎯 Give food to customer
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Step 3: Complete */}
-                {gameStep === 3 && (
-                  <div className="text-center">
-                    <div className="bg-purple-100 border-4 border-purple-300 rounded-2xl p-6">
-                      <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                        🏆 Good job helping the customer!
-                      </h3>
-                      <div className="text-xl font-bold text-purple-600">
-                        You got {cashierScore} points! 🌟
-                      </div>
-                    </div>
-                  </div>
-                )}
-
               </div>
             </div>
           ) : isGreetingsGame ? (

@@ -601,7 +601,7 @@ const HomePage = () => {
                   <span className="text-4xl mr-3 animate-float">📖</span>
                   Community Expression Wall
                 </h2>
-                <p className="text-sm text-gray-500 italic">Scroll down to see more emotions shared! 👇</p>
+                
               </div>
               
               {/* Scrollable container - shows 3 rows, scroll for more */}
