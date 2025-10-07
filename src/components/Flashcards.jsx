@@ -238,6 +238,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const wrongSound = "/src/assets/sounds/wrong.mp3";
   const badgeCelebrationSound = "/src/assets/sounds/Activitycompletion.mp3";
   const jungleBgMusic = "/src/assets/sounds/Jungle_BGmusic.wav";
+  const numbersIdentificationBgMusic = "/src/assets/sounds/BgMusic_Numbersidentification.mp3";
+  const matchingTypeBgMusic = "/src/assets/sounds/BgMusic_MatchingType.mp3";
+  const academicPuzzleBgMusic = "/src/assets/sounds/BgMusicc_AcademicPuzzle.mp3";
 
   // Pause video and play sound when modal appears
   useEffect(() => {
@@ -267,11 +270,94 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   }, [showWrong]);
 
 
-  // Background music for Medium Identification activity
+  // Background music for specific activities
   useEffect(() => {
-    if (activity === "Identification" && difficulty === "Medium") {
-      // Play jungle background music
+    const shouldPlayNumbersIdentificationMusic = 
+      (activity === "Identification" && difficulty === "Hard") ||
+      (activity === "Numbers" && difficulty === "Medium");
+
+    const shouldPlayJungleMusic = 
+      (activity === "Identification" && difficulty === "Medium");
+
+    const shouldPlayMatchingTypeMusic = 
+      (activity === "Matching Type" && (difficulty === "Easy" || difficulty === "Medium" || difficulty === "Hard"));
+
+    const shouldPlayAcademicPuzzleMusic = 
+      (activity === "Academic Puzzles" && (difficulty === "Easy" || difficulty === "Medium" || difficulty === "Hard"));
+
+    // Social/Daily Life Skills activities background music
+    const shouldPlaySocialMusic1 = 
+      (activity === "Hygiene Hero" || activity === "Cashier Game");
+
+    const shouldPlaySocialMusic2 = 
+      (activity === "Safe Street Crossing" || activity === "Tooth Brushing");
+
+    const shouldPlaySocialMusic3 = 
+      (activity === "Grocery Helper" || activity === "Social Greetings");
+
+    const shouldPlaySocialMusic4 = 
+      (activity === "Money Value Game" || activity === "Household Chores Helper");
+
+    if (shouldPlayAcademicPuzzleMusic) {
+      // Play Academic Puzzles background music for all difficulty levels
       if (bgMusicRef.current) {
+        bgMusicRef.current.src = academicPuzzleBgMusic;
+        bgMusicRef.current.volume = 0.3; // Set volume to 30%
+        bgMusicRef.current.loop = true; // Loop the music
+        bgMusicRef.current.play().catch(console.error);
+      }
+    } else if (shouldPlayMatchingTypeMusic) {
+      // Play Matching Type background music for all difficulty levels
+      if (bgMusicRef.current) {
+        bgMusicRef.current.src = matchingTypeBgMusic;
+        bgMusicRef.current.volume = 0.3; // Set volume to 30%
+        bgMusicRef.current.loop = true; // Loop the music
+        bgMusicRef.current.play().catch(console.error);
+      }
+    } else if (shouldPlayNumbersIdentificationMusic) {
+      // Play Numbers/Identification background music for Hard Identification and Medium Numbers
+      if (bgMusicRef.current) {
+        bgMusicRef.current.src = numbersIdentificationBgMusic;
+        bgMusicRef.current.volume = 0.3; // Set volume to 30%
+        bgMusicRef.current.loop = true; // Loop the music
+        bgMusicRef.current.play().catch(console.error);
+      }
+    } else if (shouldPlayJungleMusic) {
+      // Play jungle background music for Medium Identification
+      if (bgMusicRef.current) {
+        bgMusicRef.current.src = jungleBgMusic;
+        bgMusicRef.current.volume = 0.3; // Set volume to 30%
+        bgMusicRef.current.loop = true; // Loop the music
+        bgMusicRef.current.play().catch(console.error);
+      }
+    } else if (shouldPlaySocialMusic1) {
+      // Play Academic Puzzle music for Hygiene Hero and Cashier Game
+      if (bgMusicRef.current) {
+        bgMusicRef.current.src = academicPuzzleBgMusic;
+        bgMusicRef.current.volume = 0.3; // Set volume to 30%
+        bgMusicRef.current.loop = true; // Loop the music
+        bgMusicRef.current.play().catch(console.error);
+      }
+    } else if (shouldPlaySocialMusic2) {
+      // Play Matching Type music for Safe Street Crossing and Tooth Brushing
+      if (bgMusicRef.current) {
+        bgMusicRef.current.src = matchingTypeBgMusic;
+        bgMusicRef.current.volume = 0.3; // Set volume to 30%
+        bgMusicRef.current.loop = true; // Loop the music
+        bgMusicRef.current.play().catch(console.error);
+      }
+    } else if (shouldPlaySocialMusic3) {
+      // Play Numbers/Identification music for Grocery Helper and Social Greetings
+      if (bgMusicRef.current) {
+        bgMusicRef.current.src = numbersIdentificationBgMusic;
+        bgMusicRef.current.volume = 0.3; // Set volume to 30%
+        bgMusicRef.current.loop = true; // Loop the music
+        bgMusicRef.current.play().catch(console.error);
+      }
+    } else if (shouldPlaySocialMusic4) {
+      // Play Jungle music for Money Value Game and Household Chores Helper
+      if (bgMusicRef.current) {
+        bgMusicRef.current.src = jungleBgMusic;
         bgMusicRef.current.volume = 0.3; // Set volume to 30%
         bgMusicRef.current.loop = true; // Loop the music
         bgMusicRef.current.play().catch(console.error);
@@ -615,7 +701,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { id: 3, image: "🐸", name: "Frog" },
               { id: 4, image: "🐻", name: "Bear" }
             ],
-            memorizationTime: 10,
+            memorizationTime: 8,
             shuffleCount: 4
           },
           {
@@ -629,7 +715,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { id: 3, image: "⚪", name: "Circle" },
               { id: 4, image: "🔺", name: "Triangle" }
             ],
-            memorizationTime: 10,
+            memorizationTime: 8,
             shuffleCount: 4
           },
           {
@@ -643,7 +729,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { id: 3, image: "🍊", name: "Orange" },
               { id: 4, image: "🍇", name: "Grapes" }
             ],
-            memorizationTime: 10,
+            memorizationTime: 8,
             shuffleCount: 4
           }
         ]
@@ -810,7 +896,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { id: 3, image: "🚲", name: "Bicycle" },
               { id: 4, image: "✈️", name: "Airplane" }
             ],
-            memorizationTime: 10,
+            memorizationTime: 8,
             shuffleCount: 6
           },
           {
@@ -824,7 +910,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { id: 3, image: "🟢", name: "Green Ball" },
               { id: 4, image: "🟡", name: "Yellow Ball" }
             ],
-            memorizationTime: 10,
+            memorizationTime: 8,
             shuffleCount: 6
           },
           {
@@ -838,7 +924,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { id: 3, image: "3️⃣", name: "Three" },
               { id: 4, image: "4️⃣", name: "Four" }
             ],
-            memorizationTime: 10,
+            memorizationTime: 8,
             shuffleCount: 6
           }
         ]
@@ -1001,8 +1087,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { id: 3, image: "🎒", name: "Backpack" },
               { id: 4, image: "📐", name: "Ruler" }
             ],
-            memorizationTime: 10,
-            shuffleCount: 6
+            memorizationTime: 8,
+            shuffleCount: 8
           },
           {
             roundId: 2,
@@ -1015,8 +1101,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { id: 3, image: "🎾", name: "Tennis" },
               { id: 4, image: "🏐", name: "Volleyball" }
             ],
-            memorizationTime: 10,
-            shuffleCount: 6
+            memorizationTime: 8,
+            shuffleCount: 8
           },
           {
             roundId: 3,
@@ -1029,8 +1115,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { id: 3, image: "☀️", name: "Sun" },
               { id: 4, image: "⚡", name: "Lightning" }
             ],
-            memorizationTime: 108,
-            shuffleCount: 6
+            memorizationTime: 8,
+            shuffleCount: 8
           }
         ]
         
@@ -1323,7 +1409,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "💇‍♂️",
             backgroundImage: "🪞",
             characterEmoji: "😵‍💫",
-            answerChoices: ["Cut my hair", "Wash my hands", "Take a shower", "Brush my teeth", "Wipe my nose", "Clean my ears", "Use tissue"],
+            answerChoices: ["fix my hair", "Wash my hands", "Take a shower", "Brush my teeth", "Wipe my nose", "Clean my ears"],
             correctAnswer: "Cut my hair",
             gameType: "hygiene",
             successAnimation: "✂️✨",
@@ -1347,7 +1433,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🪥",
             backgroundImage: "🚿",
             characterEmoji: "😬",
-            answerChoices: ["Wash my hands", "Take a shower", "Cut my hair", "Brush my teeth", "Wipe my nose", "Clean my ears", "Use tissue"],
+            answerChoices: ["Wash my hands", "Take a shower", "Brush my teeth", "Wipe my nose", "Clean my ears", "Use tissue"],
             correctAnswer: "Brush my teeth",
             gameType: "hygiene",
             successAnimation: "🪥✨",
@@ -1359,7 +1445,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🧽",
             backgroundImage: "🚿",
             characterEmoji: "😵",
-            answerChoices: [ "Wash my hands", "Take a shower", "Cut my hair", "Wipe my nose", "Clean my ears", "Brush my teeth", "Use tissue"],
+            answerChoices: [ "Wash my hands", "Take a shower", "Cut my hair", "Wipe my nose", "Clean my ears", "Brush my teeth"],
             correctAnswer: "Clean my ears",
             gameType: "hygiene",
             successAnimation: "🧽✨",
@@ -1371,7 +1457,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🚿",
             backgroundImage: "🛁",
             characterEmoji: "😅",
-            answerChoices: ["Wash my hands", "Take a shower", "Brush my teeth", "Cut my hair", "Wipe my nose", "Clean my ears", "Use tissue"],
+            answerChoices: ["Wash my hands", "Take a shower", "Brush my teeth", "Cut my hair", "Wipe my nose", "Use tissue"],
             correctAnswer: "Take a shower",
             gameType: "hygiene",
             successAnimation: "🚿✨",
@@ -1383,7 +1469,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "😋",
             backgroundImage: "🍽️",
             characterEmoji: "😝",
-            answerChoices: ["Brush my teeth", "Take a shower", "Wash my face", "Wipe my nose", "Wash my hands", "Clean my ears", "Use tissue"],
+            answerChoices: ["Brush my teeth", "Take a shower", "Wash my face", "Wipe my nose", "Wash my hands", "Use tissue"],
             correctAnswer: "Wash my face",
             gameType: "hygiene",
             successAnimation: "🧼✨",
@@ -1395,7 +1481,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🤧",
             backgroundImage: "🏠",
             characterEmoji: "😷",
-            answerChoices: ["Use tissue", "Wash my hands", "Take a shower", "Cut my hair", "Wipe my nose", "Clean my ears", "Brush my teeth"],
+            answerChoices: ["Use tissue", "Wash my hands", "Take a shower", "Cut my hair", "Wipe my nose", "Clean my ears"],
             correctAnswer: "Use tissue",
             gameType: "hygiene",
             successAnimation: "🧻✨",
@@ -1545,32 +1631,38 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             rounds: [
               {
                 roundId: 1,
-                budget: 750,
+                budget: 150,
                 items: [
-                  { id: 1, name: "Burger", image: "🍔", price: 70, category: "food", affordable: true },
-                  { id: 2, name: "Car", image: "🚗", price: 450000, category: "vehicle", affordable: false },
-                  { id: 3, name: "Laptop", image: "💻", price: 25000, category: "electronics", affordable: false },
-                  { id: 4, name: "Iced Coffee", image: "🧊☕", price: 120, category: "drink", affordable: true }
+                  { id: 1, name: "Pencil", image: "✏️", price: 5, category: "need", affordable: true },
+                  { id: 2, name: "Notebook", image: "📒", price: 25, category: "need", affordable: true },
+                  { id: 3, name: "Toy Robot", image: "🤖", price: 250, category: "want", affordable: false },
+                  { id: 4, name: "Eraser", image: "🧹", price: 8, category: "need", affordable: true },
+                  { id: 5, name: "Juice Box", image: "🧃", price: 15, category: "want", affordable: true },
+                  { id: 6, name: "Video Game", image: "🎮", price: 350, category: "want", affordable: false }
                 ]
               },
               {
                 roundId: 2,
-                budget: 2500,
+                budget: 180,
                 items: [
-                  { id: 5, name: "School Bag", image: "🎒", price: 850, category: "school", affordable: true },
-                  { id: 6, name: "House", image: "🏠", price: 2500000, category: "property", affordable: false },
-                  { id: 7, name: "Bicycle", image: "🚲", price: 3500, category: "vehicle", affordable: false },
-                  { id: 8, name: "Pizza", image: "🍕", price: 280, category: "food", affordable: true }
+                  { id: 7, name: "School Supplies Set", image: "📚", price: 85, category: "need", affordable: true },
+                  { id: 8, name: "Healthy Snack", image: "🍪", price: 20, category: "need", affordable: true },
+                  { id: 9, name: "Chocolate Bar", image: "🍫", price: 35, category: "want", affordable: true },
+                  { id: 10, name: "Action Figure", image: "🦸", price: 220, category: "want", affordable: false },
+                  { id: 11, name: "Water Bottle", image: "🍶", price: 45, category: "need", affordable: true },
+                  { id: 12, name: "Comic Book", image: "📖", price: 55, category: "want", affordable: true }
                 ]
               },
               {
                 roundId: 3,
-                budget: 1200,
+                budget: 200,
                 items: [
-                  { id: 9, name: "Video Game", image: "🎮", price: 2800, category: "entertainment", affordable: false },
-                  { id: 10, name: "Ice Cream", image: "🍦", price: 45, category: "dessert", affordable: true },
-                  { id: 11, name: "Smartphone", image: "📱", price: 25000, category: "electronics", affordable: false },
-                  { id: 12, name: "Book", image: "📚", price: 350, category: "education", affordable: true }
+                  { id: 13, name: "Lunch Box", image: "🍱", price: 75, category: "need", affordable: true },
+                  { id: 14, name: "Colored Pens", image: "🖊️", price: 40, category: "need", affordable: true },
+                  { id: 15, name: "Candy Pack", image: "🍬", price: 25, category: "want", affordable: true },
+                  { id: 16, name: "Toy Car", image: "🏎️", price: 180, category: "want", affordable: true },
+                  { id: 17, name: "Book Bag", image: "🎒", price: 120, category: "need", affordable: true },
+                  { id: 18, name: "Expensive Toy", image: "🎪", price: 450, category: "want", affordable: false }
                 ]
               }
             ],
@@ -4311,7 +4403,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                     {/* Customer - Head only */}
                     <div className="text-center">
                       {/* Head - larger */}
-                      <div className="text-7xl mb-2">👩‍🦱</div>
+                      <div className="text-[10rem] mb-2">👩‍🦱</div>
                       
                       {/* Label */}
                       <div className="bg-pink-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
@@ -4331,7 +4423,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   <div className="flex flex-col items-center relative">
                     {/* Thought Bubble for Cashier */}
                     {showThoughtBubble && currentSpeaker === 'cashier' && (
-                      <div className="absolute -top-20 left-1/2 transform -translate-x-1/2 bg-white rounded-2xl p-3 border-3 border-blue-300 shadow-xl max-w-md z-10 animate-bounce-gentle">
+                      <div className="absolute -top-20 left-1/2 transform -translate-x-1/2 bg-white rounded-2xl p-3 border-3 border-blue-300 shadow-xl w-[200px] z-10 animate-bounce-gentle">
                         <div className="text-base font-bold text-gray-800 text-center leading-snug">
                           {speechText}
                         </div>
@@ -4345,7 +4437,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                     {/* Cashier - Head only */}
                     <div className="text-center">
                       {/* Head - larger */}
-                      <div className="text-7xl mb-2">👨‍💼</div>
+                      <div className="text-[10rem] mb-2">👨‍💼</div>
                       
                       {/* Label */}
                       <div className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
@@ -4400,13 +4492,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
                     {/* Selected Items Display */}
                     {selectedItems.length > 0 && (
-                      <div className="bg-green-100 border-4 border-green-300 rounded-2xl p-6 mb-6">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">
+                      <div className="bg-green-100 border-4 border-green-300 rounded-2xl p-3 mb-3">
+                        <h3 className="text-lg font-bold text-gray-800 mb-2 text-center">
                           ✅ Food I picked:
                         </h3>
                         <div className="flex flex-wrap gap-3 justify-center">
                           {selectedItems.map((item, index) => (
-                            <div key={index} className="bg-white border-3 border-green-400 rounded-xl p-4 flex items-center space-x-3 shadow-md">
+                            <div key={index} className="bg-white border-3 border-green-400 rounded-xl p-2 flex items-center space-x-3 shadow-md">
                               <span className="text-3xl">{item.image}</span>
                               <span className="font-semibold text-lg">{item.name}</span>
                               <button
@@ -4427,7 +4519,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                       <div className="text-center">
                         <button
                           onClick={handleCashierSubmit}
-                          className="bg-purple-500 hover:bg-purple-600 text-white py-6 px-12 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg"
+                          className="bg-purple-500 hover:bg-purple-600 text-white py-3 px-6 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg"
                         >
                           🎯 Give food to customer
                         </button>
@@ -4578,36 +4670,33 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               </div>
             </div>
           ) : isMoneyGame ? (
-            <div className="space-y-6 -mt-5">
-              {/* Money Value Game Main Area */}
-              <div className="bg-gradient-to-b from-green-50 to-blue-50 rounded-3xl p-4 border-4 border-green-200 relative overflow-hidden">
+            <div className="space-y-3">
+              {/* Money Value Game Main Area - Balanced Size */}
+              <div className="bg-gradient-to-b from-green-50 to-blue-50 rounded-2xl p-4 border-3 border-green-200 relative overflow-hidden">
                 
-                {/* Game Header */}
-                <div className="text-center mb-6">
-                  <div className="bg-gradient-to-r from-yellow-100 to-green-100 border-4 border-yellow-300 rounded-2xl p-6 relative">
-                    <div className="absolute -top-2 -right-2 text-6xl animate-bounce-gentle">💰</div>
-                    <div className="absolute -top-2 -left-2 text-4xl animate-float">🏪</div>
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">
-                      💱 Money Value Adventure 💱
-                    </h2>
-                    <p className="text-lg font-semibold -mb-4 text-gray-700">
-                      Round {moneyRound}/3 - Learn Philippine Peso Values!
-                    </p>
+                {/* Header - Centered */}
+                <div className="text-center mb-3">
+                  <div className="bg-gradient-to-r from-yellow-100 to-green-100 border-3 border-yellow-300 rounded-xl p-3 inline-block">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-4xl">💰</span>
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-800">Money Value Adventure</h2>
+                        <p className="text-sm text-gray-600">Round {moneyRound}/3</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Budget Display */}
-                <div className="bg-gradient-to-r from-blue-100 to-purple-100 border-4 border-blue-300 rounded-2xl p-3 mb-6 text-center relative">
-                  <div className="absolute -top-3 -left-3 text-5xl animate-pulse-gentle">💳</div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-3">Your Budget</h3>
-                  <div className="text-4xl font-extrabold text-green-600 bg-white/70 backdrop-blur-sm rounded-xl p-2 border-2 border-green-200">
-                    ₱{currentBudget.toLocaleString()}
+                {/* Budget Display - Centered */}
+                <div className="bg-gradient-to-r from-blue-100 to-purple-100 border-3 border-blue-300 rounded-xl p-3 mb-4 text-center">
+                  <h3 className="text-lg font-bold text-gray-800 mb-1">Your Budget</h3>
+                  <div className="text-4xl font-extrabold text-green-600 bg-white/70 backdrop-blur-sm rounded-lg p-2 inline-block border-2 border-green-300">
+                    ₱{currentBudget}
                   </div>
-                  <p className="text-lg text-gray-600 mt-3">Choose items you can afford!</p>
                 </div>
 
-                {/* Shopping Items - 4 items in 1 horizontal row */}
-                <div className="grid grid-cols-4 gap-3 mb-3">
+                {/* Shopping Items - Balanced Grid */}
+                <div className="grid grid-cols-3 gap-4 mb-4">
                   {currentMoneyItems.map((item, index) => {
                     const isPurchased = selectedPurchases.some(p => p.id === item.id);
                     
@@ -4615,34 +4704,31 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                       <div
                         key={item.id}
                         className={`
-                          relative bg-white/90 backdrop-blur-xl rounded-lg p-4 border-2 shadow transition-all duration-300
+                          relative bg-white rounded-xl p-4 border-2 shadow-md transition-all duration-300 transform hover:scale-105
                           border-blue-300 hover:border-blue-500
-                          ${isPurchased ? 'ring-2 ring-green-400 bg-green-50' : ''}
+                          ${isPurchased ? 'ring-3 ring-green-400 bg-green-50' : ''}
                         `}
                       >
-                        {/* Item Display */}
                         <div className="text-center">
-                          <div className="mb-1" style={{ fontSize: '55px' }}>{item.image}</div>
-                          <h4 className="font-bold text-gray-800 mb-1 leading-tight" style={{ fontSize: '23px' }}>{item.name}</h4>
-                          <div className="font-bold mb-2 p-1 rounded text-green-600 bg-blue-100" style={{ fontSize: '18px' }}>
-                            ₱{item.price.toLocaleString()}
+                          <div className="text-6xl mb-2">{item.image}</div>
+                          <h4 className="font-bold text-gray-800 text-lg mb-2 leading-tight">{item.name}</h4>
+                          <div className="font-bold text-base mb-2 py-1.5 px-2 rounded-lg text-green-600 bg-blue-100">
+                            ₱{item.price}
                           </div>
                           
-                          {/* Purchase Button - all buttons look the same */}
                           <button
                             onClick={() => handlePurchaseItem(item)}
                             disabled={isPurchased || isRoundComplete}
                             className={`
-                              w-full py-1 px-2 rounded font-bold transition-all duration-300 shadow-sm
+                              w-full py-2 px-3 rounded-lg text-base font-bold transition-all duration-300 shadow-sm
                               ${isPurchased 
                                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                                : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white cursor-pointer'
+                                : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white cursor-pointer transform hover:scale-105'
                               }
                               ${isRoundComplete ? 'opacity-50 cursor-not-allowed' : ''}
                             `}
-                            style={{ fontSize: '18px' }}
                           >
-                            {isPurchased ? '✅ Bought!' : '🛒 Buy'}
+                            {isPurchased ? '✅ Bought' : '🛒 Buy'}
                           </button>
                         </div>
                       </div>
@@ -4652,42 +4738,44 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
                 {/* Feedback Section */}
                 {showMoneyFeedback && (
-                  <div className={`rounded-2xl p-6 text-center border-4 mb-6 ${
+                  <div className={`rounded-xl p-4 text-center border-3 mb-3 ${
                     moneyFeedbackType === 'correct' 
                       ? 'bg-gradient-to-r from-green-100 to-blue-100 border-green-400'
                       : 'bg-gradient-to-r from-orange-100 to-red-100 border-orange-400'
                   }`}>
-                    <div className="text-6xl mb-4">
+                    <div className="text-5xl mb-2">
                       {moneyFeedbackType === 'correct' ? '🎉' : '💭'}
                     </div>
-                    <div className="text-2xl font-bold text-gray-800 mb-3">
+                    <div className="text-lg font-bold text-gray-800">
                       {moneyFeedbackMessage}
                     </div>
                   </div>
                 )}
 
-                {/* Progress and Controls */}
-                <div className="text-center">
+                {/* Progress and Controls - Centered */}
+                <div className="text-center space-y-3">
                   {/* Score Display */}
-                  <div className="bg-purple-100 border-4 border-purple-300 rounded-2xl p-4 mb-4">
-                    <div className="text-2xl font-bold text-purple-800">
-                      Correct Purchases: {moneyScore} 🏆
+                  <div className="bg-purple-100 border-3 border-purple-300 rounded-xl p-3 inline-block min-w-[280px]">
+                    <div className="text-xl font-bold text-purple-800">
+                      Score: {moneyScore} 🏆
                     </div>
                     {selectedPurchases.length > 0 && (
-                      <div className="text-lg text-gray-700 mt-2">
-                        Total Spent: ₱{totalSpent.toLocaleString()}
+                      <div className="text-base text-gray-700 mt-1">
+                        Total Spent: ₱{totalSpent}
                       </div>
                     )}
                   </div>
 
                   {/* Next Round Button */}
                   {selectedPurchases.length > 0 && !isRoundComplete && (
-                    <button
-                      onClick={proceedToNextMoneyRound}
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-4 px-8 rounded-2xl text-xl font-bold shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer"
-                    >
-                      {moneyRound < 3 ? '➡️ Next Round' : '🏆 Complete Game'}
-                    </button>
+                    <div>
+                      <button
+                        onClick={proceedToNextMoneyRound}
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 px-8 rounded-xl text-lg font-bold shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer"
+                      >
+                        {moneyRound < 3 ? '➡️ Next Round' : '🏆 Complete Game'}
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -6536,8 +6624,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         }
       `}</style>
 
-      {/* Background Music for Medium Identification */}
-      <audio ref={bgMusicRef} src={jungleBgMusic} />
+      {/* Background Music for Activities */}
+      <audio ref={bgMusicRef} />
     </div>
   );
 };
