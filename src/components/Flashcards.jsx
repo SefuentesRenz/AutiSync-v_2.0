@@ -1649,7 +1649,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   { id: 8, name: "Healthy Snack", image: "🍪", price: 20, category: "need", affordable: true },
                   { id: 9, name: "Chocolate Bar", image: "🍫", price: 35, category: "want", affordable: true },
                   { id: 10, name: "Action Figure", image: "🦸", price: 220, category: "want", affordable: false },
-                  { id: 11, name: "Water Bottle", image: "🍶", price: 45, category: "need", affordable: true },
+                  { id: 11, name: "Bike", image: "🚲", price: 2000, category: "want", affordable: false },
                   { id: 12, name: "Comic Book", image: "📖", price: 55, category: "want", affordable: true }
                 ]
               },
