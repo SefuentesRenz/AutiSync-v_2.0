@@ -536,16 +536,22 @@ const HomePage = () => {
             
             <div className="relative z-10">
               <video
-                className="w-150 h-70 mx-auto object-cover"
+                className="w-150 h-70 mx-auto object-cover rounded-2xl shadow-2xl border-4 border-white"
                 controls
                 loop
-                muted
                 autoPlay
-                poster="/src/assets/banner.jpg"
+                poster="src/assets/banner.jpg"
+                onError={(e) => {
+                  console.error('Video failed to load:', e);
+                  e.target.poster = "src/assets/banner.jpg";
+                }}
               >
-                <source src="/src/assets/videotutorial.mp4" type="video/mp4" />
+                <source src="src/assets/videotutorial.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
+              <p className="text-center mt-4 text-sm text-gray-500">
+                💡 Note: Place your tutorial video at <code className="bg-gray-100 px-2 py-1 rounded">src/assets/videotutorial.mp4</code>
+              </p>
             </div>
 
             {/* How are you feeling today section - moved inside video tutorial container */}
