@@ -9,6 +9,8 @@ import {
 import { useButtonSounds } from '../utils/useButtonSounds';
 import { handleActivityCompletion } from '../lib/activityCompletionHandler';
 import { useAuth } from '../contexts/AuthContext';
+import NiceTryImage from '../assets/NiceTry.png';
+import PancakesImage from '../assets/pancakes.jpg';
 
 const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const navigate = useNavigate();
@@ -1633,36 +1635,36 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 roundId: 1,
                 budget: 150,
                 items: [
-                  { id: 1, name: "Pencil", image: "✏️", price: 5, category: "need", affordable: true },
+                  { id: 1, name: "Pencil", image: "✏️", price: 10, category: "need", affordable: true },
                   { id: 2, name: "Notebook", image: "📒", price: 25, category: "need", affordable: true },
-                  { id: 3, name: "Toy Robot", image: "🤖", price: 250, category: "want", affordable: false },
+                  { id: 3, name: "Car", image: "🚗", price: 100000, category: "want", affordable: false },
                   { id: 4, name: "Eraser", image: "🧹", price: 8, category: "need", affordable: true },
-                  { id: 5, name: "Juice Box", image: "🧃", price: 15, category: "want", affordable: true },
-                  { id: 6, name: "Video Game", image: "🎮", price: 350, category: "want", affordable: false }
+                  { id: 5, name: "Pancake", imageSrc: PancakesImage, price: 15, category: "want", affordable: true },
+                  { id: 6, name: "Phone", image: "📱", price: 350, category: "want", affordable: false }
                 ]
               },
               {
                 roundId: 2,
                 budget: 180,
                 items: [
-                  { id: 7, name: "School Supplies Set", image: "📚", price: 85, category: "need", affordable: true },
-                  { id: 8, name: "Healthy Snack", image: "🍪", price: 20, category: "need", affordable: true },
-                  { id: 9, name: "Chocolate Bar", image: "🍫", price: 35, category: "want", affordable: true },
-                  { id: 10, name: "Action Figure", image: "🦸", price: 220, category: "want", affordable: false },
+                  { id: 7, name: "Book", image: "📚", price: 85, category: "need", affordable: true },
+                  { id: 8, name: "Cookies", image: "🍪", price: 20, category: "need", affordable: true },
+                  { id: 9, name: "Chocolate", image: "🍫", price: 35, category: "want", affordable: true },
+                  { id: 10, name: "Cake", image: "🎂", price: 350, category: "want", affordable: false },
                   { id: 11, name: "Bike", image: "🚲", price: 2000, category: "want", affordable: false },
-                  { id: 12, name: "Comic Book", image: "📖", price: 55, category: "want", affordable: true }
+                  { id: 12, name: "Juice", image: "🥤", price: 20, category: "want", affordable: true }
                 ]
               },
               {
                 roundId: 3,
                 budget: 200,
                 items: [
-                  { id: 13, name: "Lunch Box", image: "🍱", price: 75, category: "need", affordable: true },
-                  { id: 14, name: "Colored Pens", image: "🖊️", price: 40, category: "need", affordable: true },
-                  { id: 15, name: "Candy Pack", image: "🍬", price: 25, category: "want", affordable: true },
-                  { id: 16, name: "Toy Car", image: "🏎️", price: 180, category: "want", affordable: true },
-                  { id: 17, name: "Book Bag", image: "🎒", price: 120, category: "need", affordable: true },
-                  { id: 18, name: "Expensive Toy", image: "🎪", price: 450, category: "want", affordable: false }
+                  { id: 13, name: "Sandwich", image: "🥪", price: 65, category: "need", affordable: true },
+                  { id: 14, name: "Pet Dog", image: "🐕‍🦺", price: 2000, category: "need", affordable: false },
+                  { id: 15, name: "Candy", image: "🍬", price: 2, category: "want", affordable: true },
+                  { id: 16, name: "Pancake", imageSrc: PancakesImage, price: 180, category: "need", affordable: true },
+                  { id: 17, name: "Shirt", image: "👕", price: 300, category: "need", affordable: false },
+                  { id: 18, name: "Shoes", image: "👟", price: 500, category: "want", affordable: false }
                 ]
               }
             ],
@@ -2643,10 +2645,35 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       setShowPurchaseAnimation(true);
       setShowCorrect(true);
       
+      // Check if student has made 4 correct choices
+      const newCorrectCount = selectedPurchases.length + 1;
+      
       setTimeout(() => {
         setShowPurchaseAnimation(false);
         setShowCorrect(false);
         setShowMoneyFeedback(false);
+        
+        // If 4 correct answers, proceed to next round
+        if (newCorrectCount >= 4) {
+          setTimeout(() => {
+            // Save current round score
+            const roundData = {
+              round: moneyRound,
+              attempts: currentRoundAttempts + 1,
+              correctPurchases: newCorrectCount,
+              totalPossibleCorrect: currentMoneyItems.filter(i => i.price <= currentBudget).length,
+              completed: true
+            };
+            setRoundScores(prev => [...prev, roundData]);
+            
+            // Proceed to next round or complete game
+            if (moneyRound < 3) {
+              proceedToNextMoneyRound();
+            } else {
+              completeMoneyGame();
+            }
+          }, 500);
+        }
       }, 2000);
     } else {
       // Wrong purchase - too expensive
@@ -3142,7 +3169,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     // Calculate score
     const finalScore = correct.length;
     setMatchingScore(finalScore);
-    setScore(prev => prev + finalScore);
+    setScore(finalScore);
     
     // Show completion with detailed feedback
     if (finalScore === 7) {
@@ -3157,13 +3184,12 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     }
     setShowMatchingFeedback(true);
     
-    // Auto advance if all correct
-    if (finalScore === 7) {
-      setTimeout(() => {
-        setIsAnswered(true);
-        setIsMatchingComplete(true);
-      }, 2000);
-    }
+    // Show completion modal after 5 seconds
+    setTimeout(() => {
+      setIsAnswered(true);
+      setIsMatchingComplete(true);
+      setShowModal(true);
+    }, 5000);
   };
 
   const handleResetConnections = () => {
@@ -4710,7 +4736,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                         `}
                       >
                         <div className="text-center">
-                          <div className="text-6xl mb-2">{item.image}</div>
+                          <div className="text-6xl mb-2">
+                                {item.imageSrc ? (
+                                  <img src={item.imageSrc} alt={item.name} className="w-28 h-14 mx-auto object-contain" />
+                                ) : (
+                                  <span>{item.image}</span>
+                                )}
+                              </div>
                           <h4 className="font-bold text-gray-800 text-lg mb-2 leading-tight">{item.name}</h4>
                           <div className="font-bold text-base mb-2 py-1.5 px-2 rounded-lg text-green-600 bg-blue-100">
                             ₱{item.price}
@@ -4765,18 +4797,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                       </div>
                     )}
                   </div>
-
-                  {/* Next Round Button */}
-                  {selectedPurchases.length > 0 && !isRoundComplete && (
-                    <div>
-                      <button
-                        onClick={proceedToNextMoneyRound}
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 px-8 rounded-xl text-lg font-bold shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer"
-                      >
-                        {moneyRound < 3 ? '➡️ Next Round' : '🏆 Complete Game'}
-                      </button>
-                    </div>
-                  )}
                 </div>
 
                 {/* Badge Completion Modal */}
@@ -5525,23 +5545,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           ) : null}
         </div>
 
-        {/* Correct Overlay */}
-        {showCorrect && (
-          <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
-            <audio ref={correctAudioRef} src={correctSound} />
-            <div className="text-[8rem]">😄</div>
-            <div className="text-green-500 text-4xl font-bold mt-2">CORRECT!</div>
-          </div>
-        )}
-
-        {/* Wrong Overlay */}
-        {showWrong && (
-          <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
-            <audio ref={wrongAudioRef} src={wrongSound} />
-            <div className="text-[8rem]">😞</div>
-            <div className="text-red-500 text-4xl font-bold mt-2">WRONG!</div>
-          </div>
-        )}
       </div>
 
       {/* Enhanced Next Button */}
@@ -6035,21 +6038,22 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             </button>
           </div>
           
-          {/* Correct Overlay for Puzzle Game */}
-          {showCorrect && (
-            <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
-              <div className="text-[8rem]">😄</div>
-              <div className="text-green-500 text-4xl font-bold mt-2">CORRECT!</div>
-            </div>
-          )}
+          {/* Correct Overlay */}
+        {showCorrect && (
+          <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+            <audio ref={correctAudioRef} src={correctSound} />
+            <div className="text-[8rem]">😄</div>
+            <div className="text-green-500 text-4xl font-bold ">Good job!</div>
+          </div>
+        )}
 
-          {/* Wrong Overlay for Puzzle Game */}
-          {showWrong && (
-            <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
-              <div className="text-[8rem]">😞</div>
-              <div className="text-red-500 text-4xl font-bold mt-2">WRONG!</div>
-            </div>
-          )}
+        {/* Wrong Overlay */}
+        {showWrong && (
+          <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+            <audio ref={wrongAudioRef} src={wrongSound} />
+            <img src={NiceTryImage} alt="Nice Try" className="w-72 h-72 object-contain" />
+          </div>
+        )}
         </div>
       )}
 
@@ -6094,8 +6098,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 </h2>
                 <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-purple-100">
                   <p className="text-2xl font-bold text-gray-800 mb-2">
-                    You scored <span className="text-3xl text-purple-600">{score}</span> out of <span className="text-3xl text-pink-600">{isHygieneGame || isStreetGame ? 5 : total}</span>!
+                    You scored <span className="text-3xl text-purple-600">{score}</span> out of <span className="text-3xl text-pink-600">{activity === "Matching Type" ? 7 : (isHygieneGame || isStreetGame ? 5 : total)}</span>!
                   </p>
+                  {activity === "Matching Type" && (
+                    <p className="text-xl font-bold text-indigo-600 mb-2">
+                      Matching Score: <span className="text-2xl">{score}</span>/7 🎯
+                    </p>
+                  )}
                   {activity === "Cashier Game" && (
                     <p className="text-xl font-bold text-green-600 mb-2">
                       Cashier Points: <span className="text-2xl">{cashierScore}</span> 🏪
@@ -6114,7 +6123,12 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   <div className="flex justify-center items-center space-x-2 mt-3">
                     <span className="text-2xl animate-bounce-gentle">🏆</span>
                     <span className="text-lg font-semibold text-gray-700">
-                      {isHygieneGame ? 
+                      {activity === "Matching Type" ?
+                        (score === 7 ? "Perfect Match! All Correct!" : 
+                         score >= 6 ? "Excellent Matching!" : 
+                         score >= 5 ? "Great Job Matching!" : 
+                         score >= 3 ? "Good Effort!" : "Keep Practicing!") :
+                       isHygieneGame ? 
                         (hygieneScore === 5 ? "Perfect Hygiene Hero!" : 
                          hygieneScore >= 4 ? "Excellent Hygiene!" : 
                          hygieneScore >= 3 ? "Great Job Learning!" : "Keep Practicing!") :
@@ -6157,159 +6171,86 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             run={showBadgeModal}
           />
           <audio ref={badgeAudioRef} src={badgeCelebrationSound} />
-          <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 max-w-2xl w-full mx-4 shadow-2xl text-center relative border border-white/30 overflow-hidden animate-modal-appear max-h-[90vh] overflow-y-auto">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-6 max-w-2xl w-full mx-4 shadow-2xl text-center relative border border-white/30 overflow-hidden animate-modal-appear">
             {/* Decorative background */}
             <div className="absolute inset-0 bg-gradient-to-br from-amber-50/50 via-purple-50/50 to-blue-50/50"></div>
-            <div className="absolute -top-16 -right-16 w-40 h-40 bg-gradient-to-bl from-yellow-200/30 to-transparent rounded-full blur-3xl animate-float"></div>
-            <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-gradient-to-tr from-purple-200/30 to-transparent rounded-full blur-2xl animate-float-delayed"></div>
-            <div className="absolute top-20 left-20 w-24 h-24 bg-gradient-to-br from-pink-200/20 to-transparent rounded-full blur-xl animate-pulse-gentle"></div>
             
             <div className="relative z-10">
-              {/* Dynamic Header Based on Achievement */}
-              <div className="mb-8">
+              {/* Compact Header */}
+              <div className="mb-4">
                 {(() => {
                   const achievement = getBadgeAchievementMessage(earnedBadges);
                   return (
                     <>
-                      <div className="relative mb-6">
-                        <div className="text-8xl animate-bounce-gentle drop-shadow-2xl">🏅</div>
-                        <div className="absolute -top-4 -right-8 text-4xl animate-spin-slow">✨</div>
-                        <div className="absolute -bottom-4 -left-8 text-3xl animate-float">{achievement.emotion}</div>
-                        <div className="absolute top-8 left-16 text-2xl animate-pulse-gentle">💫</div>
-                      </div>
+                      <div className="text-6xl mb-3 animate-bounce-gentle drop-shadow-2xl">🏅</div>
                       
-                      <div className="bg-gradient-to-r from-amber-50 to-purple-50 rounded-2xl p-6 mb-6 border-2 border-amber-200/50">
-                        <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-purple-600 to-blue-600 mb-3 animate-text-shimmer">
-                          {achievement.title}
-                        </h2>
-                        <p className="text-lg text-gray-700 font-semibold mb-4">
-                          {achievement.message}
-                        </p>
-                        <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-purple-100">
-                          <p className="text-sm text-gray-600">
-                            You've unlocked <span className="font-bold text-purple-600">{earnedBadges.length}</span> amazing badge{earnedBadges.length > 1 ? 's' : ''} 
-                            and earned <span className="font-bold text-amber-600">{earnedBadges.reduce((sum, badge) => sum + (badge.points || 0), 0)}</span> points!
-                          </p>
-                        </div>
-                      </div>
+                      <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-purple-600 to-blue-600 mb-2">
+                        {achievement.title}
+                      </h2>
+                      <p className="text-base text-gray-700 font-semibold mb-3">
+                        {achievement.message}
+                      </p>
                     </>
                   );
                 })()}
               </div>
 
-              {/* Badges Grid with Enhanced Design */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-h-60 overflow-y-auto">
-                {earnedBadges.map((badge, index) => (
+              {/* Compact Badges Grid - 2 rows max */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                {earnedBadges.slice(0, 6).map((badge, index) => (
                   <div 
                     key={badge.id}
-                    className={`
-                      bg-gradient-to-br ${badge.gradient} p-6 rounded-2xl shadow-2xl transform 
-                      hover:scale-105 transition-all duration-300 border-2 border-white/30 
-                      backdrop-blur-sm animate-badge-appear relative overflow-hidden group
-                      ${badge.rarity === 'legendary' ? 'ring-4 ring-yellow-300/60 shadow-yellow-200/30' : 
-                        badge.rarity === 'epic' ? 'ring-3 ring-purple-300/60 shadow-purple-200/30' : 
-                        badge.rarity === 'rare' ? 'ring-2 ring-blue-300/60 shadow-blue-200/30' : 
-                        'shadow-gray-200/20'}
-                    `}
-                    style={{ animationDelay: `${index * 0.15}s` }}
+                    className={`bg-gradient-to-br ${badge.gradient} p-3 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 border-2 border-white/30`}
+                    style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    {/* Rarity indicator */}
-                    <div className={`
-                      absolute top-2 right-2 px-3 py-1 rounded-full text-xs font-bold uppercase
-                      ${badge.rarity === 'legendary' ? 'bg-yellow-200/90 text-yellow-900' : 
-                        badge.rarity === 'epic' ? 'bg-purple-200/90 text-purple-900' : 
-                        badge.rarity === 'rare' ? 'bg-blue-200/90 text-blue-900' : 
-                        'bg-gray-200/90 text-gray-800'}
-                      transform group-hover:scale-110 transition-transform duration-300
-                    `}>
-                      {badge.rarity}
-                    </div>
-                    
-                    {/* Points indicator */}
-                    <div className="absolute top-2 left-2 bg-white/20 backdrop-blur-sm rounded-full px-2 py-1">
-                      <span className="text-xs font-bold text-white">+{badge.points}pts</span>
-                    </div>
-                    
-                    {/* Badge shine effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 -translate-x-full group-hover:animate-shine"></div>
-                    
-                    <div className="text-center text-white relative z-10">
-                      <div className="text-5xl mb-3 animate-bounce-gentle drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300">
-                        {badge.icon}
-                      </div>
-                      <h3 className="text-xl font-bold mb-2 drop-shadow-sm">
-                        {badge.name}
-                      </h3>
-                      <p className="text-sm opacity-90 leading-relaxed">
-                        {badge.description}
-                      </p>
+                    <div className="text-center text-white">
+                      <div className="text-3xl mb-1">{badge.icon}</div>
+                      <h3 className="text-sm font-bold mb-1">{badge.name}</h3>
+                      <p className="text-xs opacity-90">+{badge.points}pts</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Enhanced Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button
-                  className="flex-1 bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 hover:from-green-600 hover:via-blue-600 hover:to-purple-600 text-white px-8 py-4 rounded-2xl text-xl font-bold transition-all duration-300 shadow-2xl transform hover:scale-105 flex items-center justify-center space-x-3 border-2 border-white/30 backdrop-blur-sm group"
-                  onClick={() => {
-                    setShowBadgeModal(false);
+              {/* Big Action Button */}
+              <button
+                className="w-full bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 hover:from-green-600 hover:via-blue-600 hover:to-purple-600 text-white px-10 py-6 rounded-2xl text-2xl font-bold transition-all duration-300 shadow-2xl transform hover:scale-105 flex items-center justify-center space-x-4 border-2 border-white/30 backdrop-blur-sm group mb-3"
+                onClick={() => {
+                  setShowBadgeModal(false);
 
-                    // For memory game, pass detailed score
-                    if (isMemoryGame || activity === "Visual Memory Challenge") {
-                      const accuracyPercentage = memoryAttempts > 0 ? Math.round((memoryCorrectAnswers / memoryAttempts) * 100) : 0;
-                      const detailedScore = {
-                        correctAnswers: memoryCorrectAnswers,
-                        wrongAnswers: memoryWrongAnswers,
-                        totalAttempts: memoryAttempts,
-                        accuracyPercentage,
-                        finalScore: memoryCorrectAnswers,
-                        maxPossibleScore: 3
-                      };
-                      onComplete(score, total, detailedScore);
-                    } else {
-                      onComplete(score, total);
-                    }
+                  // For memory game, pass detailed score
+                  if (isMemoryGame || activity === "Visual Memory Challenge") {
+                    const accuracyPercentage = memoryAttempts > 0 ? Math.round((memoryCorrectAnswers / memoryAttempts) * 100) : 0;
+                    const detailedScore = {
+                      correctAnswers: memoryCorrectAnswers,
+                      wrongAnswers: memoryWrongAnswers,
+                      totalAttempts: memoryAttempts,
+                      accuracyPercentage,
+                      finalScore: memoryCorrectAnswers,
+                      maxPossibleScore: 3
+                    };
+                    onComplete(score, total, detailedScore);
+                  } else {
+                    onComplete(score, total);
+                  }
 
-                    handleActivityComplete(score, total);
-
-                  }}
-                >
-                  <span className="text-2xl animate-bounce-gentle group-hover:animate-spin-slow">🚀</span>
-                  <span>Continue Adventure</span>
-                  <span className="text-xl animate-float">✨</span>
-                </button>
-                
-                <button
-                  className="flex-1 bg-gradient-to-r from-amber-100 via-yellow-100 to-amber-200 hover:from-amber-200 hover:via-yellow-200 hover:to-amber-300 text-amber-800 px-8 py-4 rounded-2xl text-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center space-x-3 border-2 border-amber-200/50"
-                  onClick={() => navigate('/studentpage')}
-                >
-                  <span className="text-xl animate-bounce-gentle">🏆</span>
-                  <span>View Collection</span>
-                  <span className="text-lg animate-pulse-gentle">📚</span>
-                </button>
-              </div>
+                  handleActivityComplete(score, total);
+                }}
+              >
+                <span className="text-3xl animate-bounce-gentle">🚀</span>
+                <span>Continue Adventure</span>
+                <span className="text-2xl animate-float">✨</span>
+              </button>
               
-              {/* Badge Statistics Summary */}
-              <div className="mt-6 bg-gradient-to-r from-gray-50 to-purple-50 rounded-xl p-4 border border-gray-200/50">
-                <div className="flex items-center justify-center space-x-6 text-sm">
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">🏆</div>
-                    <div className="font-bold text-gray-700">{earnedBadges.reduce((sum, badge) => sum + (badge.points || 0), 0)}</div>
-                    <div className="text-xs text-gray-500">Points</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">🎯</div>
-                    <div className="font-bold text-gray-700">{((score / total) * 100).toFixed(0)}%</div>
-                    <div className="text-xs text-gray-500">Score</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">⭐</div>
-                    <div className="font-bold text-gray-700">{earnedBadges.length}</div>
-                    <div className="text-xs text-gray-500">Badge{earnedBadges.length !== 1 ? 's' : ''}</div>
-                  </div>
-                </div>
-              </div>
+              {/* Secondary Button */}
+              <button
+                className="w-full bg-gradient-to-r from-amber-100 via-yellow-100 to-amber-200 hover:from-amber-200 hover:via-yellow-200 hover:to-amber-300 text-amber-800 px-8 py-4 rounded-xl text-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center space-x-3 border-2 border-amber-200/50"
+                onClick={() => navigate('/studentpage')}
+              >
+                <span className="text-xl">🏆</span>
+                <span>View Badge Collection</span>
+                <span className="text-lg">📚</span>
+              </button>
             </div>
           </div>
         </div>

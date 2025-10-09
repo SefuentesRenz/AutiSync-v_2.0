@@ -332,32 +332,32 @@ export function getBadgeAchievementMessage(earnedBadges) {
   
   if (hasLegendary) {
     return {
-      title: "LEGENDARY ACHIEVEMENT! 🏆",
-      message: "You've achieved something truly extraordinary! Your dedication and skill are inspiring!",
+      title: "Nice one! 🏆",
+      message: "You received New Badges!",
       emotion: "🎆"
     };
   } else if (hasEpic || count >= 4) {
     return {
-      title: "EPIC SUCCESS! ⭐",
-      message: "Outstanding performance! You're showing incredible growth and determination!",
+      title: "Good Job! ⭐",
+      message: "You received New Badges!",
       emotion: "🚀"
     };
   } else if (count >= 3) {
     return {
       title: "AMAZING WORK! 🌟",
-      message: "You're doing wonderfully! Your hard work is really paying off!",
+      message: "You received New Badges!",
       emotion: "✨"
     };
   } else if (count >= 2) {
     return {
       title: "GREAT JOB! 🎯",
-      message: "Excellent progress! You're building fantastic skills!",
+      message: "You received New Badges!",
       emotion: "🎪"
     };
   } else {
     return {
       title: "WELL DONE! 🌱",
-      message: "Every step forward is an achievement! Keep learning and growing!",
+      message: "You received New Badges!",
       emotion: "💫"
     };
   }

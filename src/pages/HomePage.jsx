@@ -9,7 +9,7 @@ import { supabase } from '../lib/supabase';
 const Emotions = [
   { name: "Happy", image: "src/assets/happy.png", color: "from-yellow-400 to-orange-500", bgColor: "bg-yellow-50" },
   { name: "Sad", image: "src/assets/sad.png", color: "from-blue-400 to-blue-600", bgColor: "bg-blue-50" },
-  { name: "Angry", image: "src/assets/angry.png", color: "from-red-400 to-red-600", bgColor: "bg-red-50" },
+  { name: "Not Fine", image: "src/assets/upset.png", color: "from-red-400 to-red-600", bgColor: "bg-red-50" },
   { name: "Excited", image: "src/assets/excited.png", color: "from-purple-400 to-pink-500", bgColor: "bg-purple-50" },
   { name: "Calm", image: "src/assets/calm.png", color: "from-green-400 to-teal-500", bgColor: "bg-green-50" },
 ];
@@ -17,7 +17,6 @@ const Emotions = [
 const HomePage = () => {
   const [selectedEmotion, setSelectedEmotion] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [selectedLevel, setSelectedLevel] = useState(3);
 
   const [emotionNote, setEmotionNote] = useState("");
   const [expressions, setExpressions] = useState([
@@ -211,14 +210,21 @@ const HomePage = () => {
         console.log('Fallback simple query:', { simpleData, simpleError });
         
         if (!simpleError && simpleData) {
-          const simpleExpressions = simpleData.map(expr => ({
-            emotion: expr.emotion?.charAt(0).toUpperCase() + expr.emotion?.slice(1) || 'Unknown',
-            image: `src/assets/${expr.emotion || 'neutral'}.png`,
-            level: expr.intensity || 3,
-            time: getTimeAgo(new Date(expr.created_at)),
-            userName: 'Student',
-            note: expr.note || null
-          }));
+          const simpleExpressions = simpleData.map(expr => {
+            // Map database emotion to display emotion
+            const displayEmotion = expr.emotion === 'angry' ? 'Not Fine' : 
+                                  expr.emotion?.charAt(0).toUpperCase() + expr.emotion?.slice(1);
+            const imageFile = expr.emotion === 'angry' ? 'upset' : expr.emotion;
+            
+            return {
+              emotion: displayEmotion || 'Unknown',
+              image: `src/assets/${imageFile || 'neutral'}.png`,
+              level: expr.intensity || 3,
+              time: getTimeAgo(new Date(expr.created_at)),
+              userName: 'Student',
+              note: expr.note || null
+            };
+          });
           setExpressions(simpleExpressions);
         }
         return;
@@ -232,9 +238,14 @@ const HomePage = () => {
             profile.full_name || profile.username || 'Student'
           ) : 'Student';
           
+          // Map database emotion to display emotion
+          const displayEmotion = expr.emotion === 'angry' ? 'Not Fine' : 
+                                expr.emotion?.charAt(0).toUpperCase() + expr.emotion?.slice(1);
+          const imageFile = expr.emotion === 'angry' ? 'upset' : expr.emotion;
+          
           return {
-            emotion: expr.emotion?.charAt(0).toUpperCase() + expr.emotion?.slice(1) || 'Unknown',
-            image: `src/assets/${expr.emotion || 'neutral'}.png`,
+            emotion: displayEmotion || 'Unknown',
+            image: `src/assets/${imageFile || 'neutral'}.png`,
             level: expr.intensity || 3,
             time: timeAgo,
             userName: displayName,
@@ -275,7 +286,7 @@ const HomePage = () => {
     const newExpression = {
       emotion: selectedEmotion,
       image: emotionData?.image,
-      level: selectedLevel,
+      level: 3,
       time: "Just now",
       userName: userName,
     };
@@ -327,14 +338,25 @@ const HomePage = () => {
       });
 
       const currentStudent = studentData || finalStudentData;
-      const isNegativeHigh = (selectedEmotion.toLowerCase() === 'sad' || selectedEmotion.toLowerCase() === 'angry') && selectedLevel >= 4;
+      
+      // Map "Not Fine" to "angry" for database constraint
+      const emotionMapping = {
+        'happy': 'happy',
+        'sad': 'sad',
+        'not fine': 'angry',
+        'excited': 'excited',
+        'calm': 'calm'
+      };
+      
+      const mappedEmotion = emotionMapping[selectedEmotion.toLowerCase()] || selectedEmotion.toLowerCase();
+      const isNegativeEmotion = (selectedEmotion.toLowerCase() === 'sad' || selectedEmotion.toLowerCase() === 'not fine');
       
       // Prepare expression data for submission
       const expressionData = {
         student_id: currentStudent.id, // This is now UUID from students table
-        emotion: selectedEmotion.toLowerCase(),
-        intensity: selectedLevel,
-        note: (isNegativeHigh && emotionNote) ? emotionNote.trim() : null
+        emotion: mappedEmotion,
+        intensity: 3,
+        note: emotionNote.trim() || null
       };
 
       console.log('Submitting expression:', expressionData);
@@ -366,7 +388,7 @@ const HomePage = () => {
       const userEmotionData = {
         profile_id: userProfile.id,
         expressions_id: expressionResult.id,
-        intensity: selectedLevel,
+        intensity: 3,
         created_at: new Date().toISOString()
       };
 
@@ -378,22 +400,21 @@ const HomePage = () => {
         console.warn('Warning: Failed to create User_emotion record:', userEmotionError);
       }
 
-      // Check if this is a high-intensity negative emotion that needs an alert
-      if (isNegativeHigh) {
-        await createAlert(userProfile.id, selectedEmotion, selectedLevel, expressionResult.id, emotionNote);
+      // Check if this is a negative emotion that needs an alert
+      if (isNegativeEmotion) {
+        await createAlert(userProfile.id, selectedEmotion, 3, expressionResult.id, emotionNote);
       }
       
       // Don't add to local state immediately - let the refresh handle it
       // This ensures we're showing data from the database, not local state
       setShowModal(false);
-      setSelectedLevel(3);
       setEmotionNote('');
       
       // Refresh expressions from database to show the new one
       console.log('Refreshing expressions from database...');
       await fetchExpressions();
       
-      console.log('Emotion submitted and refreshed successfully!');
+      console.log('Emotion submitted and refreshed and refreshed successfully!');
     } catch (error) {
       console.error('Unexpected error saving expression:', error);
       alert('An unexpected error occurred. Please try again.');
@@ -401,11 +422,7 @@ const HomePage = () => {
 
     // Reset form state (moved outside try-catch)
     setShowModal(false);
-    setSelectedLevel(3);
-
     setEmotionNote("");
-
-    // setNote('');
 
   };
 
@@ -555,9 +572,7 @@ const HomePage = () => {
                   <span className="text-4xl mr-3 animate-wiggle">🌈</span>
                   How are you feeling today?
                 </h2>
-                <p className="text-lg text-gray-600">
-                  Choose your emotion and rate it from 1 to 5! 🎯✨
-                </p>
+                
               </div>
               
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 mb-15">
@@ -584,7 +599,7 @@ const HomePage = () => {
                       <span className="text-2xl animate-bounce-gentle">
                         {emotion.name === 'Happy'}
                         {emotion.name === 'Sad'}
-                        {emotion.name === 'Angry'}
+                        {emotion.name === 'Not Fine'}
                         {emotion.name === 'Excited'}
                         {emotion.name === 'Calm'}
                       </span>
@@ -645,6 +660,9 @@ const HomePage = () => {
                 </div>
               </div>
             </div>
+            
+            {/* Your Emotion Journal section - moved inside video tutorial container */}
+           
             
             {/* Categories Section */}
         <section className="mb-12 mt-10 ">
@@ -708,7 +726,7 @@ const HomePage = () => {
                 <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                   <span className="text-white text-4xl">✓</span>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-3">EASY</h3>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">Beginner</h3>
                 <p className="text-gray-600 text-lg leading-relaxed">
                   Start here. Simple and fun!
                 </p>
@@ -719,7 +737,7 @@ const HomePage = () => {
                 <div className="w-24 h-24 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                   <span className="text-white text-4xl">⭐</span>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-3">MEDIUM</h3>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">Intermediate</h3>
                 <p className="text-gray-600 text-lg leading-relaxed">
                   A little harder. Let's level up!
                 </p>
@@ -730,7 +748,7 @@ const HomePage = () => {
                 <div className="w-24 h-24 bg-gradient-to-r from-red-500 to-rose-600 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                   <span className="text-white text-4xl">!</span>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-3">HARD</h3>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">Proficient</h3>
                 <p className="text-gray-600 text-lg leading-relaxed">
                   Ready for a challenge? Let's go big!
                 </p>
@@ -776,92 +794,32 @@ const HomePage = () => {
               <h2 className="text-3xl font-bold text-gray-800 mb-2">
                 You're feeling <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">{selectedEmotion}</span>! 
               </h2>
-              {/* <p className="text-gray-600 mb-6 text-lg">How strong is this feeling? Pick a number! 🎯</p> */}
+              <p className="text-gray-600 mb-6 text-lg">Why?</p>
 
-              {/* Level Selection */}
-              <div className="mb-8">
-                <div className="flex justify-between text-sm text-gray-600 mb-4 px-2">
-                  <span className="flex items-center space-x-1">
-                    <span>1️⃣</span>
-                    <span>Very Light</span>
-                  </span>
-                  <span className="flex items-center space-x-1">
-                    <span>5️⃣</span>
-                    <span>Very Strong</span>
-                  </span>
-                </div>
+              {/* Note Section - Optional for all emotions */}
+              <div className="space-y-2 mb-6">
                 
-                {/* Number-based level selector */}
-                <div className="grid grid-cols-5 gap-3 mb-6">
-                  {[1,2,3,4,5].map(level => (
-                    <button
-                      key={level}
-                      onClick={() => setSelectedLevel(level)}
-                      className={`
-                        w-full aspect-square rounded-2xl font-bold text-3xl border-3 transition-all duration-300 transform hover:scale-105 relative overflow-hidden
-                        ${selectedLevel === level 
-                          ? `${getLevelColor(level)} text-white border-white shadow-2xl scale-110 animate-bounce-gentle` 
-                          : 'bg-white hover:bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-400 shadow-lg'
-                        }
-                      `}
-                    >
-                      {/* Number with subtle background gradient when selected */}
-                      <div className="relative z-10">{level}</div>
-                      
-                      {/* Animated selection indicator */}
-                      {selectedLevel === level && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 animate-shimmer"></div>
-                      )}
-                    </button>
-                  ))}
+                <textarea
+                  value={emotionNote}
+                  onChange={(e) => setEmotionNote(e.target.value)}
+                  placeholder="Share your thoughts..."
+                  className="w-full bg-gray-200 h-22 px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 resize-none text-gray-700 placeholder-gray-400"
+                  maxLength={200}
+                 
+                />
+                <div className="text-xs text-gray-500 text-right">
+                  {emotionNote.length}/200 characters
                 </div>
-                
-                {/* Level description */}
-                <div className="text-center">
-                  <div className={`inline-flex px-6 py-3 ${getLevelColor(selectedLevel)} text-white mb-5 rounded-2xl font-bold text-xl shadow-xl border-2 border-white/30`}>
-                    <span className="mr-2">Level {selectedLevel}</span>
-                    <span className="text-2xl animate-bounce-gentle">
-                      {selectedLevel <= 2 ? '😌' : selectedLevel === 3 ? '😊' : selectedLevel === 4 ? '😄' : '🤗'}
-                    </span>
-                  </div>
-                  {/* <p className="text-sm text-gray-600 mt-3 font-semibold">
-                    {selectedLevel === 1 ? "Just a tiny bit - barely noticeable" :
-                     selectedLevel === 2 ? "A little bit - light feeling" :
-                     selectedLevel === 3 ? "Medium amount - noticeable feeling" :
-                     selectedLevel === 4 ? "Quite a lot - strong feeling" :
-                     "Very much - overwhelming feeling"}
-                  </p> */}
-                </div>
-
-                {/* Optional Note Section - Only for negative emotions with high intensity */}
-                {(selectedEmotion === 'Sad' || selectedEmotion === 'Angry') && selectedLevel >= 4 && (
-                  <div className="space-y-2 mt-6">
-                    <label className="block -mt-2 text-lg font-semibold text-gray-700">
-                      Why?
-                    </label>
-                    <textarea
-                      value={emotionNote}
-                      onChange={(e) => setEmotionNote(e.target.value)}
-                      placeholder="Share your thoughts..."
-                      className="w-full h-20 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 resize-none text-gray-700 placeholder-gray-400"
-                      maxLength={200}
-                    />
-                    <div className="text-xs text-gray-500 text-right">
-                      {emotionNote.length}/100 characters
-                    </div>
-                  </div>
-                )}
               </div>
 
             
 
               {/* Action Buttons */}
-              <div className="flex -mt-5 space-x-4">
+              <div className="flex space-x-4">
                 <button
                   onClick={() => {
                     setShowModal(false);
                     setEmotionNote("");
-                    setSelectedLevel(3);
                   }}
                   className="cursor-pointer flex-1 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
