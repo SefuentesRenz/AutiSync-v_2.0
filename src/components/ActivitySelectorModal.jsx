@@ -20,6 +20,7 @@ const activities = [
     hoverColor: "hover:bg-green-100",
     category: "Academic"
   },
+<<<<<<< HEAD
   { 
     id: 3, 
     name: "Colors", 
@@ -29,6 +30,17 @@ const activities = [
     hoverColor: "hover:bg-purple-100",
     category: "Academic"
   },
+=======
+  // { 
+  //   id: 3, 
+  //   name: "Colors", 
+  //   icon: "🎨", 
+  //   color: "from-purple-500 to-violet-600",
+  //   bgColor: "bg-purple-50",
+  //   hoverColor: "hover:bg-purple-100",
+  //   category: "Academic"
+  // },
+>>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
   { 
     id: 4, 
     name: "Academic Puzzles", 

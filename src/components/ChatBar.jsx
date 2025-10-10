@@ -9,7 +9,13 @@ const ChatBar = () => {
     chatMessages,
     messageInput,
     setMessageInput,
+<<<<<<< HEAD
     handleSendMessage
+=======
+    handleSendMessage,
+    leaveRoom,
+    currentUserId
+>>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
   } = useChat();
 
   const messagesEndRef = useRef(null);
@@ -29,6 +35,14 @@ const ChatBar = () => {
     }
   };
 
+<<<<<<< HEAD
+=======
+  // Handle close button - leave room
+  const handleClose = async () => {
+    await leaveRoom();
+  };
+
+>>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
   if (!showChatBar) return null;
 
   return (
@@ -63,9 +77,15 @@ const ChatBar = () => {
           
           {/* Modern Exit Button */}
           <button 
+<<<<<<< HEAD
             onClick={() => setShowChatBar(false)}
             className="w-10 h-10 bg-red-500/90 hover:bg-red-600 text-white rounded-xl transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-110 hover:rotate-90 focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer"
             title="Close Chat"
+=======
+            onClick={handleClose}
+            className="w-10 h-10 bg-red-500/90 hover:bg-red-600 text-white rounded-xl transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-110 hover:rotate-90 focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer"
+            title="Leave Room"
+>>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -106,6 +126,7 @@ const ChatBar = () => {
         </div>
         
         <div className="relative z-10 space-y-4">
+<<<<<<< HEAD
           {chatMessages.map((msg, index) => (
             <div
               key={msg.id}
@@ -147,6 +168,68 @@ const ChatBar = () => {
               </div>
             </div>
           ))}
+=======
+          {chatMessages.map((msg, index) => {
+            // Determine if message is from current user
+            const isCurrentUser = msg.user_id === currentUserId;
+            const senderName = msg.user_profiles?.full_name || msg.user_profiles?.username || 'Friend';
+            
+            // Debug logging
+            console.log('💬 Message Render:', {
+              text: msg.text?.substring(0, 30),
+              msgUserId: msg.user_id,
+              currentUserId: currentUserId,
+              isCurrentUser: isCurrentUser,
+              senderName: senderName
+            });
+            
+            return (
+              <div
+                key={msg.id}
+                className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} animate-message-appear`}
+                style={{animationDelay: `${index * 0.1}s`}}
+              >
+                <div className="flex flex-col max-w-[85%] sm:max-w-[80%]">
+                  {/* Message bubble */}
+                  <div
+                    className={`p-4 rounded-2xl text-sm shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl relative overflow-hidden ${
+                      isCurrentUser
+                        ? 'bg-gradient-to-br from-purple-500 via-purple-600 to-pink-600 text-white rounded-br-sm'
+                        : 'bg-white text-gray-800 border-2 border-gray-200 rounded-bl-sm'
+                    }`}
+                  >
+                    {/* Shimmer effect for user messages */}
+                    {isCurrentUser && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"></div>
+                    )}
+                    
+                    {/* Message text */}
+                    <p className="leading-relaxed break-words relative z-10 mb-2">{msg.text}</p>
+                    
+                    {/* Timestamp */}
+                    <div className={`text-xs opacity-70 ${
+                      isCurrentUser ? 'text-white/90' : 'text-gray-500'
+                    }`}>
+                      {new Date(msg.created_at || Date.now()).toLocaleTimeString([], { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </div>
+                  </div>
+                  
+                  {/* Sender name at bottom */}
+                  <div className={`text-xs mt-1 px-2 font-medium ${
+                    isCurrentUser 
+                      ? 'text-right text-purple-700' 
+                      : 'text-left text-gray-600'
+                  }`}>
+                    {isCurrentUser ? 'You' : senderName}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+>>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
         </div>
         <div ref={messagesEndRef} />
       </div>

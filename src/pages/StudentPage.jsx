@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -23,16 +23,16 @@ const StudentPage = () => {
   };
 
   const motivationalMessages = [
-    "You're amazing! 🌟",
-    "Keep going! 🚀",
-    "You're doing great! 💪",
-    "You're a star! ⭐",
-    "Super job! 🎉"
+    "You're amazing! ≡ƒîƒ",
+    "Keep going! ≡ƒÜÇ",
+    "You're doing great! ≡ƒÆ¬",
+    "You're a star! Γ¡É",
+    "Super job! ≡ƒÄë"
   ];
 
   const badges = [
     {
-      icon: '⭐',
+      icon: 'Γ¡É',
       title: 'First Steps',
       description: 'Completed your first activity',
       status: 'EARNED',
@@ -41,7 +41,7 @@ const StudentPage = () => {
       animation: 'animate-bounce-gentle'
     },
     {
-      icon: '🎓',
+      icon: '≡ƒÄô',
       title: 'Academic Star',
       description: 'Completed 5 academic activities',
       status: 'EARNED',
@@ -50,7 +50,7 @@ const StudentPage = () => {
       animation: 'animate-pulse-gentle'
     },
     {
-      icon: '🏆',
+      icon: '≡ƒÅå',
       title: 'Perfect Week',
       description: 'Complete activities 7 days in a row',
       status: 'LOCKED',
@@ -59,7 +59,7 @@ const StudentPage = () => {
       animation: ''
     },
     {
-      icon: '🎨',
+      icon: '≡ƒÄ¿',
       title: 'Color Master',
       description: 'Awarded for completing 5 color-related activities',
       status: 'EARNED',
@@ -68,7 +68,7 @@ const StudentPage = () => {
       animation: 'animate-bounce-gentle'
     },
     {
-      icon: '🔷',
+      icon: '≡ƒö╖',
       title: 'Shape Explorer',
       description: 'Awarded after finishing 5 shape activities',
       status: 'EARNED',
@@ -77,7 +77,7 @@ const StudentPage = () => {
       animation: 'animate-float'
     },
     {
-      icon: '�',
+      icon: '∩┐╜',
       title: 'Number Ninja',
       description: 'Earned by correctly answering 20 number-related questions',
       status: 'EARNED',
@@ -86,7 +86,7 @@ const StudentPage = () => {
       animation: 'animate-wiggle'
     },
     {
-      icon: '📅',
+      icon: '≡ƒôà',
       title: 'Consistency Champ',
       description: 'Given for completing activities 3 days in a row',
       status: 'LOCKED',
@@ -95,7 +95,7 @@ const StudentPage = () => {
       animation: ''
     },
     {
-      icon: '🤝',
+      icon: '≡ƒñ¥',
       title: 'Helper Badge',
       description: 'For activities done collaboratively with a parent/teacher',
       status: 'EARNED',
@@ -104,7 +104,7 @@ const StudentPage = () => {
       animation: 'animate-pulse-gentle'
     },
     {
-      icon: '🏠',
+      icon: '≡ƒÅá',
       title: 'Daily Life Hero',
       description: 'Awarded for finishing 5 "Daily Life Skills" activities',
       status: 'EARNED',
@@ -113,7 +113,7 @@ const StudentPage = () => {
       animation: 'animate-float-delayed'
     },
     {
-      icon: '�',
+      icon: '∩┐╜',
       title: 'All-Rounder',
       description: 'Earned when a student completes at least one activity in every category',
       status: 'LOCKED',
@@ -193,7 +193,7 @@ const StudentPage = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
         <div className="absolute bottom-4 left-6 text-white">
-          <h2 className="text-2xl sm:text-3xl font-bold">Ready for Today's Adventure? 🚀</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold">Ready for Today's Adventure? ≡ƒÜÇ</h2>
           <p className="text-lg opacity-90">{motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)]}</p>
         </div>
       </div>
@@ -205,7 +205,7 @@ const StudentPage = () => {
             {/* Welcome Card */}
             <div className="card-autism-friendly bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/20">
               <div className="flex items-center mb-4">
-                <span className="text-3xl mr-3 animate-wiggle">👋</span>
+                <span className="text-3xl mr-3 animate-wiggle">≡ƒæï</span>
                 <div className="flex">
                   <h2 className="text-2xl font-bold pt-1 text-gray-800">Welcome, </h2>
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -214,7 +214,7 @@ const StudentPage = () => {
                 </div>
               </div>
               <p className="text-gray-600 leading-relaxed">
-                These are all your rewards and achievements! You're doing amazing work! 🌟
+                These are all your rewards and achievements! You're doing amazing work! ≡ƒîƒ
               </p>
               
             </div>  
@@ -247,7 +247,7 @@ const StudentPage = () => {
                   </div>
                 </div>
                 <p className="text-gray-600 font-medium -mt-5">
-                  You're doing Great, Keep Going! 💪
+                  You're doing Great, Keep Going! ≡ƒÆ¬
                 </p>
                 
                 {/* Progress bar */}
@@ -268,7 +268,7 @@ const StudentPage = () => {
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-3xl font-bold text-gray-800 flex items-center">
-                    <span className="text-4xl mr-3 animate-float">🏆</span>
+                    <span className="text-4xl mr-3 animate-float">≡ƒÅå</span>
                     Your Amazing Badges
                   </h2>
                   
@@ -277,7 +277,7 @@ const StudentPage = () => {
                   onClick={flashcardspage} 
                   className="cursor-pointer btn-autism-friendly bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center"
                 >
-                  <span className="mr-2">🎯</span>
+                  <span className="mr-2">≡ƒÄ»</span>
                   Collect More Badges!
                 </button>
               </div>
@@ -295,7 +295,7 @@ const StudentPage = () => {
                     {/* Status indicator */}
                     {badge.status === 'EARNED' && (
                       <div className="absolute top-2 right-2">
-                        <span className="text-green-500 text-lg animate-bounce-in">✓</span>
+                        <span className="text-green-500 text-lg animate-bounce-in">Γ£ô</span>
                       </div>
                     )}
                     
@@ -321,7 +321,7 @@ const StudentPage = () => {
                     
                     {badge.status === 'EARNED' && (
                       <div className="absolute bottom-1 right-1">
-                        <span className="text-yellow-400 text-sm animate-pulse-gentle">✨</span>
+                        <span className="text-yellow-400 text-sm animate-pulse-gentle">Γ£¿</span>
                       </div>
                     )}
                   </div>
@@ -338,7 +338,7 @@ const StudentPage = () => {
                     </p>
                   </div>
                   <div className="text-3xl animate-bounce-gentle">
-                    🎉
+                    ≡ƒÄë
                   </div>
                 </div>
                 <div className="mt-2 w-full bg-blue-200/50 rounded-full h-2">
@@ -357,15 +357,15 @@ const StudentPage = () => {
           <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-4">
             <div className="flex justify-around">
               <a href="/studentpage" className="flex flex-col items-center p-2 text-blue-600">
-                <span className="text-2xl mb-1">🏠</span>
+                <span className="text-2xl mb-1">≡ƒÅá</span>
                 <span className="text-xs font-semibold">Home</span>
               </a>
               <a href="/flashcardspage" className="flex flex-col items-center p-2 text-gray-600 hover:text-blue-600">
-                <span className="text-2xl mb-1">🎯</span>
+                <span className="text-2xl mb-1">≡ƒÄ»</span>
                 <span className="text-xs font-semibold">Activity</span>
               </a>
               <a href="/expression-debug" className="flex flex-col items-center p-2 text-gray-600 hover:text-blue-600">
-                <span className="text-2xl mb-1">😊</span>
+                <span className="text-2xl mb-1">≡ƒÿè</span>
                 <span className="text-xs font-semibold">Expression</span>
               </a>
             </div>
