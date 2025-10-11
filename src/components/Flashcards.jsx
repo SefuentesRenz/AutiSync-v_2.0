@@ -1375,7 +1375,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🚑🔊",
             backgroundImage: "🛣️",
             characterEmoji: "😮",
-            trafficLight: "🟢",
+            trafficLight: "/src/assets/GoSign.png",
             lightStatus: "emergency",
             safetyLevel: "unsafe",
             answerChoices: ["CROSS", "WAIT"],
@@ -1396,27 +1396,27 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             rounds: [
               {
                 roundId: 1,
-                budget: 750,
+                budget: 150,
                 items: [
-                  { id: 1, name: "Burger", image: "🍔", price: 70, category: "food", affordable: true },
+                  { id: 1, name: "Juice", image: "🥤", price: 10, category: "food", affordable: true },
                   { id: 2, name: "Car", image: "🚗", price: 450000, category: "vehicle", affordable: false },
                   { id: 3, name: "Phone", image: "📱", price: 25000, category: "electronics", affordable: false },
-                  { id: 4, name: "Pancake", image: "/src/assets/pancakes.jpg", price: 150, category: "food", affordable: true, isImagePath: true }
+                  { id: 4, name: "Pancake", image: "/src/assets/pancakes.jpg", price: 15, category: "food", affordable: true, isImagePath: true }
                 ]
               },
               {
                 roundId: 2,
-                budget: 2500,
+                budget: 500,
                 items: [
-                  { id: 5, name: "Book", image: "📚", price: 850, category: "school", affordable: true },
+                  { id: 5, name: "Book", image: "📚", price: 450, category: "school", affordable: true },
                   { id: 6, name: "House", image: "🏠", price: 2500000, category: "property", affordable: false },
                   { id: 7, name: "Bicycle", image: "🚲", price: 3500, category: "vehicle", affordable: false },
-                  { id: 8, name: "empanada", image: "🥟", price: 280, category: "food", affordable: true }
+                  { id: 8, name: "empanada", image: "🥟", price: 20, category: "food", affordable: true }
                 ]
               },
               {
                 roundId: 3,
-                budget: 1200,
+                budget: 100,
                 items: [
                   { id: 9, name: "Ipad", image: "📱", price: 2800, category: "entertainment", affordable: false },
                   { id: 10, name: "Ice Cream", image: "🍦", price: 30, category: "dessert", affordable: true },
@@ -3674,6 +3674,20 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
               {/* Main Scenario Area */}
               <div className="bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 rounded-3xl pb-8 border-4 border-blue-200 relative overflow-hidden">
+                {/* Correct Answer Overlay */}
+                {showCorrect && (
+                  <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
+                  </div>
+                )}
+
+                {/* Wrong Answer Overlay */}
+                {showWrong && (
+                  <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
+                  </div>
+                )}
+
                 {/* Background Character */}
                 <div className="absolute top-4 right-4 text-6xl opacity-20 animate-float">
                   {currentQuestion?.backgroundImage || "🏠"}
@@ -3774,6 +3788,20 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
               {/* 🏙️ MAIN INTERACTIVE STREET ENVIRONMENT 🏙️ */}
               <div className="bg-gradient-to-br from-sky-100 via-blue-50 to-green-100 rounded-3xl p-8 border-4 border-blue-300 relative overflow-hidden shadow-2xl min-h-[600px]">
+                {/* Correct Answer Overlay */}
+                {showCorrect && (
+                  <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
+                  </div>
+                )}
+
+                {/* Wrong Answer Overlay */}
+                {showWrong && (
+                  <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
+                  </div>
+                )}
+
                 {/* Animated Sky Background */}
                 <div className="absolute inset-0 bg-gradient-to-b from-blue-200/30 to-green-200/30 rounded-3xl">
                   <div className="absolute top-4 left-8 text-4xl animate-float">☁️</div>
@@ -4071,6 +4099,19 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             <div className="space-y-6">
               {/* Main Game Area */}
               <div className="bg-gradient-to-b from-blue-50 to-green-50 rounded-3xl p-4 -mt-2 border-4 border-blue-200 relative">
+                {/* Correct Answer Overlay */}
+                {showCorrect && (
+                  <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
+                  </div>
+                )}
+
+                {/* Wrong Answer Overlay */}
+                {showWrong && (
+                  <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
+                  </div>
+                )}
                 
                 {/* Characters with simplified design */}
                 <div className="flex justify-between items-center relative min-h-[300px]">
@@ -4407,6 +4448,19 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             <div className="space-y-6">
               {/* Main Game Area */}
               <div className="bg-gradient-to-b from-green-50 to-blue-50 rounded-3xl p-4 -mt-2 border-4 border-green-200 relative">
+                {/* Correct Answer Overlay */}
+                {showCorrect && (
+                  <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
+                  </div>
+                )}
+
+                {/* Wrong Answer Overlay */}
+                {showWrong && (
+                  <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
+                  </div>
+                )}
                 
                 {/* Social Greetings Adventure UI */}
                 <div className="flex justify-between items-center relative min-h-[300px]">
@@ -4533,6 +4587,19 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             <div className="space-y-6 -mt-5">
               {/* Money Value Game Main Area */}
               <div className="bg-gradient-to-b from-green-50 to-blue-50 rounded-3xl p-4 border-4 border-green-200 relative overflow-hidden">
+                {/* Correct Answer Overlay */}
+                {showCorrect && (
+                  <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
+                  </div>
+                )}
+
+                {/* Wrong Answer Overlay */}
+                {showWrong && (
+                  <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
+                  </div>
+                )}
                 
                 {/* Game Header */}
                 <div className="text-center mb-6">

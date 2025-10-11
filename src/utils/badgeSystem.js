@@ -333,7 +333,7 @@ export function getBadgeAchievementMessage(earnedBadges) {
   if (hasLegendary) {
     return {
 
-      title: "Nice one! 🏆",
+      title: "GREAT JOB! 🏆",
       message: "You received New Badges!",
 
       emotion: "🎆"
@@ -354,7 +354,7 @@ export function getBadgeAchievementMessage(earnedBadges) {
     };
   } else if (count >= 2) {
     return {
-      title: "GREAT JOB! 🎯",
+      title: "NICE ONE! 🎯",
       message: "You received New Badges!",
       emotion: "🎪"
     };
