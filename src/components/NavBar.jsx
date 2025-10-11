@@ -37,7 +37,7 @@ const NavBar = ({ onProfileClick }) => {
                 AutiSync v2.0
               </h1>
             </div>
-        <nav className="flex items-center text-lg space-x-6">
+        <nav className="flex items-center text-lg space-x-6 absolute left-1/2 transform -translate-x-1/2">
           <a href="/home" className="text-white hover:text-blue-900 transition-colors duration-200 flex items-center">
                 Home
               </a>
