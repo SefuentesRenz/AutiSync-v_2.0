@@ -332,54 +332,36 @@ export function getBadgeAchievementMessage(earnedBadges) {
   
   if (hasLegendary) {
     return {
-<<<<<<< HEAD
-      title: "LEGENDARY ACHIEVEMENT! 🏆",
-      message: "You've achieved something truly extraordinary! Your dedication and skill are inspiring!",
-=======
+
       title: "Nice one! 🏆",
       message: "You received New Badges!",
->>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
+
       emotion: "🎆"
     };
   } else if (hasEpic || count >= 4) {
     return {
-<<<<<<< HEAD
-      title: "EPIC SUCCESS! ⭐",
-      message: "Outstanding performance! You're showing incredible growth and determination!",
-=======
+
       title: "Good Job! ⭐",
       message: "You received New Badges!",
->>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
+
       emotion: "🚀"
     };
   } else if (count >= 3) {
     return {
       title: "AMAZING WORK! 🌟",
-<<<<<<< HEAD
-      message: "You're doing wonderfully! Your hard work is really paying off!",
-=======
       message: "You received New Badges!",
->>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
       emotion: "✨"
     };
   } else if (count >= 2) {
     return {
       title: "GREAT JOB! 🎯",
-<<<<<<< HEAD
-      message: "Excellent progress! You're building fantastic skills!",
-=======
       message: "You received New Badges!",
->>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
       emotion: "🎪"
     };
   } else {
     return {
       title: "WELL DONE! 🌱",
-<<<<<<< HEAD
-      message: "Every step forward is an achievement! Keep learning and growing!",
-=======
       message: "You received New Badges!",
->>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
       emotion: "💫"
     };
   }

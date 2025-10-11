@@ -1,318 +1,775 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
+import { getStudentProgressStats } from '../lib/progressApi';
+import { getStudentBadges } from '../lib/badgesApi';
+import { getStreakStats } from '../lib/streaksApi';
+import { 
+  AcademicCapIcon, 
+  UsersIcon, 
+  StarIcon, 
+  HeartIcon, 
+  TrophyIcon, 
+  LightBulbIcon,
+  HomeIcon,
+  UserIcon,
+  ChartBarIcon,
+  ClockIcon,
+  ExclamationTriangleIcon,
+  FireIcon,
+  CheckIcon,
+  LockClosedIcon,
+  ChevronRightIcon
+} from '@heroicons/react/24/solid';
+import SystemInformation from './SystemInformation';
+import MotivationTips from './MotivationTips';
+import ParentProfileModal from '../components/ParentProfileModal';
+import LinkChildModal from '../components/LinkChildModal';
 
-const MotivationTips = () => {
-  const motivationStrategies = [
-    {
-      category: "Celebrating Success",
-      icon: "🎉",
-      tips: [
-        {
-          title: "Badge Celebrations",
-          description: "When your child earns a badge, celebrate together! Create a special 'badge ceremony' at home.",
-          example: "Create a badge wall or scrapbook where you display their digital achievements."
-        },
-        {
-          title: "Progress Parties",
-          description: "Celebrate completing difficulty levels or categories with small rewards or special activities.",
-          example: "After completing all Easy level activities, have a pizza night or movie evening."
-        },
-        {
-          title: "Share Achievements",
-          description: "Share their accomplishments with family members, friends, or teachers.",
-          example: "Send a photo of their progress to grandparents or create a weekly achievement report."
-        }
-      ]
-    },
-    {
-      category: "Building Motivation",
-      icon: "🚀",
-      tips: [
-        {
-          title: "Set Learning Goals Together",
-          description: "Work with your child to set achievable short-term and long-term learning goals.",
-          example: "This week, let's complete 3 Numbers activities and try 1 new Daily Life skill."
-        },
-        {
-          title: "Create Learning Routines",
-          description: "Establish consistent times for AutiSync activities to build healthy learning habits.",
-          example: "Every day after snack time, we spend 15-20 minutes on AutiSync activities."
-        },
-        {
-          title: "Connect to Real Life",
-          description: "Show how the skills learned in the app apply to daily activities.",
-          example: "After learning about numbers, count items during grocery shopping together."
-        }
-      ]
-    },
-    {
-      category: "Supporting Emotional Well-being",
-      icon: "💝",
-      tips: [
-        {
-          title: "Acknowledge Feelings",
-          description: "Use the emotion tracking to discuss how they felt during activities and validate their experiences.",
-          example: "I see you felt happy during the color activity! What made it fun for you?"
-        },
-        {
-          title: "Encourage Expression",
-          description: "Help your child articulate their emotions and experiences during learning activities.",
-          example: "How did that activity make you feel? It's okay if it was challenging - that means you're growing!"
-        },
-        {
-          title: "Create Safe Spaces",
-          description: "Ensure they know it's okay to make mistakes and that learning is a process.",
-          example: "Everyone makes mistakes when learning. Let's try again together!"
-        }
-      ]
-    },
-   
-    {
-      category: "Overcoming Challenges",
-      icon: "💪",
-      tips: [
-        {
-          title: "Break Down Difficulties",
-          description: "If an activity seems too challenging, help them approach it step by step.",
-          example: "This seems tricky! Let's look at it piece by piece. What do we see first?"
-        },
-        {
-          title: "Encourage Persistence",
-          description: "Praise effort and persistence rather than just correct answers.",
-          example: "I love how you kept trying even when it was hard! That shows real determination."
-        },
-        {
-          title: "Adjust Expectations",
-          description: "Remember that progress looks different for every child. Focus on their individual growth.",
-          example: "You're doing so much better than last week! Look how much you've learned!"
-        }
-      ]
-    },
-    
-  ];
+const ParentDashboard = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [childrenData, setChildrenData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedChild, setSelectedChild] = useState(null);
+  const [currentView, setCurrentView] = useState('overview');
+  const [showLinkChild, setShowLinkChild] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [childEmotions, setChildEmotions] = useState([]);
+  const [loadingEmotions, setLoadingEmotions] = useState(false);
+  const [childProgress, setChildProgress] = useState(null);
+  const [childBadges, setChildBadges] = useState([]);
+  const [childStreak, setChildStreak] = useState(null);
+  const [loadingProgress, setLoadingProgress] = useState(false);
 
-  const quickTips = [
-    {
-      tip: "Keep sessions short and positive",
-      icon: "⏰",
-      description: "15-20 minutes is often the sweet spot for maintaining attention and enjoyment."
-    },
-    {
-      tip: "Follow their interests",
-      icon: "❤️", 
-      description: "If they love animals, start with identification activities featuring animals."
-    },
-    {
-      tip: "Be patient with progress",
-      icon: "🐌",
-      description: "Every child learns at their own pace. Celebrate small victories along the way."
-    },
-    {
-      tip: "Use positive reinforcement",
-      icon: "👏",
-      description: "Focus on what they did well rather than what they got wrong."
-    },
-    {
-      tip: "Create learning environments",
-      icon: "🏠",
-      description: "Set up a comfortable, distraction-free space for AutiSync activities."
-    },
-    {
-      tip: "Stay consistent",
-      icon: "📅",
-      description: "Regular practice, even for short periods, is more effective than long irregular sessions."
+  // Load children data when component mounts
+  useEffect(() => {
+    if (user?.id) {
+      loadChildrenData();
     }
-  ];
+  }, [user?.id]);
+
+  // Load emotions when selected child changes
+  useEffect(() => {
+    if (selectedChild?.user_id && currentView === 'emotions') {
+      loadChildEmotions(selectedChild.user_id);
+    }
+    if (selectedChild?.user_id && currentView === 'overview') {
+      loadChildProgressData(selectedChild.user_id);
+    }
+  }, [selectedChild, currentView]);
+
+  const loadChildrenData = async () => {
+    try {
+      setLoading(true);
+      console.log('ParentDashboard: Loading children for parent user_id:', user?.id);
+      
+      // Get children linked to this parent - using manual join
+      const { data: relations, error: relationsError } = await supabase
+        .from('parent_child_relations')
+        .select('*')
+        .eq('parent_user_id', user.id);
+
+      console.log('ParentDashboard: Relations query result:', { relations, relationsError });
+
+      if (relationsError) {
+        console.error('ParentDashboard: Error loading relations:', relationsError);
+        setChildrenData([]);
+        return;
+      }
+
+      if (!relations || relations.length === 0) {
+        console.log('ParentDashboard: No relations found');
+        setChildrenData([]);
+        return;
+      }
+
+      // Get user profiles for each child
+      const childUserIds = relations.map(rel => rel.child_user_id);
+      const { data: childProfiles, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .in('user_id', childUserIds);
+
+      console.log('ParentDashboard: Child profiles result:', { childProfiles, profilesError });
+      
+      if (profilesError) {
+        console.error('ParentDashboard: Error loading child profiles:', profilesError);
+        setChildrenData([]);
+        return;
+      }
+
+      if (childProfiles && childProfiles.length > 0) {
+        // Combine relations with profiles
+        const transformedData = relations.map(relation => {
+          const childProfile = childProfiles.find(profile => profile.user_id === relation.child_user_id);
+          if (!childProfile) return null;
+          
+          return {
+            id: childProfile.user_id,
+            user_id: childProfile.user_id,
+            full_name: `${childProfile.first_name || ''} ${childProfile.last_name || ''}`.trim() || childProfile.username,
+            username: childProfile.username,
+            age: childProfile.age,
+            email: childProfile.email,
+            grade: childProfile.grade,
+            gender: childProfile.gender,
+            profile_picture: childProfile.profile_picture || "/src/assets/kidprofile1.jpg",
+            relation_id: relation.id,
+            linked_at: relation.linked_at
+          };
+        }).filter(Boolean);
+        
+        console.log('ParentDashboard: Transformed children data:', transformedData);
+        setChildrenData(transformedData);
+        if (transformedData.length > 0) {
+          setSelectedChild(transformedData[0]);
+        }
+      } else {
+        console.log('ParentDashboard: No child profiles found');
+        setChildrenData([]);
+      }
+    } catch (error) {
+      console.error('Error loading children data:', error);
+      setChildrenData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadChildEmotions = async (childUserId) => {
+    try {
+      setLoadingEmotions(true);
+      console.log('ParentDashboard: Loading emotions for child user_id:', childUserId);
+      // Get the child's profile_id from user_profiles
+      const { data: childProfile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('user_id', childUserId)
+        .single();
+
+      console.log('ParentDashboard: Child profile lookup result:', { childProfile, profileError });
+
+      if (profileError || !childProfile) {
+        console.error('ParentDashboard: Error loading child profile:', profileError);
+        setChildEmotions([]);
+        setLoadingEmotions(false);
+        return;
+      }
+
+      // Get emotions from Expressions table for this child profile
+      // First find student record that matches this child's profile
+      const { data: studentRecord, error: studentError } = await supabase
+        .from('students')
+        .select('id')
+        .eq('profile_id', childProfile.id)
+        .single();
+
+      console.log('ParentDashboard: Student record lookup:', { studentRecord, studentError });
+
+      if (studentError || !studentRecord) {
+        console.log('ParentDashboard: No student record found, checking Expressions with profile_id...');
+        // Try using profile_id directly in case Expressions table uses profile_id instead of student_id
+        const { data: directEmotions, error: directError } = await supabase
+          .from('Expressions')
+          .select('*')
+          .eq('profile_id', childProfile.id)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (directError) {
+          console.error('ParentDashboard: Error loading emotions with profile_id:', directError);
+          setChildEmotions([]);
+          return;
+        }
+
+        const transformedEmotions = directEmotions?.map(expr => ({
+          ...expr,
+          emotion_name: expr.emotion?.charAt(0).toUpperCase() + expr.emotion?.slice(1) || 'Unknown',
+          emotion_description: expr.note || '',
+          time: expr.created_at
+        })) || [];
+
+        console.log('ParentDashboard: Direct emotions found:', transformedEmotions);
+        console.log('ParentDashboard: Sample emotion data:', directEmotions?.[0]);
+        setChildEmotions(transformedEmotions);
+        return;
+      }
+
+      // Get emotions using student_id
+      const { data: emotions, error } = await supabase
+        .from('Expressions')
+        .select('*')
+        .eq('student_id', studentRecord.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      console.log('ParentDashboard: Expressions query result:', { emotions, error });
+
+      if (error) {
+        console.error('ParentDashboard: Error loading child emotions:', error);
+        setChildEmotions([]);
+        return;
+      }
+
+      // Transform the data to match expected format
+      const transformedEmotions = emotions?.map(expr => ({
+        ...expr,
+        emotion_name: expr.emotion?.charAt(0).toUpperCase() + expr.emotion?.slice(1) || 'Unknown',
+        emotion_description: expr.note || '',
+        time: expr.created_at
+      })) || [];
+
+      console.log('ParentDashboard: Transformed emotions:', transformedEmotions);
+      console.log('ParentDashboard: Sample emotion data:', emotions?.[0]);
+      setChildEmotions(transformedEmotions);
+    } catch (error) {
+      console.error('ParentDashboard: Error fetching child emotions:', error);
+      setChildEmotions([]);
+    } finally {
+      setLoadingEmotions(false);
+    }
+  };
+
+  const loadChildProgressData = async (childUserId) => {
+    try {
+      setLoadingProgress(true);
+      console.log('ParentDashboard: Loading progress data for child:', childUserId);
+
+      // Get child's profile_id from user_profiles
+      const { data: childProfile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('id, user_id')
+        .eq('user_id', childUserId)
+        .single();
+
+      if (profileError || !childProfile) {
+        console.error('ParentDashboard: Error loading child profile for progress:', profileError);
+        setChildProgress(null);
+        setChildBadges([]);
+        setChildStreak(null);
+        setLoadingProgress(false);
+        return;
+      }
+
+      const studentProfileId = childProfile.id;
+      console.log('ParentDashboard: Profile found - profile.id:', studentProfileId, 'profile.user_id:', childProfile.user_id);
+
+      // Load progress summary (try with profile.id first as it matches your test data)
+      const { data: progressData, error: progressError } = await getStudentProgressStats(studentProfileId);
+      if (progressError) {
+        console.error('Error loading progress summary:', progressError);
+      } else {
+        console.log('ParentDashboard: Progress data received:', progressData);
+        setChildProgress(progressData);
+      }
+
+      // Load badges (uses auth user_id)
+      const { data: badgesData, error: badgesError } = await getStudentBadges(childUserId);
+      if (badgesError) {
+        console.error('Error loading badges:', badgesError);
+        setChildBadges([]); // Set empty array instead of leaving undefined
+      } else {
+        setChildBadges(badgesData || []);
+      }
+
+      // Load streak (uses auth user_id)
+      const { data: streakData, error: streakError } = await getStreakStats(childUserId);
+      if (streakError) {
+        console.error('Error loading streak:', streakError);
+        setChildStreak({ currentStreak: 0, longestStreak: 0 }); // Set default values instead of null
+      } else {
+        setChildStreak(streakData);
+      }
+
+    } catch (error) {
+      console.error('ParentDashboard: Error loading child progress data:', error);
+      setChildProgress(null);
+      setChildBadges([]);
+      setChildStreak({ currentStreak: 0, longestStreak: 0 });
+    } finally {
+      setLoadingProgress(false);
+    }
+  };
+
+  const handleChildSelect = (child) => {
+    setSelectedChild(child);
+    // Clear emotions when switching children
+    setChildEmotions([]);
+  };
+
+  const handleChildLinked = (linkedChild) => {
+    setShowLinkChild(false);
+    loadChildrenData(); // Refresh children list
+  };
+
+  const getEmotionIcon = (emotionName) => {
+    const emotions = {
+      happy: '😊',
+      sad: '😢',
+      angry: '😠',
+      excited: '🤩',
+      calm: '😌',
+      anxious: '😰',
+      confused: '😕'
+    };
+    // Convert to lowercase to match the keys
+    const lowerEmotionName = emotionName?.toLowerCase();
+    return emotions[lowerEmotionName] || '😐';
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-20 h-20 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-6 animate-pulse">
+            <span className="text-white font-bold text-2xl">A</span>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Loading Dashboard...</h2>
+          <p className="text-gray-600">Preparing your child's learning insights...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-8">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-4 flex items-center justify-center">
-          <span className="text-4xl mr-3">💡</span>
-          Motivation & Support Tips
-        </h2>
-        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-          Practical strategies to help motivate your child and make their AutiSync learning journey even more rewarding
-        </p>
-      </div>
-
-      {/* Quick Tips Section */}
-      <div className="bg-gradient-to-br from-blue-100 to-violet-100 rounded-2xl p-6 border border-violet-200">
-        <h3 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
-          <span className="text-3xl mr-3">⚡</span>
-          Quick Tips for Success
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {quickTips.map((tip, index) => (
-            <div key={index} className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/40">
-              <div className="flex items-center mb-2">
-                <span className="text-2xl mr-3">{tip.icon}</span>
-                <h4 className="font-semibold text-gray-800 text-sm">{tip.tip}</h4>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      {/* Header */}
+      <header className="bg-white shadow-lg border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-xl">A</span>
               </div>
-              <p className="text-xs text-gray-600">{tip.description}</p>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  AutiSync Dashboard
+                </h1>
+              </div>
+              
+              {/* Child Selector - Show only if multiple children */}
+              {childrenData.length > 1 && (
+                <div className="ml-6">
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">
+                    Viewing Child:
+                  </label>
+                  <select
+                    value={selectedChild?.id || ''}
+                    onChange={(e) => {
+                      const child = childrenData.find(c => c.id === e.target.value);
+                      handleChildSelect(child);
+                    }}
+                    className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {childrenData.map((child) => (
+                      <option key={child.id} value={child.id}>
+                        {child.full_name || child.username} ({child.age ? `Age ${child.age}` : 'Student'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Detailed Strategies */}
-      <div className="space-y-6">
-        {motivationStrategies.map((strategy, strategyIndex) => (
-          <div key={strategyIndex} className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-            <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-              <span className="text-3xl mr-3">{strategy.icon}</span>
-              {strategy.category}
-            </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {strategy.tips.map((tip, tipIndex) => (
-                <div key={tipIndex} className="bg-gradient-to-br from-gray-50 to-violet-50 rounded-xl p-5 border border-violet-200">
-                  <h4 className="font-semibold text-gray-800 mb-3 text-lg">{tip.title}</h4>
-                  <p className="text-sm text-gray-700 mb-4 leading-relaxed">{tip.description}</p>
-                  
-                  <div className="bg-white/70 rounded-lg p-3 border-l-4 border-violet-400">
-                    <div className="text-xs font-medium text-gray-700 mb-1">Example:</div>
-                    <p className="text-xs text-gray-600 italic">"{tip.example}"</p>
+            {/* Navigation Bar - EXACT ORDER: Overview, Children, Emotions, Badges, Tips */}
+            <nav className="hidden md:flex space-x-8">
+              <button 
+                onClick={() => setCurrentView('overview')}
+                className={`text-lg font-semibold cursor-pointer transition-colors ${currentView === 'overview' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
+              >
+                Overview
+              </button>
+              <button 
+                onClick={() => setCurrentView('children')}
+                className={`text-lg font-semibold cursor-pointer transition-colors ${currentView === 'children' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
+              >
+                Children
+              </button>
+              <button 
+                onClick={() => setCurrentView('emotions')}
+                className={`text-lg font-semibold cursor-pointer transition-colors ${currentView === 'emotions' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
+              >
+                Emotions
+              </button>
+              <button 
+                onClick={() => setCurrentView('badges')}
+                className={`text-lg font-semibold cursor-pointer transition-colors ${currentView === 'badges' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
+              >
+                Badges
+              </button>
+              <button 
+                onClick={() => setCurrentView('tips')}
+                className={`text-lg font-semibold cursor-pointer transition-colors ${currentView === 'tips' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
+              >
+                Tips
+              </button>
+            </nav>
+            
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setShowProfileModal(true)}
+                className="bg-gradient-to-r cursor-pointer from-blue-500 to-purple-600 text-white p-1 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+              >
+                <img
+                  src="/src/assets/kidprofile1.jpg"
+                  alt="Profile"
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+          <div className="mb-4 md:mb-0">
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">Parent Dashboard</h1>
+            <p className="text-lg text-gray-600">
+              {selectedChild ? 
+                `Monitoring ${selectedChild.full_name || selectedChild.username}'s learning journey` : 
+                'Monitor your child\'s learning journey and progress'
+              }
+            </p>
+          </div>
+        </div>
+
+        {/* Mobile Navigation */}
+        <div className="md:hidden mb-6">
+          <div className="flex space-x-2 overflow-x-auto pb-2">
+            {['overview', 'children', 'emotions', 'badges', 'tips'].map((view) => (
+              <button
+                key={view}
+                onClick={() => setCurrentView(view)}
+                className={`text-lg font-semibold cursor-pointer transition-colors whitespace-nowrap px-4 py-2 rounded-lg ${
+                  currentView === view ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100'
+                }`}
+              >
+                {view.charAt(0).toUpperCase() + view.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Content Sections */}
+        
+        {/* Overview Section - REAL DATA */}
+        {currentView === 'overview' && (
+          <div className="space-y-8">
+            {loadingProgress ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Loading progress data...</p>
+              </div>
+            ) : selectedChild ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  {/* Overall Accuracy */}
+                  <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="p-3 bg-gradient-to-r from-violet-100 to-blue-100 rounded-2xl">
+                        <div className="text-2xl">🎯</div>
+                      </div>
+                      <span className="text-xs font-semibold text-violet-600 bg-violet-100 px-2 py-1 rounded-full">ACCURACY</span>
+                    </div>
+                    <div className="text-3xl font-bold text-violet-600 mb-2">
+                      {childProgress?.averageScore ? `${childProgress.averageScore}%` : 'N/A'}
+                    </div>
+                    <div className="text-sm text-gray-600">Average score across all activities</div>
+                  </div>
+
+                  {/* Activities Completed */}
+                  <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="p-3 bg-gradient-to-r from-green-100 to-emerald-100 rounded-2xl">
+                        <div className="text-2xl">📚</div>
+                      </div>
+                      <span className="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded-full">COMPLETED</span>
+                    </div>
+                    <div className="text-3xl font-bold text-green-600 mb-2">
+                      {childProgress ? `${childProgress.completedActivities}/${childProgress.totalActivities}` : '0/0'}
+                    </div>
+                    <div className="text-sm text-gray-600">Activities completed ({childProgress?.completionRate || 0}%)</div>
+                  </div>
+
+                  {/* Current Streak */}
+                  <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="p-3 bg-gradient-to-r from-orange-100 to-yellow-100 rounded-2xl">
+                        <div className="text-2xl">{childStreak?.streakEmoji || '🔥'}</div>
+                      </div>
+                      <span className="text-xs font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full">STREAK</span>
+                    </div>
+                    <div className="text-3xl font-bold text-orange-600 mb-2">
+                      {childStreak?.currentStreak || 0}
+                    </div>
+                    <div className="text-sm text-gray-600">Days in a row</div>
+                  </div>
+
+                  {/* Badges Earned */}
+                  <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="p-3 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-2xl">
+                        <div className="text-2xl">🏆</div>
+                      </div>
+                      <span className="text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full">BADGES</span>
+                    </div>
+                    <div className="text-3xl font-bold text-yellow-600 mb-2">
+                      {childBadges?.length || 0}
+                    </div>
+                    <div className="text-sm text-gray-600">Badges earned</div>
                   </div>
                 </div>
-              ))}
+
+                {/* Progress by Category */}
+                {childProgress?.categoryStats && Object.keys(childProgress.categoryStats).length > 0 && (
+                  <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+                    <h3 className="text-xl font-bold text-gray-800 mb-6">Progress by Category</h3>
+                    <div className="space-y-4">
+                      {Object.entries(childProgress.categoryStats).map(([categoryName, stats]) => (
+                        <div key={categoryName} className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
+                              <span className="text-blue-600 font-semibold">{categoryName.charAt(0)}</span>
+                            </div>
+                            <div>
+                              <div className="font-semibold text-gray-800">{categoryName}</div>
+                              <div className="text-sm text-gray-500">{stats.completed}/{stats.total} activities</div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-green-600">
+                              {stats.completed > 0 ? Math.round((stats.totalScore / stats.completed) * 100) / 100 : 0}%
+                            </div>
+                            <div className="text-sm text-gray-500">Avg Score</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-gray-500 text-lg">Please select a child to view their progress</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Children Section - REAL DATA */}
+        {currentView === 'children' && (
+          <div className="space-y-8">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                  <UsersIcon className="w-6 h-6 mr-2 text-blue-600" />
+                  Linked Children
+                </h2>
+                <button
+                  onClick={() => setShowLinkChild(true)}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center space-x-2"
+                >
+                  <ChevronRightIcon className="w-5 h-5" />
+                  <span>+ Link Child</span>
+                </button>
+              </div>
+
+              {childrenData.length === 0 ? (
+                <div className="text-center py-12">
+                  <UsersIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-600 mb-2">No Children Linked Yet</h3>
+                  <p className="text-gray-500 mb-4">Start by linking your child's account to monitor their progress.</p>
+                  <button
+                    onClick={() => setShowLinkChild(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold"
+                  >
+                    Link Child Account
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {childrenData.map((child) => (
+                    <div 
+                      key={child.id} 
+                      className={`bg-white rounded-2xl p-6 shadow-lg border-2 transition-all duration-200 cursor-pointer ${
+                        selectedChild?.id === child.id 
+                          ? 'border-blue-500 ring-2 ring-blue-200' 
+                          : 'border-gray-100 hover:border-blue-300'
+                      }`}
+                      onClick={() => handleChildSelect(child)}
+                    >
+                      <div className="flex items-center space-x-4 mb-4">
+                        <img
+                          src={child.profile_picture}
+                          alt={child.full_name}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                        />
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-800">{child.full_name}</h3>
+                          <p className="text-sm text-gray-500">@{child.username} • Age {child.age}</p>
+                        </div>
+                        {selectedChild?.id === child.id && (
+                          <CheckIcon className="w-5 h-5 text-blue-500" />
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Grade:</span>
+                          <span className="font-medium">{child.grade || 'Not set'}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Email:</span>
+                          <span className="font-medium text-xs">{child.email}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Linked:</span>
+                          <span className="font-medium">
+                            {child.linked_at ? new Date(child.linked_at).toLocaleDateString() : 'Recently'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-        ))}
+        )}
+
+        {/* Emotions Section - REAL DATA */}
+        {currentView === 'emotions' && (
+          <div className="space-y-8">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <HeartIcon className="w-6 h-6 mr-3 text-pink-600" />
+                Emotion Tracking
+                {selectedChild && (
+                  <span className="ml-3 text-lg text-gray-600">
+                    - {selectedChild.full_name || selectedChild.username}
+                  </span>
+                )}
+              </h2>
+              
+              {!selectedChild ? (
+                <div className="text-center py-12">
+                  <HeartIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-600 mb-2">No Child Selected</h3>
+                  <p className="text-gray-500">Please select a child from the Children section to view their emotional data.</p>
+                </div>
+              ) : loadingEmotions ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading emotional data...</p>
+                </div>
+              ) : childEmotions.length === 0 ? (
+                <div className="text-center py-12">
+                  <HeartIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-600 mb-2">No Emotional Data Yet</h3>
+                  <p className="text-gray-500">
+                    {selectedChild.full_name || selectedChild.username} hasn't recorded any emotions yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {childEmotions.map((emotion, index) => (
+                    <div key={emotion.entry_id || index} className="p-6 rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="text-3xl">
+                            {getEmotionIcon(emotion.emotion_name)}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-gray-800 capitalize">
+                              {emotion.emotion_name || 'Unknown'}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              {new Date(emotion.created_at).toLocaleDateString()}
+                            </p>
+                            <p className="text-xs text-blue-600 font-semibold">
+                              {selectedChild.username}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
+                            Level {emotion.intensity || 0}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Badges Section - STATIC DATA (DO NOT CHANGE) */}
+        {currentView === 'badges' && (
+          <div className="space-y-8">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <TrophyIcon className="w-6 h-6 mr-3 text-yellow-600" />
+                Achievement Badges
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 border-2 border-yellow-200">
+                  <div className="text-center">
+                    <div className="text-4xl mb-3">🏆</div>
+                    <h3 className="font-bold text-gray-800 mb-2">First Achievement</h3>
+                    <p className="text-sm text-gray-600">Completed first learning activity</p>
+                    <div className="mt-3 text-xs text-yellow-600 font-semibold">EARNED</div>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border-2 border-blue-200">
+                  <div className="text-center">
+                    <div className="text-4xl mb-3">⭐</div>
+                    <h3 className="font-bold text-gray-800 mb-2">Star Student</h3>
+                    <p className="text-sm text-gray-600">Maintained 90% accuracy for a week</p>
+                    <div className="mt-3 text-xs text-blue-600 font-semibold">EARNED</div>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-green-200">
+                  <div className="text-center">
+                    <div className="text-4xl mb-3">🔥</div>
+                    <h3 className="font-bold text-gray-800 mb-2">On Fire</h3>
+                    <p className="text-sm text-gray-600">10-day learning streak</p>
+                    <div className="mt-3 text-xs text-green-600 font-semibold">EARNED</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tips Section */}
+        {currentView === 'tips' && (
+          <div className="space-y-8">
+            <MotivationTips />
+          </div>
+        )}
       </div>
 
-      {/* Age-Specific Considerations */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-        <h3 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
-          <span className="text-3xl mr-3">👶</span>
-          Age-Specific Considerations
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-5 border border-green-200">
-            <h4 className="font-semibold text-green-800 mb-3 flex items-center">
-              <span className="text-2xl mr-2">🌱</span>
-              Ages 5-8
-            </h4>
-            <ul className="text-sm text-gray-700 space-y-2">
-              <li>• Focus on visual learning and simple instructions</li>
-              <li>• Use lots of praise and positive reinforcement</li>
-              <li>• Keep sessions short (10-15 minutes)</li>
-              <li>• Make learning feel like play</li>
-              <li>• Use concrete, hands-on examples</li>
-            </ul>
-          </div>
-          
-          <div className="bg-gradient-to-br from-blue-50 to-violet-100 rounded-xl p-5 border border-violet-200">
-            <h4 className="font-semibold text-violet-800 mb-3 flex items-center">
-              <span className="text-2xl mr-2">🌳</span>
-              Ages 9-12
-            </h4>
-            <ul className="text-sm text-gray-700 space-y-2">
-              <li>• Introduce more complex problem-solving</li>
-              <li>• Allow more independence in choosing activities</li>
-              <li>• Connect learning to real-world applications</li>
-              <li>• Encourage self-reflection on progress</li>
-              <li>• Sessions can be 15-25 minutes</li>
-            </ul>
-          </div>
-          
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-5 border border-purple-200">
-            <h4 className="font-semibold text-purple-800 mb-3 flex items-center">
-              <span className="text-2xl mr-2">🌟</span>
-              Ages 13+
-            </h4>
-            <ul className="text-sm text-gray-700 space-y-2">
-              <li>• Focus on independence and life skills</li>
-              <li>• Involve them in goal-setting</li>
-              <li>• Discuss practical applications</li>
-              <li>• Support self-advocacy and expression</li>
-              <li>• Flexible session lengths based on interest</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Warning Signs & When to Adjust */}
-      <div className="bg-gradient-to-br from-red-100 to-orange-100 rounded-2xl p-6 border border-red-200">
-        <h3 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
-          <span className="text-3xl mr-3">⚠️</span>
-          When to Adjust Your Approach
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-semibold text-gray-800 mb-4">Watch for these signs:</h4>
-            <ul className="text-sm text-gray-700 space-y-2">
-              <li className="flex items-start">
-                <span className="text-red-500 mr-2 mt-1">•</span>
-                Consistent frustration or meltdowns during activities
-              </li>
-              <li className="flex items-start">
-                <span className="text-red-500 mr-2 mt-1">•</span>
-                Avoiding or refusing to engage with the app
-              </li>
-              <li className="flex items-start">
-                <span className="text-red-500 mr-2 mt-1">•</span>
-                Consistently reporting negative emotions
-              </li>
-              <li className="flex items-start">
-                <span className="text-red-500 mr-2 mt-1">•</span>
-                No progress after several weeks of regular practice
-              </li>
-              <li className="flex items-start">
-                <span className="text-red-500 mr-2 mt-1">•</span>
-                Regression in previously mastered skills
-              </li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="font-semibold text-gray-800 mb-4">Adjustment strategies:</h4>
-            <ul className="text-sm text-gray-700 space-y-2">
-              <li className="flex items-start">
-                <span className="text-green-500 mr-2 mt-1">✓</span>
-                Take a break and return to easier difficulty levels
-              </li>
-              <li className="flex items-start">
-                <span className="text-green-500 mr-2 mt-1">✓</span>
-                Reduce session length or frequency
-              </li>
-              <li className="flex items-start">
-                <span className="text-green-500 mr-2 mt-1">✓</span>
-                Try different categories that match their interests
-              </li>
-              <li className="flex items-start">
-                <span className="text-green-500 mr-2 mt-1">✓</span>
-                Provide more support and work together
-              </li>
-              <li className="flex items-start">
-                <span className="text-green-500 mr-2 mt-1">✓</span>
-                Consult with teachers or therapists for guidance
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Success Stories Inspiration */}
-      <div className="bg-gradient-to-br from-yellow-100 to-orange-100 rounded-2xl p-6 border border-yellow-200">
-        <h3 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
-          <span className="text-3xl mr-3">🌟</span>
-          Remember: Every Child's Journey is Unique
-        </h3>
-        
-        <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-6 border border-yellow-300">
-          <p className="text-lg text-gray-700 italic mb-4">
-            "Progress isn't always linear, and that's perfectly okay. Some days will be better than others, and that's part of the learning process."
-          </p>
-          <p className="text-sm text-gray-600">
-            Focus on celebrating the small victories, maintaining consistency, and most importantly, keeping the experience positive and enjoyable for your child.
-          </p>
-        </div>
-      </div>
+      {/* Modals */}
+      <LinkChildModal 
+        isOpen={showLinkChild}
+        onClose={() => setShowLinkChild(false)}
+        onChildLinked={handleChildLinked}
+      />
+      
+      <ParentProfileModal 
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+      />
     </div>
   );
 };
 
-export default MotivationTips;
+export default ParentDashboard;

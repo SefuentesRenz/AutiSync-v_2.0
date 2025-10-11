@@ -25,13 +25,11 @@ const FlashcardsPage = () => {
     showChatBar,
     setShowChatBar,
     roomNumber,
-<<<<<<< HEAD
-    setRoomNumber
-=======
+
     setRoomNumber,
     joinRoom,
     isJoining
->>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
+
   } = useChat();
 
   // Handle category selection
@@ -90,15 +88,8 @@ const FlashcardsPage = () => {
   };
 
   // Function to handle "Join" button click
-<<<<<<< HEAD
-  const handleJoinClick = () => {
-    if (roomNumber) {
-      setShowModal(false);
-      setShowChatBar(true);
-    } else {
-      alert('Please enter a valid room number');
-    }
-=======
+
+
   const handleJoinClick = async () => {
     if (!roomNumber || !roomNumber.trim()) {
       alert('Please enter a valid room number');
@@ -116,7 +107,7 @@ const FlashcardsPage = () => {
     // Success - close modal
     setShowModal(false);
     console.log('Successfully joined room:', room);
->>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
+
   };
 
   return (
@@ -302,14 +293,16 @@ const FlashcardsPage = () => {
               
               <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
                 <button
-<<<<<<< HEAD
-                  className="flex-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 hover:from-purple-600 hover:via-pink-600 hover:to-purple-700 text-white px-6 py-4 rounded-2xl font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center justify-center space-x-3"
-                  onClick={handleJoinClick}
-                >
-                  <span className="text-2xl animate-bounce-gentle">🚀</span>
-                  <span>Join Room</span>
-                  <span className="text-xl animate-pulse">✨</span>
-=======
+
+                //   className="flex-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 hover:from-purple-600 hover:via-pink-600 hover:to-purple-700 text-white px-6 py-4 rounded-2xl font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center justify-center space-x-3"
+                //   onClick={handleJoinClick}
+                // >
+                //   <span className="text-2xl animate-bounce-gentle">🚀</span>
+                //   <span>Join Room</span>
+                //   <span className="text-xl animate-pulse">✨</span>
+
+
+
                   className={`flex-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 hover:from-purple-600 hover:via-pink-600 hover:to-purple-700 text-white px-6 py-4 rounded-2xl font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center justify-center space-x-3 ${
                     isJoining ? 'opacity-70 cursor-not-allowed' : ''
                   }`}
@@ -328,15 +321,14 @@ const FlashcardsPage = () => {
                       <span className="text-xl animate-pulse">✨</span>
                     </>
                   )}
->>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
+
                 </button>
                 <button
                   className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 px-6 py-4 rounded-2xl font-bold transition-all duration-300 transform hover:scale-105 shadow-lg"
                   onClick={() => setShowModal(false)}
-<<<<<<< HEAD
-=======
+
                   disabled={isJoining}
->>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
+
                 >
                   Cancel
                 </button>

@@ -58,11 +58,9 @@ const DifficultySelector = ({ onSelectDifficulty, onJoinFriend, selectedCategory
         {...getButtonSoundHandlers(() => onSelectDifficulty("Easy"))}
       >
         <div className="text-7xl mb-4">😊</div>
-<<<<<<< HEAD
-        <div className="font-bold text-2xl text-green-700 mb-2">Easy</div>
-=======
+
         <div className="font-bold text-2xl text-green-700 mb-2">Beginner</div>
->>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
+
         <div className="text-base text-gray-600 text-center">Perfect for beginners!</div>
       </button>
       
@@ -71,11 +69,9 @@ const DifficultySelector = ({ onSelectDifficulty, onJoinFriend, selectedCategory
         {...getButtonSoundHandlers(() => onSelectDifficulty("Medium"))}
       >
         <div className="text-7xl mb-4">🤔</div>
-<<<<<<< HEAD
-        <div className="font-bold text-2xl text-orange-700 mb-2">Medium</div>
-=======
+
         <div className="font-bold text-2xl text-orange-700 mb-2">Intermediate</div>
->>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
+
         <div className="text-base text-gray-600 text-center">A fun challenge!</div>
       </button>
       
@@ -84,11 +80,9 @@ const DifficultySelector = ({ onSelectDifficulty, onJoinFriend, selectedCategory
         {...getButtonSoundHandlers(() => onSelectDifficulty("Hard"))}
       >
         <div className="text-7xl mb-4">💪</div>
-<<<<<<< HEAD
-        <div className="font-bold text-2xl text-red-700 mb-2">Hard</div>
-=======
+
         <div className="font-bold text-2xl text-red-700 mb-2">Proficient</div>
->>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
+
         <div className="text-base text-gray-600 text-center">For experts like you!</div>
       </button>
     </div>
