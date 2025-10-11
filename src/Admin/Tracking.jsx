@@ -26,7 +26,7 @@ const Tracking = () => {
         if (progressResult.error) {
           console.error('Error fetching progress:', progressResult.error);
         } else {
-          console.log('≡ƒôè Admin Dashboard - Progress data received:', progressResult.data);
+          console.log('📊 Admin Dashboard - Progress data received:', progressResult.data);
           setProgressData(progressResult.data);
         }
 
@@ -69,7 +69,7 @@ const Tracking = () => {
           title: 'COMPLETION RATE',
           value: '0%',
           change: 'No data yet',
-          icon: <div className="w-8 h-8 text-green-600 text-2xl">≡ƒÄ»</div>,
+          icon: <div className="w-8 h-8 text-green-600 text-2xl">🎯</div>,
           bgColor: 'bg-green-50',
           textColor: 'text-green-600'
         },
@@ -77,7 +77,7 @@ const Tracking = () => {
           title: 'AVERAGE ACCURACY',
           value: '0%',
           change: 'No data yet',
-          icon: <div className="w-8 h-8 text-purple-600 text-2xl">≡ƒÄ»</div>,
+          icon: <div className="w-8 h-8 text-purple-600 text-2xl">🎯</div>,
           bgColor: 'bg-purple-50',
           textColor: 'text-purple-600'
         },
@@ -135,7 +135,7 @@ const Tracking = () => {
         title: 'COMPLETION RATE',
         value: `${completionRate}%`,
         change: `${totalSessions} total sessions`,
-        icon: <div className="w-8 h-8 text-green-600 text-2xl">≡ƒÄ»</div>,
+        icon: <div className="w-8 h-8 text-green-600 text-2xl">🎯</div>,
         bgColor: 'bg-green-50',
         textColor: 'text-green-600'
       },
@@ -143,7 +143,7 @@ const Tracking = () => {
         title: 'AVERAGE ACCURACY',
         value: '82.5%',
         change: '+5.2% from last month',
-        icon: <div className="w-8 h-8 text-purple-600 text-2xl">≡ƒÄ»</div>,
+        icon: <div className="w-8 h-8 text-purple-600 text-2xl">🎯</div>,
         bgColor: 'bg-purple-50',
         textColor: 'text-purple-600'
       },
@@ -209,12 +209,12 @@ const Tracking = () => {
       category: name,
       accuracy: stats.scoreCount > 0 ? Math.round(stats.totalScore / stats.scoreCount) : 0,
       completed: `${stats.sessions}/${stats.total * students.length}`,
-      icon: name.toLowerCase().includes('color') ? '≡ƒÄ¿' : 
-            name.toLowerCase().includes('shape') ? '≡ƒö╖' :
-            name.toLowerCase().includes('number') ? '≡ƒöó' :
-            name.toLowerCase().includes('letter') ? '≡ƒô¥' :
-            name.toLowerCase().includes('pattern') ? '≡ƒº⌐' :
-            name.toLowerCase().includes('daily') ? '≡ƒÅá' : '≡ƒôÜ',
+      icon: name.toLowerCase().includes('color') ? '🎨' : 
+            name.toLowerCase().includes('shape') ? '🔷' :
+            name.toLowerCase().includes('number') ? '🔢' :
+            name.toLowerCase().includes('letter') ? '📝' :
+            name.toLowerCase().includes('pattern') ? '🧩' :
+            name.toLowerCase().includes('daily') ? '🏠' : '📚',
       color: `bg-${['purple', 'blue', 'green', 'indigo', 'pink', 'orange'][Math.floor(Math.random() * 6)]}-500`
     }));
   };
@@ -253,7 +253,7 @@ const Tracking = () => {
       level,
       progress: stats.total > 0 ? Math.round((stats.completed / (stats.total * students.length)) * 100) : 0,
       completed: `${stats.completed}/${stats.total * students.length}`,
-      icon: level === 'Easy' ? '≡ƒî▒' : level === 'Medium' ? '≡ƒöÑ' : '≡ƒÆÄ',
+      icon: level === 'Easy' ? '🌱' : level === 'Medium' ? '🔥' : '💪',
       color: level === 'Easy' ? 'bg-green-500' : level === 'Medium' ? 'bg-orange-500' : 'bg-red-500',
       bgColor: level === 'Easy' ? 'bg-green-50' : level === 'Medium' ? 'bg-orange-50' : 'bg-red-50'
     }));
@@ -291,8 +291,8 @@ const Tracking = () => {
   const recentActivitiesData = loading ? [] : getRecentActivities();
 
   const categories = [
-    { name: 'Academic Skills', percent: 73, count: '15/20', icon: '≡ƒôÜ', color: 'bg-blue-500' },
-    { name: 'Daily Life Skills', percent: 77, count: '5/5', icon: '≡ƒÅá', color: 'bg-orange-500' }
+    { name: 'Academic Skills', percent: 73, count: '15/20', icon: '📚', color: 'bg-blue-500' },
+    { name: 'Daily Life Skills', percent: 77, count: '5/5', icon: '🏠', color: 'bg-orange-500' }
   ];
 
   const navigate = useNavigate();
@@ -329,7 +329,7 @@ const Tracking = () => {
 
   const badges = [
     {
-      icon: 'Γ¡É',
+      icon: '⭐',
       title: 'First Steps',
       description: 'Completed your first activity',
       status: 'EARNED',
@@ -338,7 +338,7 @@ const Tracking = () => {
       animation: 'animate-bounce-gentle'
     },
     {
-      icon: '≡ƒÄô',
+      icon: '📖',
       title: 'Academic Star',
       description: 'Completed 5 academic activities',
       status: 'EARNED',
@@ -347,7 +347,7 @@ const Tracking = () => {
       animation: 'animate-pulse-gentle'
     },
     {
-      icon: '≡ƒÄ¿',
+      icon: '🎨',
       title: 'Color Master',
       description: 'Awarded for completing 5 color-related activities',
       status: 'EARNED',
@@ -356,7 +356,7 @@ const Tracking = () => {
       animation: 'animate-bounce-gentle'
     },
     {
-      icon: '≡ƒö╖',
+      icon: '🔷',
       title: 'Shape Explorer',
       description: 'Awarded after finishing 5 shape activities',
       status: 'EARNED',
@@ -365,7 +365,7 @@ const Tracking = () => {
       animation: 'animate-float'
     },
     {
-      icon: '≡ƒöó',
+      icon: '🔢',
       title: 'Number Ninja',
       description: 'Earned by correctly answering 20 number-related questions',
       status: 'EARNED',
@@ -374,7 +374,7 @@ const Tracking = () => {
       animation: 'animate-wiggle'
     },
     {
-      icon: '≡ƒôà',
+      icon: '📅',
       title: 'Consistency Champ',
       description: 'Given for completing activities 3 days in a row',
       status: 'LOCKED',
@@ -383,7 +383,7 @@ const Tracking = () => {
       animation: ''
     },
     {
-      icon: '≡ƒñ¥',
+      icon: '🤝',
       title: 'Helper Badge',
       description: 'For activities done collaboratively with a parent/teacher',
       status: 'EARNED',
@@ -392,7 +392,7 @@ const Tracking = () => {
       animation: 'animate-pulse-gentle'
     },
     {
-      icon: '≡ƒÅá',
+      icon: '🏠',
       title: 'Daily Life Hero',
       description: 'Awarded for finishing 5 "Daily Life Skills" activities',
       status: 'EARNED',
@@ -401,7 +401,7 @@ const Tracking = () => {
       animation: 'animate-float-delayed'
     },
     {
-      icon: '≡ƒÅå',
+      icon: '🏆',
       title: 'All-Rounder',
       description: 'Earned when a student completes at least one activity in every category',
       status: 'LOCKED',
@@ -520,7 +520,7 @@ const Tracking = () => {
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-800">Accuracy Rates by Category</h3>
               <div className="bg-purple-100 p-2 rounded-lg">
-                <span className="text-2xl">≡ƒÄ»</span>
+                <span className="text-2xl">🎯</span>
               </div>
             </div>
             <div className="space-y-4">
@@ -553,7 +553,7 @@ const Tracking = () => {
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-800">Recent Activities</h3>
               <div className="bg-green-100 p-2 rounded-lg">
-                <span className="text-2xl">≡ƒôä</span>
+                <span className="text-2xl">📊</span>
               </div>
             </div>
             <div className="space-y-4">
@@ -600,7 +600,7 @@ const Tracking = () => {
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-800">Learning Categories</h3>
               <div className="bg-blue-100 p-2 rounded-lg">
-                <span className="text-2xl">≡ƒôè</span>
+                <span className="text-2xl">📊</span>
               </div>
             </div>
             <div className="space-y-6">
@@ -630,7 +630,7 @@ const Tracking = () => {
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-800">Difficulty Level Progression</h3>
               <div className="bg-orange-100 p-2 rounded-lg">
-                <span className="text-2xl">≡ƒôê</span>
+                <span className="text-2xl">📈</span>
               </div>
             </div>
             <div className="space-y-4">
@@ -680,7 +680,7 @@ const Tracking = () => {
                   {/* Status indicator */}
                   {badge.status === 'EARNED' && (
                     <div className="absolute top-2 right-2">
-                      <span className="text-green-500 text-lg animate-bounce-in">Γ£ô</span>
+                      <span className="text-green-500 text-lg animate-bounce-in">✅</span>
                     </div>
                   )}
                   
@@ -706,7 +706,7 @@ const Tracking = () => {
                   
                   {badge.status === 'EARNED' && (
                     <div className="absolute bottom-1 right-1">
-                      <span className="text-yellow-400 text-sm animate-pulse-gentle">Γ£¿</span>
+                      <span className="text-yellow-400 text-sm animate-pulse-gentle">✨</span>
                     </div>
                   )}
                 </div>

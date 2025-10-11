@@ -30,11 +30,11 @@ const StudentProfile = () => {
   // Mock tracking data for visual appeal
   const [studentTrackingData] = useState({
     accuracyRates: [
-      { category: 'Colors', accuracy: 85, completed: '2/3', icon: '≡ƒÄ¿', color: 'bg-purple-500' },
-      { category: 'Shapes', accuracy: 78, completed: '3/3', icon: '≡ƒö╖', color: 'bg-blue-500' },
-      { category: 'Numbers', accuracy: 82, completed: '2/3', icon: '≡ƒöó', color: 'bg-green-500' },
-      { category: 'Letters', accuracy: 74, completed: '3/3', icon: '≡ƒöñ', color: 'bg-indigo-500' },
-      { category: 'Patterns', accuracy: 69, completed: '1/3', icon: '≡ƒº⌐', color: 'bg-pink-500' }
+      { category: 'Colors', accuracy: 85, completed: '2/3', icon: '🎨', color: 'bg-purple-500' },
+      { category: 'Shapes', accuracy: 78, completed: '3/3', icon: '🔷', color: 'bg-blue-500' },
+      { category: 'Numbers', accuracy: 82, completed: '2/3', icon: '🔢', color: 'bg-green-500' },
+      { category: 'Letters', accuracy: 74, completed: '3/3', icon: '🔤', color: 'bg-indigo-500' },
+      { category: 'Patterns', accuracy: 69, completed: '1/3', icon: '🧩', color: 'bg-pink-500' }
     ],
     completionRate: 80
   });
@@ -446,11 +446,11 @@ const StudentProfile = () => {
   };
 
   const stats = [
-    { icon: "≡ƒÅå", label: "Achievements", value: userInfo.achievements, color: "from-yellow-400 to-orange-500" },
-    { icon: "≡ƒöÑ", label: "Day Streak", value: userInfo.day_streak, color: "from-red-400 to-pink-500" },
-    { icon: "≡ƒÄ»", label: "Activities Done", value: userInfo.activities_done, color: "from-blue-400 to-indigo-500" },
-    { icon: "Γ¡É", label: "Accuracy Rate", value: `${userInfo.accuracy_rate}%`, color: "from-purple-400 to-blue-500" },
-    { icon: "≡ƒôè", label: "Completion Rate", value: `${studentTrackingData.completionRate}%`, color: "from-green-400 to-teal-500" }
+    { icon: "🏆", label: "Achievements", value: userInfo.achievements, color: "from-yellow-400 to-orange-500" },
+    { icon: "🔥", label: "Day Streak", value: userInfo.day_streak, color: "from-red-400 to-pink-500" },
+    { icon: "🎯", label: "Activities Done", value: userInfo.activities_done, color: "from-blue-400 to-indigo-500" },
+    { icon: "⭐", label: "Accuracy Rate", value: `${userInfo.accuracy_rate}%`, color: "from-purple-400 to-blue-500" },
+    { icon: "📊", label: "Completion Rate", value: `${studentTrackingData.completionRate}%`, color: "from-green-400 to-teal-500" }
   ];
 
   if (loading) {
@@ -565,10 +565,10 @@ const StudentProfile = () => {
             <div className="flex-1 text-center lg:text-left">
               <div className="mb-4">
                 <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-2">
-                  Hi, {userInfo.username || userInfo.full_name || 'Student'}! ≡ƒæï
+                  Hi, {userInfo.username || userInfo.full_name || 'Student'}! 👋
                 </h1>
                 <p className="text-lg text-gray-600">
-                  You're doing amazing things every day! ≡ƒÜÇ
+                  You're doing amazing things every day! 🚀
                 </p>
               </div>
 
@@ -594,7 +594,7 @@ const StudentProfile = () => {
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/20 mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-              <span className="text-3xl mr-3">≡ƒæñ</span>
+              <span className="text-3xl mr-3">👤</span>
               Personal Information
             </h2>
             
@@ -606,7 +606,7 @@ const StudentProfile = () => {
                     onClick={handleCancel}
                     className="bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 text-white px-4 py-2 rounded-xl font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center text-sm"
                   >
-                    <span className="mr-1">Γ¥î</span>
+                    <span className="mr-1">✖</span>
                     Cancel
                   </button>
                   <button
@@ -616,12 +616,12 @@ const StudentProfile = () => {
                   >
                     {saving ? (
                       <>
-                        <span className="mr-1">ΓÅ│</span>
+                        <span className="mr-1">⏳</span>
                         Saving...
                       </>
                     ) : (
                       <>
-                        <span className="mr-1">≡ƒÆ╛</span>
+                        <span className="mr-1">💾</span>
                         Save
                       </>
                     )}
@@ -632,7 +632,7 @@ const StudentProfile = () => {
                   onClick={handleEdit}
                   className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center text-xl cursor-pointer"
                 >
-                  <span className="mr-1">Γ£Å∩╕Å</span>
+                  <span className="mr-1">✏️</span>
                   Edit
                 </button>
               )}
@@ -642,7 +642,7 @@ const StudentProfile = () => {
           <div className="grid md:grid-cols-2 gap-6">
             {/* Username */}
             <div className="flex items-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200/50">
-              <span className="text-2xl mr-4">≡ƒÄ«</span>
+              <span className="text-2xl mr-4">👨</span>
               <div className="flex-1">
                 <label className="block text-sm font-semibold text-gray-700">Username</label>
                 {isEditing ? (
@@ -663,7 +663,7 @@ const StudentProfile = () => {
 
             {/* Email */}
             <div className="flex items-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200/50">
-              <span className="text-2xl mr-4">≡ƒôº</span>
+              <span className="text-2xl mr-4">📧</span>
               <div className="flex-1">
                 <label className="block text-sm font-semibold text-gray-700">Email</label>
                 {isEditing ? (
@@ -682,7 +682,7 @@ const StudentProfile = () => {
 
             {/* Full Name */}
             <div className="flex items-center p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-2xl border border-green-200/50">
-              <span className="text-2xl mr-4">≡ƒæï</span>
+              <span className="text-2xl mr-4">👋</span>
               <div className="flex-1">
                 <label className="block text-sm font-semibold text-gray-700">Full Name</label>
                 {isEditing ? (
@@ -701,7 +701,7 @@ const StudentProfile = () => {
 
             {/* Grade */}
             <div className="flex items-center p-4 bg-gradient-to-r from-red-50 to-pink-50 rounded-2xl border border-red-200/50">
-              <span className="text-2xl mr-4">≡ƒôÜ</span>
+              <span className="text-2xl mr-4">📚</span>
               <div className="flex-1">
                 <label className="block text-sm font-semibold text-gray-700">Grade</label>
                 {isEditing ? (
@@ -720,7 +720,7 @@ const StudentProfile = () => {
 
             {/* Gender */}
             <div className="flex items-center p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-200/50">
-              <span className="text-2xl mr-4">ΓÜº∩╕Å</span>
+              <span className="text-2xl mr-4">👥</span>
               <div className="flex-1">
                 <label className="block text-sm font-semibold text-gray-700">Gender</label>
                 {isEditing ? (
@@ -743,7 +743,7 @@ const StudentProfile = () => {
 
             {/* Birthdate */}
             <div className="flex items-center p-4 bg-gradient-to-r from-pink-50 to-red-50 rounded-2xl border border-pink-200/50">
-              <span className="text-2xl mr-4">≡ƒÄé</span>
+              <span className="text-2xl mr-4">🎂</span>
               <div className="flex-1">
                 <label className="block text-sm font-semibold text-gray-700">Birthdate</label>
                 {isEditing ? (
@@ -762,7 +762,7 @@ const StudentProfile = () => {
 
             {/* Address */}
             <div className="flex items-start p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-2xl border border-gray-200/50 md:col-span-2">
-              <span className="text-2xl mr-4 mt-1">≡ƒÅá</span>
+              <span className="text-2xl mr-4 mt-1">🏠</span>
               <div className="flex-1">
                 <label className="block text-sm font-semibold text-gray-700">Address</label>
                 {isEditing ? (
@@ -784,7 +784,7 @@ const StudentProfile = () => {
         {/* Learning Progress */}
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/20">
           <h2 className="text-2xl font-bold text-gray-800 flex items-center mb-6">
-            <span className="text-3xl mr-3">≡ƒôè</span>
+            <span className="text-3xl mr-3">📊</span>
             Learning Progress
           </h2>
           

@@ -47,13 +47,8 @@ export async function getActivitiesWithDetails() {
     .from('activities')
     .select(`
       *,
-<<<<<<< HEAD
       Categories(*),
       Difficulties(*)
-=======
-      categories(*),
-      difficulties(*)
->>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
     `)
     .order('created_at', { ascending: false });
   return { data, error };
@@ -75,13 +70,8 @@ export async function getActivityByIdWithDetails(id) {
     .from('activities')
     .select(`
       *,
-<<<<<<< HEAD
       Categories(*),
       Difficulties(*)
-=======
-      categories(*),
-      difficulties(*)
->>>>>>> f26317b7c99d2f3ed1f8da137d6f9f67a6ec5670
     `)
     .eq('id', id)
     .single();

@@ -269,12 +269,12 @@ const AlarmingEmotions = () => {
 
   const getEmotionIcon = (emotion) => {
     switch (emotion?.toLowerCase()) {
-      case 'angry': return '≡ƒÿá';
-      case 'sad': return '≡ƒÿó';
-      case 'happy': return '≡ƒÿè';
-      case 'excited': return '≡ƒñù';
-      case 'calm': return '≡ƒÿî';
-      default: return '≡ƒÿÉ';
+      case 'angry': return '😠';
+      case 'sad': return '😢';
+      case 'happy': return '😊';
+      case 'excited': return '🎉';
+      case 'calm': return '😌';
+      default: return '😐';
     }
   };
 
@@ -357,8 +357,8 @@ const AlarmingEmotions = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">≡ƒôè Student Emotions Dashboard</h1>
-              <p className="text-lg text-gray-600">Monitor student emotions from the last 24 hours ΓÇó Live updates every day</p>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">📊 Student Emotions Dashboard</h1>
+              <p className="text-lg text-gray-600">Monitor student emotions from the last 24 hours • Live updates every day</p>
             </div>
             <div className="flex space-x-4">
               <button
@@ -368,13 +368,13 @@ const AlarmingEmotions = () => {
                 }}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
-                ≡ƒöä Refresh Data
+                🔄 Refresh Data
               </button>
               <button
                 onClick={() => navigate(-1)}
                 className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
               >
-                ΓåÉ Back
+                ← Back
               </button>
             </div>
           </div>
@@ -390,7 +390,7 @@ const AlarmingEmotions = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                ≡ƒÜ¿ Priority Alerts
+                🚨 Priority Alerts
               </button>
               <button
                 onClick={() => setActiveTab('history')}
@@ -400,7 +400,7 @@ const AlarmingEmotions = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                ≡ƒôê All Emotions History
+                📈 All Emotions History
               </button>
             </nav>
           </div>
@@ -430,7 +430,7 @@ const AlarmingEmotions = () => {
           
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center">
-              <div className="text-3xl mr-3">≡ƒÿè</div>
+              <div className="text-3xl mr-3">😊</div>
               <div className="ml-1">
                 <p className="text-sm font-medium text-gray-600">Positive Emotions</p>
                 <p className="text-3xl font-bold text-gray-900">{allEmotions.filter(e => e.emotionType === 'positive').length}</p>
@@ -452,7 +452,7 @@ const AlarmingEmotions = () => {
         {/* Notifications Section */}
         {notifications.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">≡ƒöö Unread Notifications</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">🔔 Unread Notifications</h2>
             <div className="space-y-4">
               {notifications.map(notification => (
                 <div key={notification.id} className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg shadow">
@@ -479,10 +479,10 @@ const AlarmingEmotions = () => {
         {/* Content Sections */}
         {activeTab === 'alerts' && (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">≡ƒÜ¿ Priority Alerts (High-Intensity Negative Emotions)</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">🚨 Priority Alerts (High-Intensity Negative Emotions)</h2>
             {alerts.length === 0 ? (
               <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-                <div className="text-6xl mb-4">≡ƒÿè</div>
+                <div className="text-6xl mb-4">😊</div>
                 <p className="text-xl text-gray-600">No high-priority alerts at this time!</p>
                 <p className="text-gray-500 mt-2">All students are doing well emotionally.</p>
               </div>
@@ -507,17 +507,17 @@ const AlarmingEmotions = () => {
                       <div className="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-4 mb-4">
                         <div className="flex items-start">
                           <div className="flex-shrink-0">
-                            <div className="text-blue-400">≡ƒÆ¼</div>
+                            <div className="text-blue-400">💬</div>
                           </div>
                           <div className="ml-3 flex-1">
                             <p className="text-sm font-semibold text-blue-800 mb-1">
-                              ≡ƒô¥ Student's Private Note (Admin/Teacher Only)
+                              📝 Student's Private Note (Admin/Teacher Only)
                             </p>
                             <p className="text-blue-700 text-sm leading-relaxed bg-white rounded p-2 italic">
                               "{alert.note}"
                             </p>
                             <p className="text-xs text-blue-600 mt-2">
-                              ΓÜá∩╕Å This note is confidential and only visible to admin/teacher and parents
+                              🔒 This note is confidential and only visible to admin/teacher and parents
                             </p>
                           </div>
                         </div>
@@ -547,10 +547,10 @@ const AlarmingEmotions = () => {
 
         {activeTab === 'history' && (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">≡ƒôê All Emotions History</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">📈 All Emotions History</h2>
             {allEmotions.length === 0 ? (
               <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-                <div className="text-6xl mb-4">≡ƒôè</div>
+                <div className="text-6xl mb-4">📊</div>
                 <p className="text-xl text-gray-600">No emotions recorded yet!</p>
                 <p className="text-gray-500 mt-2">Student emotions will appear here once they start sharing.</p>
               </div>
@@ -577,8 +577,8 @@ const AlarmingEmotions = () => {
                               ? 'bg-red-100 text-red-800' 
                               : 'bg-orange-100 text-orange-800'
                         }`}>
-                          {emotion.emotionType === 'positive' ? '≡ƒÿè Positive' : 
-                           emotion.isHighPriority ? '≡ƒÜ¿ High Priority' : 'ΓÜá∩╕Å Negative'}
+                          {emotion.emotionType === 'positive' ? '😊 Positive' : 
+                           emotion.isHighPriority ? '🚨 High Priority' : '⚠️ Negative'}
                         </span>
                       </div>
                     </div>

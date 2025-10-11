@@ -34,7 +34,7 @@ const Students = () => {
         .ilike('gender', 'male');
         
       if (!allMaleError && allMaleProfiles) {
-        console.log('≡ƒöì ALL MALE PROFILES IN DATABASE:', allMaleProfiles.length);
+        console.log('🔍 ALL MALE PROFILES IN DATABASE:', allMaleProfiles.length);
         allMaleProfiles.forEach(profile => {
           console.log(`  - ${profile.full_name} (ID: ${profile.id}, User ID: ${profile.user_id})`);
         });
@@ -154,34 +154,34 @@ const Students = () => {
       
       // Debug male students in the final data
       const maleStudents = transformedStudents.filter(s => s.gender && s.gender.toLowerCase() === 'male');
-      console.log(`≡ƒæÑ TOTAL MALE STUDENTS LOADED: ${maleStudents.length}`);
+      console.log(`👨 TOTAL MALE STUDENTS LOADED: ${maleStudents.length}`);
       maleStudents.forEach(student => {
         console.log(`  - ${student.name} (Gender: "${student.gender}", Activities: ${student.completedActivities}, Score: ${student.averageScore}%, Last: ${student.lastActive})`);
       });
       
       // Check for the specific students mentioned
       const targetNames = ['isaiah', 'kobe', 'xaian', 'gi'];
-      console.log('≡ƒÄ» Checking for target students:');
+      console.log('🎯 Checking for target students:');
       targetNames.forEach(name => {
         const found = transformedStudents.find(s => 
           s.name && s.name.toLowerCase().includes(name.toLowerCase())
         );
         if (found) {
-          console.log(`  ${name}: Γ£à Found - ${found.name} (${found.gender}) - Activities: ${found.completedActivities}, Score: ${found.averageScore}%, Last: ${found.lastActive}`);
+          console.log(`  ${name}: ✅ Found - ${found.name} (${found.gender}) - Activities: ${found.completedActivities}, Score: ${found.averageScore}%, Last: ${found.lastActive}`);
         } else {
-          console.log(`  ${name}: Γ¥î NOT FOUND`);
+          console.log(`  ${name}: ✖ NOT FOUND`);
         }
       });
       
       // Debug students with vs without progress
       const studentsWithProgress = transformedStudents.filter(s => s.completedActivities > 0);
       const studentsWithoutProgress = transformedStudents.filter(s => s.completedActivities === 0);
-      console.log(`≡ƒôè Students with progress: ${studentsWithProgress.length}, without progress: ${studentsWithoutProgress.length}`);
+      console.log(`📊 Students with progress: ${studentsWithProgress.length}, without progress: ${studentsWithoutProgress.length}`);
       
       // Debug gender counting to match the UI counters
       const maleCount = transformedStudents.filter(s => s.gender && s.gender.toLowerCase() === 'male').length;
       const femaleCount = transformedStudents.filter(s => s.gender && s.gender.toLowerCase() === 'female').length;
-      console.log(`≡ƒôè GENDER COUNTS: Male: ${maleCount}, Female: ${femaleCount}`);
+      console.log(`📊 GENDER COUNTS: Male: ${maleCount}, Female: ${femaleCount}`);
       
       setStudents(transformedStudents);
     } catch (err) {
@@ -267,7 +267,7 @@ const Students = () => {
         accuracy: 92,
         total: 8,
         change: '+5%',
-        icon: '≡ƒöó',
+        icon: '🔢',
         color: 'bg-blue-100'
       },
       {
@@ -275,7 +275,7 @@ const Students = () => {
         accuracy: 88,
         total: 6,
         change: '+3%',
-        icon: '≡ƒôÜ',
+        icon: '📚',
         color: 'bg-green-100'
       },
       {
@@ -283,7 +283,7 @@ const Students = () => {
         accuracy: 95,
         total: 5,
         change: '+2%',
-        icon: '≡ƒÄ¿',
+        icon: '🎨',
         color: 'bg-purple-100'
       },
       {
@@ -291,7 +291,7 @@ const Students = () => {
         accuracy: 81,
         total: 4,
         change: '+7%',
-        icon: '≡ƒæÑ',
+        icon: '👨',
         color: 'bg-yellow-100'
       }
     ],
@@ -302,7 +302,7 @@ const Students = () => {
         score: 95,
         time: '2 hours ago',
         duration: '3 min',
-        icon: '≡ƒöó',
+        icon: '🔢',
         bgColor: 'bg-blue-100'
       },
       {
@@ -311,7 +311,7 @@ const Students = () => {
         score: 88,
         time: '4 hours ago',
         duration: '2 min',
-        icon: '≡ƒÄ¿',
+        icon: '🎨',
         bgColor: 'bg-purple-100'
       },
       {
@@ -320,7 +320,7 @@ const Students = () => {
         score: 92,
         time: '6 hours ago',
         duration: '4 min',
-        icon: '≡ƒôÜ',
+        icon: '📚',
         bgColor: 'bg-green-100'
       },
       {
@@ -329,7 +329,7 @@ const Students = () => {
         score: 87,
         time: '8 hours ago',
         duration: '5 min',
-        icon: '≡ƒö║',
+        icon: '🔺',
         bgColor: 'bg-orange-100'
       }
     ],
@@ -363,28 +363,28 @@ const Students = () => {
       {
         name: 'First Steps',
         description: 'Complete first activity',
-        icon: '≡ƒæ╢',
+        icon: '👶',
         status: 'EARNED',
         bgColor: 'bg-yellow-100'
       },
       {
         name: 'Number Master',
         description: 'Excel at counting',
-        icon: '≡ƒöó',
+        icon: '🔢',
         status: 'EARNED',
         bgColor: 'bg-blue-100'
       },
       {
         name: 'Color Expert',
         description: 'Master color recognition',
-        icon: '≡ƒÄ¿',
+        icon: '🎨',
         status: 'EARNED',
         bgColor: 'bg-purple-100'
       },
       {
         name: 'Speed Learner',
         description: 'Complete 5 activities in one day',
-        icon: 'ΓÜí',
+        icon: '⚡',
         status: 'IN_PROGRESS',
         progress: 60,
         bgColor: 'bg-orange-100'
@@ -392,7 +392,7 @@ const Students = () => {
       {
         name: 'Reading Star',
         description: 'Complete 10 reading activities',
-        icon: 'Γ¡É',
+        icon: '⭐',
         status: 'LOCKED',
         progress: 30,
         bgColor: 'bg-green-100'
@@ -400,7 +400,7 @@ const Students = () => {
       {
         name: 'Consistency King',
         description: 'Login 7 days in a row',
-        icon: '≡ƒææ',
+        icon: '👑',
         status: 'LOCKED',
         progress: 15,
         bgColor: 'bg-red-100'
@@ -415,7 +415,7 @@ const Students = () => {
     
     // Debug male students specifically
     if (genderFilter === 'male') {
-      console.log(`≡ƒöì Filtering student: ${student.name}`);
+      console.log(`🔍 Filtering student: ${student.name}`);
       console.log(`  - Gender: "${student.gender}" (lowercase: "${student.gender.toLowerCase()}")`);
       console.log(`  - Matches gender filter: ${matchesGender}`);
       console.log(`  - Final result: ${matchesSearch && matchesStatus && matchesGender}`);
@@ -426,7 +426,7 @@ const Students = () => {
   
   // Debug final filtered results
   if (genderFilter === 'male') {
-    console.log(`≡ƒôè MALE FILTER RESULTS: Found ${filteredStudents.length} male students:`);
+    console.log(`📊 MALE FILTER RESULTS: Found ${filteredStudents.length} male students:`);
     filteredStudents.forEach(student => {
       console.log(`  - ${student.name} (Gender: "${student.gender}")`);
     });
@@ -632,7 +632,7 @@ const Students = () => {
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <div className="text-6xl mb-4">ΓÅ│</div>
+              <div className="text-6xl mb-4">⏳</div>
               <h3 className="text-xl font-semibold text-gray-600 mb-2">Loading students...</h3>
               <p className="text-gray-500">Please wait while we fetch student data</p>
             </div>
@@ -690,7 +690,7 @@ const Students = () => {
                 </div>
 
                 <div className="border-t border-gray-100 pt-4">
-                  <p className="text-xs text-gray-500 mb-3">≡ƒôì {student.address}</p>
+                  <p className="text-xs text-gray-500 mb-3">📍 {student.address}</p>
                   <div className="flex space-x-2">
                     <button
                       onClick={() => viewStudentProgress(student)}
@@ -711,7 +711,7 @@ const Students = () => {
 
         {!loading && filteredStudents.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">≡ƒæÑ</div>
+            <div className="text-6xl mb-4">👨</div>
             <h3 className="text-xl font-semibold text-gray-600 mb-2">No students found</h3>
             <p className="text-gray-500">Try adjusting your search or filter criteria</p>
           </div>
@@ -806,7 +806,7 @@ const Students = () => {
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-gray-800">Accuracy by Category</h3>
                 <div className="bg-purple-100 p-2 rounded-lg">
-                  <span className="text-2xl">≡ƒÄ»</span>
+                  <span className="text-2xl">🎯</span>
                 </div>
               </div>
               <div className="space-y-4">
@@ -835,7 +835,7 @@ const Students = () => {
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-gray-800">Recent Activities</h3>
                 <div className="bg-green-100 p-2 rounded-lg">
-                  <span className="text-2xl">≡ƒôÜ</span>
+                  <span className="text-2xl">📚</span>
                 </div>
               </div>
               <div className="space-y-4">
@@ -868,7 +868,7 @@ const Students = () => {
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-gray-800">Difficulty Progression</h3>
                 <div className="bg-orange-100 p-2 rounded-lg">
-                  <span className="text-2xl">≡ƒôê</span>
+                  <span className="text-2xl">📈</span>
                 </div>
               </div>
               <div className="space-y-4">
@@ -910,7 +910,7 @@ const Students = () => {
                     {badge.status === 'EARNED' && (
                       <div className="absolute top-1 right-1">
                         <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                          Γ£ô
+                          ✅
                         </span>
                       </div>
                     )}
@@ -940,7 +940,7 @@ const Students = () => {
                     {/* Sparkle effect for earned badges */}
                     {badge.status === 'EARNED' && (
                       <div className="absolute bottom-1 right-1">
-                        <span className="text-yellow-400 text-sm animate-pulse-gentle">Γ£¿</span>
+                        <span className="text-yellow-400 text-sm animate-pulse-gentle">✨</span>
                       </div>
                     )}
                   </div>
