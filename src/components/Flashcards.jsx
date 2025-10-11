@@ -1385,28 +1385,28 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 items: [
                   { id: 1, name: "Burger", image: "🍔", price: 70, category: "food", affordable: true },
                   { id: 2, name: "Car", image: "🚗", price: 450000, category: "vehicle", affordable: false },
-                  { id: 3, name: "Laptop", image: "💻", price: 25000, category: "electronics", affordable: false },
-                  { id: 4, name: "Iced Coffee", image: "🧊☕", price: 120, category: "drink", affordable: true }
+                  { id: 3, name: "Phone", image: "📱", price: 25000, category: "electronics", affordable: false },
+                  { id: 4, name: "Pancake", image: "/src/assets/pancakes.jpg", price: 150, category: "food", affordable: true, isImagePath: true }
                 ]
               },
               {
                 roundId: 2,
                 budget: 2500,
                 items: [
-                  { id: 5, name: "School Bag", image: "🎒", price: 850, category: "school", affordable: true },
+                  { id: 5, name: "Book", image: "📚", price: 850, category: "school", affordable: true },
                   { id: 6, name: "House", image: "🏠", price: 2500000, category: "property", affordable: false },
                   { id: 7, name: "Bicycle", image: "🚲", price: 3500, category: "vehicle", affordable: false },
-                  { id: 8, name: "Pizza", image: "🍕", price: 280, category: "food", affordable: true }
+                  { id: 8, name: "empanada", image: "🥟", price: 280, category: "food", affordable: true }
                 ]
               },
               {
                 roundId: 3,
                 budget: 1200,
                 items: [
-                  { id: 9, name: "Video Game", image: "🎮", price: 2800, category: "entertainment", affordable: false },
-                  { id: 10, name: "Ice Cream", image: "🍦", price: 45, category: "dessert", affordable: true },
-                  { id: 11, name: "Smartphone", image: "📱", price: 25000, category: "electronics", affordable: false },
-                  { id: 12, name: "Book", image: "📚", price: 350, category: "education", affordable: true }
+                  { id: 9, name: "Ipad", image: "📱", price: 2800, category: "entertainment", affordable: false },
+                  { id: 10, name: "Ice Cream", image: "🍦", price: 30, category: "dessert", affordable: true },
+                  { id: 11, name: "Pancake", image: "/src/assets/pancakes.jpg", price: 15, category: "food", affordable: false, isImagePath: true },
+                  { id: 12, name: "Pencil", image: "✏️", price: 10, category: "education", affordable: true }
                 ]
               }
             ],
@@ -4551,7 +4551,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                       >
                         {/* Item Display */}
                         <div className="text-center">
-                          <div className="mb-1" style={{ fontSize: '55px' }}>{item.image}</div>
+                          <div className="mb-1" style={{ fontSize: '55px' }}>
+                            {item.isImagePath ? (
+                              <img src={item.image} alt={item.name} className="w-24 h-24 object-cover mx-auto rounded-lg" />
+                            ) : (
+                              item.image
+                            )}
+                          </div>
                           <h4 className="font-bold text-gray-800 mb-1 leading-tight" style={{ fontSize: '23px' }}>{item.name}</h4>
                           <div className="font-bold mb-2 p-1 rounded text-green-600 bg-blue-100" style={{ fontSize: '18px' }}>
                             ₱{item.price.toLocaleString()}
