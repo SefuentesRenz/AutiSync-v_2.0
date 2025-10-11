@@ -1260,7 +1260,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🚶‍♂️",
             backgroundImage: "🛣️",
             characterEmoji: "😊",
-            trafficLight: "🟢",
+            trafficLight: "/src/assets/GoSign.png",
+            isTrafficLightImage: true,
             lightStatus: "walk",
             safetyLevel: "safe",
             answerChoices: ["CROSS", "WAIT"],
@@ -1308,7 +1309,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🛣️",
             backgroundImage: "🏙️",
             characterEmoji: "😄",
-            trafficLight: "🟢",
+            trafficLight: "/src/assets/GoSign.png",
+            isTrafficLightImage: true,
             lightStatus: "clear",
             safetyLevel: "safe",
             answerChoices: ["CROSS", "WAIT"],
@@ -1356,7 +1358,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🚶‍♂️",
             backgroundImage: "🛣️",
             characterEmoji: "😊",
-            trafficLight: "🟢",
+            trafficLight: "/src/assets/GoSign.png",
+            isTrafficLightImage: true,
             lightStatus: "walk",
             safetyLevel: "safe",
             answerChoices: ["CROSS", "WAIT"],
@@ -3821,12 +3824,20 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                       <div className="flex flex-col items-center mx-4">
                         <div className="bg-gray-800 rounded-xl p-6 shadow-2xl border-4 border-gray-600 relative">
                           <div className={`text-8xl transition-all duration-500 ${
-                            (streetScenario || currentScenario)?.trafficLight === '🟢' ? 'animate-pulse-gentle drop-shadow-lg scale-110' :
+                            (streetScenario || currentScenario)?.trafficLight === '🟢' || (streetScenario || currentScenario)?.isTrafficLightImage ? 'animate-pulse-gentle drop-shadow-lg scale-110' :
                             (streetScenario || currentScenario)?.trafficLight === '🔴' ? 'animate-pulse drop-shadow-lg scale-110' :
                             (streetScenario || currentScenario)?.trafficLight === '🟡' ? 'animate-bounce-gentle drop-shadow-lg' :
                             'animate-pulse-gentle'
                           }`}>
-                            {(streetScenario || currentScenario)?.trafficLight || '🚦'}
+                            {(streetScenario || currentScenario)?.isTrafficLightImage ? (
+                              <img 
+                                src={(streetScenario || currentScenario)?.trafficLight} 
+                                alt="Go Sign" 
+                                className="w-32 h-32 object-contain mx-auto"
+                              />
+                            ) : (
+                              (streetScenario || currentScenario)?.trafficLight || '🚦'
+                            )}
                           </div>
                           {/* Light status indicator */}
                           <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2">
@@ -5843,7 +5854,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           {/* Correct Overlay for Puzzle Game */}
           {showCorrect && (
             <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
-              <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
+              <img src={currentCorrectImage} alt="Correct" className="w-100 h-100 object-contain" />
             </div>
           )}
 
