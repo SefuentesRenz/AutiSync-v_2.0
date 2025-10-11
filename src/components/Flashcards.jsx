@@ -3590,11 +3590,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
           {/* Question with improved typography */}
           {!isCashierGame && !isHygieneGame && !isStreetGame && !isGreetingsGame && !isMoneyGame && !isMatchingGame && !isPuzzleGame && !isChoreGame && !isMemoryGame && (
-            <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-2xl p-6 mb-6 border-2 border-purple-200/30 shadow-lg">
+            // <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-2xl p-6 mb-6 border-2 border-purple-200/30 shadow-lg">
               <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 leading-relaxed">
                 {questions[currentQuestionIndex].questionText}
               </h2>
-            </div>
+            // </div>
           )}
 
           {/* Image/Video with modern container */}
@@ -5388,8 +5388,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         {showWrong && (
           <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
             <audio ref={wrongAudioRef} src={wrongSound} />
-            <div className="text-[8rem]">😞</div>
-            <div className="text-red-500 text-4xl font-bold mt-2">WRONG!</div>
+            <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
           </div>
         )}
       </div>
@@ -5844,8 +5843,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           {/* Wrong Overlay for Puzzle Game */}
           {showWrong && (
             <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
-              <div className="text-[8rem]">😞</div>
-              <div className="text-red-500 text-4xl font-bold mt-2">WRONG!</div>
+              <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
             </div>
           )}
         </div>
