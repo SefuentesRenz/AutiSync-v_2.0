@@ -794,7 +794,7 @@ const HomePage = () => {
               <h2 className="text-3xl font-bold text-gray-800 mb-2">
                 You're feeling <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">{selectedEmotion}</span>! 
               </h2>
-              <p className="text-gray-600 mb-6 text-lg">Why?</p>
+              {/* <p className="text-gray-600 mb-6 text-lg">Why?</p> */}
 
               {/* Note Section - Optional for all emotions */}
               <div className="space-y-2 mb-6">
@@ -802,8 +802,8 @@ const HomePage = () => {
                 <textarea
                   value={emotionNote}
                   onChange={(e) => setEmotionNote(e.target.value)}
-                  placeholder="Share your thoughts..."
-                  className="w-full bg-gray-200 h-22 px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 resize-none text-gray-700 placeholder-gray-400"
+                  placeholder="Why?"
+                  className="w-full mt-7 bg-gray-200 h-22 px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all duration-200 resize-none text-gray-700 placeholder-gray-400"
                   maxLength={200}
                  
                 />

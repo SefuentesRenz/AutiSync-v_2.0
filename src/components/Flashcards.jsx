@@ -3553,16 +3553,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
   return (
   <div className="relative">
-  {/* Debug Test Button */}
-  <div className="mb-4 text-center">
-    <button
-      onClick={testActivityCompletion}
-      className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold"
-    >
-      🧪 Test Activity Completion
-    </button>
-  </div>
-  
+ 
   {/* Flashcard Container */}
   <div className="w-270 bg-white/90 backdrop-blur-xl rounded-3xl mx-auto shadow-2xl border border-white/20 p-6 text-center animate-fade-in-scale">
         {/* Decorative background elements */}
