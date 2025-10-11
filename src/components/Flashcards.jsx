@@ -67,6 +67,14 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const [showBadgePreview, setShowBadgePreview] = useState(false);
   const [previewBadge, setPreviewBadge] = useState(null);
   
+  // Correct feedback images - shuffle randomly for each correct answer
+  const correctImages = [
+    "/src/assets/GreatJob.png",
+    "/src/assets/NiceWork.png",
+    "/src/assets/WellDone.png"
+  ];
+  const [currentCorrectImage, setCurrentCorrectImage] = useState(correctImages[0]);
+  
   // Cashier game specific state
   const [cashierScore, setCashierScore] = useState(0);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -250,6 +258,10 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     if (showCorrect && correctAudioRef.current) {
       correctAudioRef.current.currentTime = 0;
       correctAudioRef.current.play();
+      
+      // Shuffle and select a random correct image
+      const randomIndex = Math.floor(Math.random() * correctImages.length);
+      setCurrentCorrectImage(correctImages[randomIndex]);
     }
   }, [showCorrect]);
 
@@ -5376,8 +5388,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         {showCorrect && (
           <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
             <audio ref={correctAudioRef} src={correctSound} />
-            <div className="text-[8rem]">😄</div>
-            <div className="text-green-500 text-4xl font-bold mt-2">CORRECT!</div>
+            <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
           </div>
         )}
 
@@ -5832,8 +5843,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           {/* Correct Overlay for Puzzle Game */}
           {showCorrect && (
             <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
-              <div className="text-[8rem]">😄</div>
-              <div className="text-green-500 text-4xl font-bold mt-2">CORRECT!</div>
+              <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
             </div>
           )}
 
@@ -5971,19 +5981,14 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                         <div className="absolute top-8 left-16 text-2xl animate-pulse-gentle">💫</div>
                       </div>
                       
-                      <div className="bg-gradient-to-r from-amber-50 to-purple-50 rounded-2xl p-6 mb-6 border-2 border-amber-200/50">
+                      <div className="bg-gradient-to-r from-amber-50 to-purple-50 rounded-2xl p-2 mb-6 border-2 border-amber-200/50">
                         <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-purple-600 to-blue-600 mb-3 animate-text-shimmer">
                           {achievement.title}
                         </h2>
-                        <p className="text-lg text-gray-700 font-semibold mb-4">
+                        <p className="text-lg text-gray-700 font-semibold mb-2">
                           {achievement.message}
                         </p>
-                        <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-purple-100">
-                          <p className="text-sm text-gray-600">
-                            You've unlocked <span className="font-bold text-purple-600">{earnedBadges.length}</span> amazing badge{earnedBadges.length > 1 ? 's' : ''} 
-                            and earned <span className="font-bold text-amber-600">{earnedBadges.reduce((sum, badge) => sum + (badge.points || 0), 0)}</span> points!
-                          </p>
-                        </div>
+                        
                       </div>
                     </>
                   );
@@ -6083,26 +6088,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 </button>
               </div>
               
-              {/* Badge Statistics Summary */}
-              <div className="mt-6 bg-gradient-to-r from-gray-50 to-purple-50 rounded-xl p-4 border border-gray-200/50">
-                <div className="flex items-center justify-center space-x-6 text-sm">
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">🏆</div>
-                    <div className="font-bold text-gray-700">{earnedBadges.reduce((sum, badge) => sum + (badge.points || 0), 0)}</div>
-                    <div className="text-xs text-gray-500">Points</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">🎯</div>
-                    <div className="font-bold text-gray-700">{((score / total) * 100).toFixed(0)}%</div>
-                    <div className="text-xs text-gray-500">Score</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl mb-1">⭐</div>
-                    <div className="font-bold text-gray-700">{earnedBadges.length}</div>
-                    <div className="text-xs text-gray-500">Badge{earnedBadges.length !== 1 ? 's' : ''}</div>
-                  </div>
-                </div>
-              </div>
+             
+              
             </div>
           </div>
         </div>
