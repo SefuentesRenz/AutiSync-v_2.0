@@ -220,36 +220,36 @@ export function getCategoryIcon(category) {
 
 export function getDifficultyIcon(difficulty) {
   const icons = {
-    'Easy': '🌱',
-    'Medium': '🔥',
-    'Hard': '💎'
+    'Beginner': '🌱',
+    'Intermediate': '🔥',
+    'Proficient': '💎'
   };
   return icons[difficulty] || '🌱';
 }
 
 export function getDifficultyGradient(difficulty) {
   const gradients = {
-    'Easy': 'from-green-300 via-green-400 to-green-500',
-    'Medium': 'from-orange-400 via-orange-500 to-red-500',
-    'Hard': 'from-purple-500 via-indigo-500 to-blue-600'
+    'Beginner': 'from-green-300 via-green-400 to-green-500',
+    'Intermediate': 'from-orange-400 via-orange-500 to-red-500',
+    'Proficient': 'from-purple-500 via-indigo-500 to-blue-600'
   };
   return gradients[difficulty] || 'from-green-300 via-green-400 to-green-500';
 }
 
 export function getDifficultyRarity(difficulty) {
   const rarities = {
-    'Easy': BADGE_RARITIES.COMMON,
-    'Medium': BADGE_RARITIES.RARE,
-    'Hard': BADGE_RARITIES.EPIC
+    'Beginner': BADGE_RARITIES.COMMON,
+    'Intermediate': BADGE_RARITIES.RARE,
+    'Proficient': BADGE_RARITIES.EPIC
   };
   return rarities[difficulty] || BADGE_RARITIES.COMMON;
 }
 
 export function getDifficultyPoints(difficulty) {
   const points = {
-    'Easy': 15,
-    'Medium': 25,
-    'Hard': 50
+    'Beginner': 15,
+    'Intermediate': 25,
+    'Proficient': 50
   };
   return points[difficulty] || 15;
 }

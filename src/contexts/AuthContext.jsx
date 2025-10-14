@@ -36,10 +36,24 @@ export const AuthProvider = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+        throw error;
+      }
+      return { error: null };
+    } catch (error) {
+      console.error('SignOut error:', error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     loading,
-    signOut: () => supabase.auth.signOut(),
+    signOut,
   };
 
   return (

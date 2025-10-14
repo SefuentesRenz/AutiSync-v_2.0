@@ -54,13 +54,18 @@ const Tracking = () => {
 
   // Calculate metrics from real data
   const calculateMetrics = () => {
-    if (!progressData || !activities.length || !students.length) {
-      // Return default metrics if no data
+    // Always calculate activity count if we have activities data
+    const hasActivities = activities && activities.length > 0;
+    const uniqueActivityTitles = hasActivities ? new Set(activities.map(activity => activity.title)) : new Set();
+    const totalActivities = uniqueActivityTitles.size;
+    
+    if (!progressData || !students.length) {
+      // Return partial metrics if no progress/student data, but still show activities count
       return [
         {
           title: 'TOTAL ACTIVITIES',
-          value: 0,
-          change: 'Loading...',
+          value: totalActivities,
+          change: hasActivities ? 'Unique activities' : 'Loading...',
           icon: <AcademicCapIcon className="w-8 h-8 text-blue-600" />,
           bgColor: 'bg-blue-50',
           textColor: 'text-blue-600'
@@ -100,8 +105,14 @@ const Tracking = () => {
       ];
     }
 
-    const totalActivities = activities.length;
     const activeStudents = students.length;
+    
+    // Debug logging
+    console.log('📊 Dashboard Debug:');
+    console.log('Total activities records:', activities.length);
+    console.log('Unique activity titles:', totalActivities);
+    console.log('Sample activities:', activities.slice(0, 3).map(a => ({ id: a.id, title: a.title })));
+    console.log('Unique titles list:', Array.from(uniqueActivityTitles).slice(0, 10));
     
     let totalSessions = 0;
     let totalScore = 0;
@@ -126,7 +137,7 @@ const Tracking = () => {
       {
         title: 'TOTAL ACTIVITIES',
         value: totalActivities,
-        change: 'System total',
+        change: 'Unique activities',
         icon: <AcademicCapIcon className="w-8 h-8 text-blue-600" />,
         bgColor: 'bg-blue-50',
         textColor: 'text-blue-600'
@@ -226,13 +237,13 @@ const Tracking = () => {
     if (!progressData || !activities.length) return [];
     
     const difficultyStats = {
-      'Easy': { total: 0, completed: 0 },
-      'Medium': { total: 0, completed: 0 },
-      'Hard': { total: 0, completed: 0 }
+      'Beginner': { total: 0, completed: 0 },
+      'Intermediate': { total: 0, completed: 0 },
+      'Proficient': { total: 0, completed: 0 }
     };
 
     activities.forEach(activity => {
-      const difficulty = activity.difficulty || 'Easy';
+      const difficulty = activity.difficulty || 'Beginner';
       if (difficultyStats[difficulty]) {
         difficultyStats[difficulty].total++;
       }
@@ -241,7 +252,7 @@ const Tracking = () => {
     progressData.students.forEach(student => {
       if (student.activities) {
         student.activities.forEach(activity => {
-          const difficulty = activity.difficultyId || 'Easy';
+            const difficulty = activity.difficultyId || 'Beginner';
           if (difficultyStats[difficulty]) {
             difficultyStats[difficulty].completed++;
           }
@@ -253,9 +264,9 @@ const Tracking = () => {
       level,
       progress: stats.total > 0 ? Math.round((stats.completed / (stats.total * students.length)) * 100) : 0,
       completed: `${stats.completed}/${stats.total * students.length}`,
-      icon: level === 'Easy' ? '🌱' : level === 'Medium' ? '🔥' : '💪',
-      color: level === 'Easy' ? 'bg-green-500' : level === 'Medium' ? 'bg-orange-500' : 'bg-red-500',
-      bgColor: level === 'Easy' ? 'bg-green-50' : level === 'Medium' ? 'bg-orange-50' : 'bg-red-50'
+      icon: level === 'Beginner' ? '🌱' : level === 'Intermediate' ? '🔥' : '💪',
+      color: level === 'Beginner' ? 'bg-green-500' : level === 'Intermediate' ? 'bg-orange-500' : 'bg-red-500',
+      bgColor: level === 'Beginner' ? 'bg-green-50' : level === 'Intermediate' ? 'bg-orange-50' : 'bg-red-50'
     }));
   };
 
@@ -274,10 +285,10 @@ const Tracking = () => {
             user: student.studentName || 'Unknown Student',
             category: activity.categoryId || 'Other',
             time: new Date(activity.dateCompleted).toLocaleString(),
-            difficulty: activity.difficultyId || 'Easy',
+            difficulty: activity.difficultyId || 'Beginner',
             score: activity.score ? `${activity.score}%` : 'No score',
-            difficultyColor: activity.difficultyId === 'Easy' ? 'bg-green-100 text-green-800' :
-                            activity.difficultyId === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+            difficultyColor: activity.difficultyId === 'Beginner' ? 'bg-green-100 text-green-800' :
+                            activity.difficultyId === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :
                             'bg-red-100 text-red-800',
             avatar: (student.student?.user_profiles?.username || 'U').substring(0, 2).toUpperCase()
           });

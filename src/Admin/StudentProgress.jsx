@@ -341,7 +341,7 @@ const StudentProgress = () => {
       title: activity,
       category: i % 2 === 0 ? 'Academic' : 'Daily Life',
       time: `${Math.floor(Math.random() * 12) + 1} hours ago`,
-      difficulty: ['Easy', 'Medium', 'Hard'][Math.floor(Math.random() * 3)],
+      difficulty: ['Beginner', 'Intermediate', 'Proficient'][Math.floor(Math.random() * 3)],
       score: `${Math.max(60, student.averageScore - Math.floor(Math.random() * 20) + Math.floor(Math.random() * 20))}%`,
       difficultyColor: ['bg-green-100 text-green-800', 'bg-yellow-100 text-yellow-800', 'bg-red-100 text-red-800'][Math.floor(Math.random() * 3)],
       duration: `${Math.floor(Math.random() * 8) + 2} min`
@@ -360,7 +360,7 @@ const StudentProgress = () => {
 
     return [
       { 
-        level: 'Easy', 
+        level: 'Beginner', 
         progress: Math.floor((easyCompleted / 20) * 100), 
         completed: `${easyCompleted}/20`, 
         icon: '≡ƒî▒', 
@@ -368,7 +368,7 @@ const StudentProgress = () => {
         bgColor: 'bg-green-50' 
       },
       { 
-        level: 'Medium', 
+        level: 'Intermediate', 
         progress: Math.floor((mediumCompleted / 15) * 100), 
         completed: `${mediumCompleted}/15`, 
         icon: '≡ƒöÑ', 
@@ -376,7 +376,7 @@ const StudentProgress = () => {
         bgColor: 'bg-orange-50' 
       },
       { 
-        level: 'Hard', 
+        level: 'Proficient', 
         progress: Math.floor((hardCompleted / 10) * 100), 
         completed: `${hardCompleted}/10`, 
         icon: '≡ƒÆÄ', 
@@ -495,10 +495,10 @@ const StudentProgress = () => {
       user: studentName,
       category: progress.categoryId || progress.category || 'Other',
       time: new Date(progress.dateCompleted || progress.date_completed).toLocaleString(),
-      difficulty: progress.difficultyId || progress.difficulty || 'Easy',
+      difficulty: progress.difficultyId || progress.difficulty || 'Beginner',
       score: progress.score ? `${progress.score}%` : 'No score',
-      difficultyColor: (progress.difficultyId || progress.difficulty) === 'Easy' ? 'bg-green-100 text-green-800' :
-                      (progress.difficultyId || progress.difficulty) === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+      difficultyColor: (progress.difficultyId || progress.difficulty) === 'Beginner' ? 'bg-green-100 text-green-800' :
+                      (progress.difficultyId || progress.difficulty) === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-red-100 text-red-800',
       avatar: studentName ? studentName.split(' ').map(n => n[0]).join('') : 'S'
     };

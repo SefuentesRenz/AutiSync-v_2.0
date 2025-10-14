@@ -9,21 +9,22 @@ import { supabase } from '../lib/supabase';
 const Emotions = [
   { name: "Happy", image: "src/assets/happy.png", color: "from-yellow-400 to-orange-500", bgColor: "bg-yellow-50" },
   { name: "Sad", image: "src/assets/sad.png", color: "from-blue-400 to-blue-600", bgColor: "bg-blue-50" },
-  { name: "Not Fine", image: "src/assets/upset.png", color: "from-red-400 to-red-600", bgColor: "bg-red-50" },
+  { name: "Upset", image: "src/assets/Upset.jpg", color: "from-red-400 to-red-600", bgColor: "bg-red-50" },
   { name: "Excited", image: "src/assets/excited.png", color: "from-purple-400 to-pink-500", bgColor: "bg-purple-50" },
-  { name: "Calm", image: "src/assets/calm.png", color: "from-green-400 to-teal-500", bgColor: "bg-green-50" },
+  { name: "Tired", image: "src/assets/tired.jpg", color: "from-green-400 to-teal-500", bgColor: "bg-green-50" },
 ];
 
 const HomePage = () => {
   const [selectedEmotion, setSelectedEmotion] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [emotionNote, setEmotionNote] = useState("");
   const [expressions, setExpressions] = useState([
     { emotion: "Happy", image: "src/assets/happy.png", level: 2, time: "2 hours ago", userName: "Emma" },
-    { emotion: "Calm", image: "src/assets/calm.png", level: 5, time: "5 hours ago", userName: "Alex" },
+    { emotion: "Tired", image: "src/assets/tired.jpg", level: 5, time: "5 hours ago", userName: "Alex" },
     { emotion: "Excited",  image: "src/assets/excited.png", level: 4, time: "Yesterday", userName: "Sam" },
-    { emotion: "Calm", image: "src/assets/calm.png", level: 2, time: "1 hour ago", userName: "Jordan" },
+    { emotion: "Tired", image: "src/assets/tired.jpg", level: 2, time: "1 hour ago", userName: "Jordan" },
     { emotion: "Sad",  image: "src/assets/sad.png", level: 3, time: "2 hours ago", userName: "Riley" },
     { emotion: "Excited", image: "src/assets/excited.png", level: 1, time: "Yesterday", userName: "Casey" },
   ]);
@@ -151,6 +152,16 @@ const HomePage = () => {
     if (user) {
       fetchUserProfile();
       fetchExpressions();
+      
+      // Set up auto-refresh for expressions every hour to maintain 24h filter
+      const expressionRefreshInterval = setInterval(() => {
+        fetchExpressions();
+      }, 60 * 60 * 1000); // Refresh every hour
+      
+      // Cleanup interval on component unmount
+      return () => {
+        clearInterval(expressionRefreshInterval);
+      };
     }
   }, [user]);
 
@@ -176,9 +187,15 @@ const HomePage = () => {
 
   const fetchExpressions = async () => {
     try {
+      setIsRefreshing(true);
       console.log('Fetching expressions...');
       
-      // Fetch all expressions with student and profile data using joins
+      // Calculate 24 hours ago timestamp for student homepage filter
+      const twentyFourHoursAgo = new Date();
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+      const twentyFourHoursAgoISO = twentyFourHoursAgo.toISOString();
+      
+      // Fetch expressions from last 24 hours only for student homepage
       const { data, error } = await supabase
         .from('Expressions')
         .select(`
@@ -193,32 +210,47 @@ const HomePage = () => {
             )
           )
         `)
+        .gte('created_at', twentyFourHoursAgoISO) // Only last 24 hours
         .order('created_at', { ascending: false })
         .limit(50);
 
-      console.log('Expressions query result:', { data, error, count: data?.length });
+      console.log('Expressions query result (24h filter):', { data, error, count: data?.length, since: twentyFourHoursAgoISO });
 
       if (error) {
         console.error('Error fetching expressions:', error);
-        // Try a simpler query as fallback
+        // Try a simpler query as fallback with 24-hour filter
         const { data: simpleData, error: simpleError } = await supabase
           .from('Expressions')
           .select('*')
+          .gte('created_at', twentyFourHoursAgoISO) // Only last 24 hours
           .order('created_at', { ascending: false })
           .limit(50);
         
-        console.log('Fallback simple query:', { simpleData, simpleError });
+        console.log('Fallback simple query (24h filter):', { simpleData, simpleError });
         
         if (!simpleError && simpleData) {
           const simpleExpressions = simpleData.map(expr => {
             // Map database emotion to display emotion
-            const displayEmotion = expr.emotion === 'angry' ? 'Not Fine' : 
+            const displayEmotion = expr.emotion === 'angry' ? 'Upset' : 
+                                  expr.emotion === 'calm' ? 'Tired' :
                                   expr.emotion?.charAt(0).toUpperCase() + expr.emotion?.slice(1);
-            const imageFile = expr.emotion === 'angry' ? 'upset' : expr.emotion;
+            
+            // Map database emotion to correct image file
+            const getImageFile = (emotion) => {
+              switch(emotion) {
+                case 'angry': return 'Upset.jpg';
+                case 'calm': return 'tired.jpg';
+                case 'happy': return 'happy.png';
+                case 'sad': return 'sad.png';
+                case 'excited': return 'excited.png';
+                default: return `${emotion}.png`;
+              }
+            };
+            const imageFile = getImageFile(expr.emotion);
             
             return {
               emotion: displayEmotion || 'Unknown',
-              image: `src/assets/${imageFile || 'neutral'}.png`,
+              image: `src/assets/${imageFile || 'neutral.png'}`,
               level: expr.intensity || 3,
               time: getTimeAgo(new Date(expr.created_at)),
               userName: 'Student',
@@ -239,13 +271,26 @@ const HomePage = () => {
           ) : 'Student';
           
           // Map database emotion to display emotion
-          const displayEmotion = expr.emotion === 'angry' ? 'Not Fine' : 
+          const displayEmotion = expr.emotion === 'angry' ? 'Upset' : 
+                                expr.emotion === 'calm' ? 'Tired' :
                                 expr.emotion?.charAt(0).toUpperCase() + expr.emotion?.slice(1);
-          const imageFile = expr.emotion === 'angry' ? 'upset' : expr.emotion;
+          
+          // Map database emotion to correct image file
+          const getImageFile = (emotion) => {
+            switch(emotion) {
+              case 'angry': return 'Upset.jpg';
+              case 'calm': return 'tired.jpg';
+              case 'happy': return 'happy.png';
+              case 'sad': return 'sad.png';
+              case 'excited': return 'excited.png';
+              default: return `${emotion}.png`;
+            }
+          };
+          const imageFile = getImageFile(expr.emotion);
           
           return {
             emotion: displayEmotion || 'Unknown',
-            image: `src/assets/${imageFile || 'neutral'}.png`,
+            image: `src/assets/${imageFile || 'neutral.png'}`,
             level: expr.intensity || 3,
             time: timeAgo,
             userName: displayName,
@@ -264,6 +309,8 @@ const HomePage = () => {
     } catch (error) {
       console.error('Error in fetchExpressions:', error);
       setExpressions([]);
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -339,17 +386,17 @@ const HomePage = () => {
 
       const currentStudent = studentData || finalStudentData;
       
-      // Map "Not Fine" to "angry" for database constraint
+      // Map "Upset" to "angry" for database constraint
       const emotionMapping = {
         'happy': 'happy',
         'sad': 'sad',
-        'not fine': 'angry',
+        'upset': 'angry',
         'excited': 'excited',
-        'calm': 'calm'
+        'tired': 'calm'
       };
       
       const mappedEmotion = emotionMapping[selectedEmotion.toLowerCase()] || selectedEmotion.toLowerCase();
-      const isNegativeEmotion = (selectedEmotion.toLowerCase() === 'sad' || selectedEmotion.toLowerCase() === 'not fine');
+      const isNegativeEmotion = (selectedEmotion.toLowerCase() === 'sad' || selectedEmotion.toLowerCase() === 'upset');
       
       // Prepare expression data for submission
       const expressionData = {
@@ -599,9 +646,9 @@ const HomePage = () => {
                       <span className="text-2xl animate-bounce-gentle">
                         {emotion.name === 'Happy'}
                         {emotion.name === 'Sad'}
-                        {emotion.name === 'Not Fine'}
+                        {emotion.name === 'Upset'}
                         {emotion.name === 'Excited'}
-                        {emotion.name === 'Calm'}
+                        {emotion.name === 'Tired'}
                       </span>
                     </div>
                   </div>
@@ -615,8 +662,14 @@ const HomePage = () => {
                 <h2 className="text-3xl font-bold text-gray-800 mb-2 flex items-center justify-center">
                   <span className="text-4xl mr-3 animate-float">📖</span>
                   Community Expression Wall
+                  {isRefreshing && (
+                    <span className="ml-3 text-sm text-blue-500 animate-spin">🔄</span>
+                  )}
                 </h2>
-                
+                <p className="text-sm text-gray-500 flex items-center justify-center">
+                  <span className="text-lg mr-2">🕐</span>
+                  Showing expressions from the last 24 hours
+                </p>
               </div>
               
               {/* Scrollable container - shows 3 rows, scroll for more */}

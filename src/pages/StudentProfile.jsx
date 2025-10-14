@@ -24,6 +24,7 @@ const StudentProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [isEditing, setIsEditing] = useState(false);
 
@@ -437,11 +438,30 @@ const StudentProfile = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut();
-      navigate('/login');
+      setLoggingOut(true);
+      setError('');
+      console.log('Logging out user...');
+      
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Error signing out:', error);
+        setError('Failed to sign out. Please try again.');
+        setLoggingOut(false);
+        return;
+      }
+      
+      console.log('Sign out successful, navigating to login...');
+      // Clear any local storage or session data if needed
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Navigate to login page (using correct route)
+      navigate('/loginpage', { replace: true });
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Unexpected error during logout:', error);
       setError('Failed to sign out. Please try again.');
+      setLoggingOut(false);
     }
   };
 
@@ -514,9 +534,10 @@ const StudentProfile = () => {
               
               <button
                 onClick={handleLogout}
-                className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-2 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                disabled={loggingOut}
+                className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-2 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Log Out
+                {loggingOut ? "Logging Out..." : "Log Out"}
               </button>
               
               {isEditing && (

@@ -335,7 +335,7 @@ const Students = () => {
     ],
     difficultyProgression: [
       {
-        level: 'Easy',
+        level: 'Beginner',
         completed: 18,
         total: 20,
         avgScore: 94,
@@ -343,7 +343,7 @@ const Students = () => {
         color: 'bg-green-500'
       },
       {
-        level: 'Medium',
+        level: 'Intermediate',
         completed: 6,
         total: 15,
         avgScore: 87,

@@ -11,28 +11,28 @@ const SystemInformation = () => {
           name: "Numbers",
           icon: "🔢",
           description: "Learning numbers, counting, and basic math concepts",
-          difficulties: ["Easy", "Medium", "Hard"],
+          difficulties: ["Beginner", "Intermediate", "Proficient"],
           sampleActivities: ["Number Recognition", "Counting Objects", "Number Sequences"]
         },
         {
           name: "Identification",
           icon: "🔍", 
           description: "Recognizing and identifying objects, animals, and actions",
-          difficulties: ["Easy", "Medium", "Hard"],
+          difficulties: ["Beginner", "Intermediate", "Proficient"],
           sampleActivities: ["Animal Recognition", "Daily Activities", "Object Naming"]
         },
         {
           name: "Colors",
           icon: "🎨",
           description: "Learning color recognition and color-related concepts",
-          difficulties: ["Easy", "Medium", "Hard"],
+          difficulties: ["Beginner", "Intermediate", "Proficient"],
           sampleActivities: ["Color Matching", "Color Naming", "Color Sorting"]
         },
         {
           name: "Shapes",
           icon: "📐",
           description: "Understanding geometric shapes and their properties",
-          difficulties: ["Easy", "Medium", "Hard"],
+          difficulties: ["Beginner", "Intermediate", "Proficient"],
           sampleActivities: ["Shape Recognition", "Shape Matching", "Shape Drawing"]
         },
         {
@@ -227,8 +227,8 @@ const SystemInformation = () => {
                       <div className="flex flex-wrap gap-2">
                         {activity.difficulties.map((difficulty) => (
                           <span key={difficulty} className={`text-xs px-3 py-1 rounded-full font-medium ${
-                            difficulty === 'Easy' ? 'bg-green-100 text-green-800' :
-                            difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                            difficulty === 'Beginner' ? 'bg-green-100 text-green-800' :
+                            difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :
                             'bg-red-100 text-red-800'
                           }`}>
                             {difficulty}

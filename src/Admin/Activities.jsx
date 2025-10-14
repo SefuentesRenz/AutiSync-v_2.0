@@ -120,7 +120,7 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
             title: activity.title,
             description: activity.description,
             category: activity.Categories?.category_name || 'Unknown',
-            difficulty: activity.Difficulties?.difficulty || 'Medium',
+            difficulty: activity.Difficulties?.difficulty || 'Intermediate',
             duration: activity.duration || '10-15 min',
             participants: activity.participants || 0,
             icon: activity.icon || '📝',
@@ -184,7 +184,7 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
             title: activity.title,
             description: activity.description,
             category: 'Academic', // You might want to join with Categories table
-            difficulty: 'Medium', // You might want to join with Difficulties table
+            difficulty: 'Intermediate', // You might want to join with Difficulties table
             duration: activity.duration || '10-15 min',
             participants: activity.participants || 0,
             icon: activity.icon || '📝',
@@ -223,9 +223,9 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
 
   const getDifficultyColor = (difficulty) => {
     switch(difficulty) {
-      case 'Easy': return 'bg-green-100 text-green-800';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800';
-      case 'Hard': return 'bg-red-100 text-red-800';
+      case 'Beginner': return 'bg-green-100 text-green-800';
+      case 'Intermediate': return 'bg-yellow-100 text-yellow-800';
+      case 'Proficient': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -375,7 +375,7 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
                   ...(difficulties.map(diff => ({
                     value: diff.difficulty,
                     label: diff.difficulty,
-                    icon: diff.difficulty === 'Easy' ? '🟢' : diff.difficulty === 'Medium' ? '🟡' : '🔴'
+                    icon: diff.difficulty === 'Beginner' ? '🟢' : diff.difficulty === 'Intermediate' ? '🟡' : '🔴'
                   })))
                 ].map((difficulty) => (
                   <button
@@ -405,7 +405,7 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total Activities</p>
-                <p className="text-2xl font-bold text-blue-600">{activities.length}</p>
+                <p className="text-2xl font-bold text-blue-600">{new Set(activities.map(a => a.title)).size}</p>
               </div>
             </div>
           </div>
@@ -432,7 +432,16 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
               <div>
                 <p className="text-sm text-gray-600">Avg Score</p>
                 <p className="text-2xl font-bold text-yellow-600">
-                  {Math.round(activities.reduce((sum, act) => sum + (act.averageScore || 0), 0) / Math.max(activities.length, 1))}%
+                  {(() => {
+                    // Calculate average score for unique activities only
+                    const uniqueActivities = activities.reduce((acc, activity) => {
+                      if (!acc.find(a => a.title === activity.title)) {
+                        acc.push(activity);
+                      }
+                      return acc;
+                    }, []);
+                    return Math.round(uniqueActivities.reduce((sum, act) => sum + (act.averageScore || 0), 0) / Math.max(uniqueActivities.length, 1));
+                  })()}%
                 </p>
               </div>
             </div>

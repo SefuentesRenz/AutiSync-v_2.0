@@ -110,9 +110,9 @@ const AddActivity = () => {
   const createDefaultDifficulties = async () => {
     try {
       const defaultDifficulties = [
-        { difficulty: 'Easy' },
-        { difficulty: 'Medium' },
-        { difficulty: 'Hard' }
+        { difficulty: 'Beginner' },
+        { difficulty: 'Intermediate' },
+        { difficulty: 'Proficient' }
       ];
       
       for (const diff of defaultDifficulties) {

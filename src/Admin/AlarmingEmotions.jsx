@@ -31,12 +31,11 @@ const AlarmingEmotions = () => {
       twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
       const twentyFourHoursAgoISO = twentyFourHoursAgo.toISOString();
       
-      // Fetch high priority emotions (angry/sad level 4-5) from last 24 hours only
+      // Fetch negative emotions (angry/sad) from last 24 hours - removed intensity filter since students don't set levels
       const { data: highPriorityData, error: highPriorityError } = await supabase
         .from('Expressions')
         .select('*')
         .in('emotion', ['angry', 'sad'])
-        .gte('intensity', 4)
         .gte('created_at', twentyFourHoursAgoISO)
         .order('created_at', { ascending: false });
 
@@ -83,7 +82,7 @@ const AlarmingEmotions = () => {
               id: expression.id,
               studentName: studentName,
               emotion: expression.emotion,
-              intensity: expression.intensity,
+              displayEmotion: getEmotionDisplayName(expression.emotion),
               note: expression.note || 'No additional note provided by student',
               timestamp: new Date(expression.created_at),
               status: 'priority',
@@ -195,15 +194,18 @@ const AlarmingEmotions = () => {
                            student?.username || 
                            'Unknown Student';
 
+        // Map database emotion to display name
+        const displayEmotion = getEmotionDisplayName(expression.emotion);
+
         return {
           id: expression.id,
           studentName: studentName,
-          emotion: expression.emotion,
-          intensity: expression.intensity,
+          emotion: expression.emotion, // Keep original for processing
+          displayEmotion: displayEmotion, // Display name for UI
           note: expression.note || 'No additional note provided by student',
           timestamp: new Date(expression.created_at),
-          isHighPriority: (expression.emotion === 'angry' || expression.emotion === 'sad') && expression.intensity >= 4,
-          emotionType: ['happy', 'excited', 'calm'].includes(expression.emotion) ? 'positive' : 'negative'
+          isHighPriority: (expression.emotion === 'angry' || expression.emotion === 'sad'),
+          emotionType: ['happy', 'excited', 'calm'].includes(expression.emotion) ? 'positive' : 'negative' // calm still represents tired which is positive
         };
       });
 
@@ -262,8 +264,16 @@ const AlarmingEmotions = () => {
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 'High': return 'bg-red-100 text-red-800 border-red-200';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'Intermediate': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getEmotionDisplayName = (emotion) => {
+    switch (emotion?.toLowerCase()) {
+      case 'angry': return 'Upset';
+      case 'calm': return 'Tired';
+      default: return emotion;
     }
   };
 
@@ -273,7 +283,7 @@ const AlarmingEmotions = () => {
       case 'sad': return '😢';
       case 'happy': return '😊';
       case 'excited': return '🎉';
-      case 'calm': return '😌';
+      case 'calm': return '😴'; // Changed for tired emotion
       default: return '😐';
     }
   };
@@ -495,7 +505,7 @@ const AlarmingEmotions = () => {
                         <div className="text-3xl mr-3">{getEmotionIcon(alert.emotion)}</div>
                         <div>
                           <h3 className="text-lg font-bold text-gray-900">{alert.studentName}</h3>
-                          <p className="text-gray-600 capitalize">{alert.emotion} - Level {alert.intensity}</p>
+                          <p className="text-gray-600 capitalize">{alert.displayEmotion || alert.emotion}</p>
                         </div>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getPriorityColor(alert.priority)}`}>
@@ -566,7 +576,7 @@ const AlarmingEmotions = () => {
                         <div className="text-2xl mr-2">{getEmotionIcon(emotion.emotion)}</div>
                         <div>
                           <h3 className="text-md font-bold text-gray-900">{emotion.studentName}</h3>
-                          <p className="text-gray-600 capitalize text-sm">{emotion.emotion} - Level {emotion.intensity}</p>
+                          <p className="text-gray-600 capitalize text-sm">{emotion.displayEmotion || emotion.emotion}</p>
                         </div>
                       </div>
                       <div className="flex flex-col items-end">

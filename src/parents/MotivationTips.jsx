@@ -310,7 +310,7 @@ const ParentDashboard = () => {
       sad: '😢',
       angry: '😠',
       excited: '🤩',
-      calm: '😌',
+      calm: '😴', // Changed for tired emotion
       anxious: '😰',
       confused: '😕'
     };
