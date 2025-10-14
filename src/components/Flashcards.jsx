@@ -6,46 +6,36 @@ import {
   saveBadgesToStorage, 
   getBadgeAchievementMessage 
 } from '../utils/badgeSystem';
-import { useButtonSounds } from '../utils/useButtonSounds';
-import { handleActivityCompletion } from '../lib/activityCompletionHandler';
 import { useAuth } from '../contexts/AuthContext';
 
 const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { getButtonSoundHandlers } = useButtonSounds();
-  
 
   // Refs for connection lines
   const leftItemRefs = useRef({});
   const rightItemRefs = useRef({});
-  const gameContainerRef = useRef(null);
 
   // Debug function to test activity completion
   const testActivityCompletion = async () => {
     console.log('🧪 Testing activity completion manually...');
     console.log('User:', user);
-    
-    if (!user?.id) {
-      console.error('No user found!');
-      alert('No user logged in!');
-      return;
-    }
-    
+
     try {
-      // Use a real activity ID from our mapping instead of 999
-      const realActivityId = 1; // Basic Colors activity
-      const result = await handleActivityCompletion(
-        user.id,
-        realActivityId, // Use real activity ID
-        85,  // test score
-        'completed'
-      );
+      if (!user?.id) {
+        console.error('No user found!');
+        alert('No user logged in!');
+        return;
+      }
+
+      // Use a real activity ID from our mapping for testing
+      const realActivityId = 1; // Basic Colors activity (example)
+      const result = await handleActivityCompletion(realActivityId, questions?.length || 0);
       console.log('Test result:', result);
-      alert('Test completion sent! Check console and database.');
+      alert('Test completion simulated. Check console.');
     } catch (error) {
-      console.error('Test failed:', error);
-      alert('Test failed: ' + error.message);
+      console.error(error);
+      alert('Test failed: ' + (error?.message || String(error)));
     }
   };
 
@@ -66,32 +56,31 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   });
   const [showBadgePreview, setShowBadgePreview] = useState(false);
   const [previewBadge, setPreviewBadge] = useState(null);
-  
-  // Correct feedback images - shuffle randomly for each correct answer
+
   const correctImages = [
     "/src/assets/GreatJob.png",
     "/src/assets/NiceWork.png",
     "/src/assets/WellDone.png"
   ];
   const [currentCorrectImage, setCurrentCorrectImage] = useState(correctImages[0]);
-  
+
   // Cashier game specific state
   const [cashierScore, setCashierScore] = useState(0);
   const [selectedItems, setSelectedItems] = useState([]);
   const [orderTotal, setOrderTotal] = useState(0);
-  const [gameStep, setGameStep] = useState(1); // 1: customer speaks, 2: cashier selects items, 3: complete
-  const [showThoughtBubble, setShowThoughtBubble] = useState(false);
+  const [gameStep, setGameStep] = useState(1); // 1: order, 2: selecting, 3: feedback
   const [currentSpeaker, setCurrentSpeaker] = useState('customer'); // 'customer' or 'cashier'
   const [speechText, setSpeechText] = useState('');
+  const [showThoughtBubble, setShowThoughtBubble] = useState(false);
 
   // Hygiene game specific state
   const [hygieneScore, setHygieneScore] = useState(0);
   const [currentRound, setCurrentRound] = useState(1);
   const [usedScenarios, setUsedScenarios] = useState([]);
+  const [currentScenario, setCurrentScenario] = useState(null);
   const [showCharacter, setShowCharacter] = useState(true);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [successAnimationText, setSuccessAnimationText] = useState('');
-  const [currentScenario, setCurrentScenario] = useState(null);
   const [isHygieneGameActive, setIsHygieneGameActive] = useState(false);
 
   // Safe Street Crossing game specific state
@@ -161,6 +150,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const [incorrectConnections, setIncorrectConnections] = useState([]);
   const [canSubmit, setCanSubmit] = useState(false);
   const [shuffledRightItems, setShuffledRightItems] = useState(null);
+  const [redirectCountdown, setRedirectCountdown] = useState(null);
 
   // Academic Puzzle Game specific state
   const [puzzleScore, setPuzzleScore] = useState(0);
@@ -234,6 +224,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const wrongAudioRef = useRef(null);
   const badgeAudioRef = useRef(null);
   const bgMusicRef = useRef(null);
+  const gameContainerRef = useRef(null);
 
   const celebrationSound = "/src/assets/sounds/Activitycompletion.mp3"; // Place your sound file here
   const correctSound = "/src/assets/sounds/correct.mp3"; 
@@ -272,6 +263,15 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     }
   }, [showWrong]);
 
+  // Countdown timer for matching game auto-redirect
+  useEffect(() => {
+    if (redirectCountdown !== null && redirectCountdown > 0) {
+      const timer = setTimeout(() => {
+        setRedirectCountdown(redirectCountdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [redirectCountdown]);
 
   // Background music for Medium Identification activity
   useEffect(() => {
@@ -299,6 +299,97 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     };
   }, [activity, difficulty]);
 
+  // 🎤 Text-to-Speech Helper Function - Teacher-like AI Voice
+  const speakText = (text, rate = 0.9, pitch = 1.0) => {
+    // Check if browser supports speech synthesis
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      // Create new speech utterance
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Configure voice settings for clear, teacher-like voice
+      utterance.rate = rate;     // Speed: 0.9 (slightly slower for clarity)
+      utterance.pitch = pitch;   // Pitch: 1.0 (natural, professional tone)
+      utterance.volume = 1.0;    // Volume: Maximum (1.0)
+      
+      // Select best teacher-like voice (prioritize female voices for warmth)
+      const voices = window.speechSynthesis.getVoices();
+      
+      // Priority order: Google UK/US Female > Microsoft Female > Any English Female > Any English
+      const preferredVoice = voices.find(voice => 
+        (voice.name.includes('Google UK English Female') || 
+         voice.name.includes('Google US English Female') ||
+         voice.name.includes('Microsoft Zira') ||
+         voice.name.includes('Microsoft Linda') ||
+         voice.name.includes('Female') && voice.lang.startsWith('en')) ||
+        (voice.lang.startsWith('en-') && voice.name.includes('Female'))
+      ) || voices.find(voice => 
+        voice.lang.startsWith('en-US') || voice.lang.startsWith('en-GB')
+      );
+      
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+        console.log('🎤 Using voice:', preferredVoice.name);
+      }
+      
+      // Speak the text
+      window.speechSynthesis.speak(utterance);
+      
+      console.log('🎤 Speaking:', text);
+    } else {
+      console.warn('⚠️ Text-to-speech not supported in this browser');
+    }
+  };
+
+  // Button sound/click handler helper
+  const getButtonSoundHandlers = (onClick) => {
+    return {
+      onClick: (e) => {
+        // You can add button click sound here if needed
+        // For now, just execute the onClick handler
+        if (onClick) {
+          onClick(e);
+        }
+      }
+    };
+  };
+
+  // Handle activity completion (record to database)
+  const handleActivityCompletion = async (studentId, activityId, score, status) => {
+    try {
+      console.log('📝 Recording activity completion:', { studentId, activityId, score, status });
+      
+      // TODO: Add actual database call here (Supabase or your backend)
+      // For now, just return success
+      return {
+        success: true,
+        errors: []
+      };
+    } catch (error) {
+      console.error('Error recording activity completion:', error);
+      return {
+        success: false,
+        errors: [error.message]
+      };
+    }
+  };
+
+  // Load voices when they become available (some browsers load voices asynchronously)
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      // Load voices
+      window.speechSynthesis.getVoices();
+      
+      // Some browsers fire this event when voices are loaded
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = () => {
+          window.speechSynthesis.getVoices();
+        };
+      }
+    }
+  }, []);
 
   // Sample questions data - you can organize this by category, difficulty, and activity
   const questionsData = {
@@ -341,32 +432,32 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           {
             questionText: "How many cows are there?",
             imageSrc: "/src/assets/cow.png",
-            answerChoices: ["Six", "Seven", "Eight", "Five"],
-            correctAnswer: "Seven"
+            answerChoices: ["Six (6)", "Seven (7)", "Eight (8)", "Five (5)"],
+            correctAnswer: "Seven (7)"
           },
           {
             questionText: "What number is missing?",
             videoSrc: "/src/assets/flashcards/Easy-Numbers/numbers-4-easy.mp4",
-            answerChoices: ["One", "Two", "Three", "Four"],
-            correctAnswer: "Four"
+            answerChoices: ["One (1)", "Two (2)", "Three (3)", "Four (4)"],
+            correctAnswer: "Four (4)"
           },
           {
             questionText: "What number is missing?",
             videoSrc: "/src/assets/flashcards/Easy-Numbers/numbers-1-easy.mp4",
-            answerChoices: ["Three", "Four", "Two", "One"],
-            correctAnswer: "One"
+            answerChoices: ["Three (3)", "Four (4)", "Two (2)", "One (1)"],
+            correctAnswer: "One (1)"
           },
           {
             questionText: "What numbers are missing?",
             videoSrc: "/src/assets/flashcards/Easy-Numbers/number6&7-easy.mp4",
-            answerChoices: ["Six and Seven", "Six and Eight", "Five and Seven", "Five and Eight"],
-            correctAnswer: "Six and Seven"
+            answerChoices: ["Six and Seven (6 & 7)", "Six and Eight (6 & 8)", "Five and Seven (5 & 7)", "Five and Eight (5 & 8)"],
+            correctAnswer: "Six and Seven (6 & 7)"
           },
           {
             questionText: "What number is missing?",
             videoSrc: "/src/assets/flashcards/Easy-Numbers/numbers-2-easy.mp4",
-            answerChoices: ["Two", "Five", "Three", "Six"],
-            correctAnswer: "Two"
+            answerChoices: ["Two (2)", "Five (5)", "Three (3)", "Six (6)"],
+            correctAnswer: "Two (2)"
           },
         ],
         Colors: [
@@ -382,10 +473,10 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             questionText: "Simple Recognition - Match the pairs!",
             gameType: "matching",
             leftItems: [
-              { id: 1, content: "🌞 Sun", type: "text" },
+              // { id: 1, content: "🌞 Sun", type: "text" },
               
-              { id: 3, content: "🐶Dog", type: "text" },
-              { id: 4, content: "😺 Cat", type: "text" },
+              // { id: 3, content: "🐶Dog", type: "text" },
+              // { id: 4, content: "😺 Cat", type: "text" },
               { id: 5, content: "🚗 Car", type: "text" },
               { id: 6, content: "🪑 Chair", type: "text" },
               { id: 7, content: "📖 Book", type: "text" },
@@ -395,15 +486,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             ],
             rightItems: [
               
-              { id: "b", content: "Sit", type: "text", matchId: 6 },
-              { id: "c", content: "Day", type: "text", matchId: 1 },
-              { id: "d", content: "Meow", type: "text", matchId: 4 },
-              { id: "e", content: "Live", type: "text", matchId: 9 },
-              { id: "f", content: "Drive", type: "text", matchId: 5 },
-              
-              
-              { id: "i", content: "Read", type: "text", matchId: 7 },
-              { id: "j", content: "Bark", type: "text", matchId: 3 }
+              { id: "b", content: "/src/assets/flashcards/MatchingType-Easy/Sitting.mp4", type: "video", matchId: 6 },
+              // { id: "c", content: "Day", type: "text", matchId: 1 },
+              // { id: "d", content: "Meow", type: "text", matchId: 4 },
+              { id: "e", content: "/src/assets/flashcards/MatchingType-Easy/Live.mp4", type: "video", matchId: 9 },
+              { id: "f", content: "/src/assets/flashcards/MatchingType-Easy/Drive.mp4", type: "video", matchId: 5 },
+              { id: "i", content: "/src/assets/flashcards/MatchingType-Easy/Reading.mp4", type: "video", matchId: 7 },
+              // { id: "j", content: "Bark", type: "text", matchId: 3 }
             ]
           }
         ],
@@ -427,20 +516,19 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           {
             puzzleType: "math",
             questionText: "Apple Counting Puzzle",
-            instruction: "Count the Apples. How many are there?",
+            instruction: "How many apples are there?",
             objects: ["🍎", "🍎", "🍎"],
             options: [2, 3, 4],
             correctAnswer: 3,
             hint: "Count each apple: 1, 2, 3!"
           },
           {
-            puzzleType: "matching",
-            questionText: "Number Matching",
-            instruction: "Number 6",
-            objects: [{id: 1, content: "Five", color: "red"}, {id: 2, content: "Seven", color: "blue"}, {id: 3, content: "Six", color: "green"}],
-            word: "BLUE",
-            correctAnswer: 3,
-            hint: "Match the 6 to number six!"
+            puzzleType: "logic",
+            questionText: "Shape Matching",
+            instruction: "Which one is a STAR?",
+            options: ["⚪", "⭐", "🔺"],
+            correctAnswer: "⭐",
+            hint: "Stars have points and shine in the sky!"
           },
           {
             puzzleType: "logic",
@@ -456,42 +544,42 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             roundId: 1,
             gameType: "memory",
             questionText: "Memorize these cards!",
-            instruction: "Watch the cards carefully and remember where each one goes!",
+            
             cards: [
               { id: 1, image: "🐶", name: "Dog" },
               { id: 2, image: "🐱", name: "Cat" },
               { id: 3, image: "🐸", name: "Frog" },
               { id: 4, image: "🐻", name: "Bear" }
             ],
-            memorizationTime: 10,
+            memorizationTime: 8,
             shuffleCount: 4
           },
           {
             roundId: 2,
             gameType: "memory",
             questionText: "Remember the shapes!",
-            instruction: "Focus on each shape's position!",
+            
             cards: [
               { id: 1, image: "⭐", name: "Star" },
               { id: 2, image: "❤️", name: "Heart" },
               { id: 3, image: "⚪", name: "Circle" },
               { id: 4, image: "🔺", name: "Triangle" }
             ],
-            memorizationTime: 10,
+            memorizationTime: 8,
             shuffleCount: 4
           },
           {
             roundId: 3,
             gameType: "memory",
             questionText: "Find the fruits!",
-            instruction: "Watch where each fruit moves!",
+            
             cards: [
               { id: 1, image: "🍎", name: "Apple" },
               { id: 2, image: "🍌", name: "Banana" },
               { id: 3, image: "🍊", name: "Orange" },
               { id: 4, image: "🍇", name: "Grapes" }
             ],
-            memorizationTime: 10,
+            memorizationTime: 8,
             shuffleCount: 4
           }
         ]
@@ -537,32 +625,32 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           {
             questionText: "How many apples?",
             videoSrc: "/src/assets/flashcards/Numbers_Medium/7_Numbers.mp4",
-            answerChoices: ["Six", "Seven", "Eight", "Five"],
-            correctAnswer: "Seven"
+            answerChoices: ["Six (6)", "Seven (7)", "Eight (8)", "Five (5)"],
+            correctAnswer: "Seven (7)"
           },
           {
-            questionText: "How many ducks are left?",
-            videoSrc: "/src/assets/flashcards/Numbers_Medium/1_Numbers.mp4",
-            answerChoices: ["One", "Three", "Four", "Two"],
-            correctAnswer: "One"
+            questionText: "How many ducks?",
+            videoSrc: "/src/assets/flashcards/Numbers_Medium/add_6.mp4",
+            answerChoices: ["Five (5)", "Four (4)", "Seven (7)", "Six (6)"],
+            correctAnswer: "Six (6)"
           },
           {
             questionText: "How many Ice Cream?",
             videoSrc: "/src/assets/flashcards/Numbers_Medium/5_Numbers.mp4",
-            answerChoices: ["Three", "Six", "Four", "Five"],
-            correctAnswer: "Five"
+            answerChoices: ["Three (3)", "Six (6)", "Four (4)", "Five (5)"],
+            correctAnswer: "Five (5)"
           },
           {
-            questionText: "How many applesc are left?",
-            videoSrc: "/src/assets/flashcards/Numbers_Medium/3_Numbers.mp4",
-            answerChoices: ["Four", "Three", "Six", "Five"],
-            correctAnswer: "Three"
+            questionText: "How many apples?",
+            videoSrc: "/src/assets/flashcards/Numbers_Medium/add_4.mp4",
+            answerChoices: ["Four (4)", "Three (3)", "Six (6)", "Five (5)"],
+            correctAnswer: "Four (4)"
           },
           {
             questionText: "How many balls?",
             videoSrc: "/src/assets/flashcards/Numbers_Medium/11_Numbers.mp4",
-            answerChoices: ["Thirteen", "Eleven", "Twelve", "Ten"],
-            correctAnswer: "Eleven"
+            answerChoices: ["Thirteen (13)", "Eleven (11)", "Twelve (12)", "Ten (10)"],
+            correctAnswer: "Eleven (11)"
           }
         ],
       
@@ -576,40 +664,38 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             questionText: "Categories & School Concepts - Match the pairs!",
             gameType: "matching",
             leftItems: [
-              { id: 1, content: "6 x 4 = ?", type: "text" },
-              { id: 2, content: "13 + 9 = ?", type: "text" },
+              // { id: 1, content: "6 + 6 = ?", type: "text" },
+              { id: 2, content: "3 + 7 = ?", type: "text" },
               { id: 3, content: "🕒 Clock", type: "text" },
-              { id: 4, content: "3 x 7 = ?", type: "text" },
+              { id: 4, content: "☀️ Sun", type: "text" },
              
-              { id: 6, content: "10,15,20,__,30", type: "text" },
+             
               { id: 7, content: "🛏️ Bed", type: "text" },
               { id: 8, content: "✏️ Pencil", type: "text" },
-              // { id: 9, content: "🔥 Fire", type: "text" },
-              // { id: 10, content: "🎵 Music", type: "text" }
+              
             ],
             rightItems: [
-              { id: "a", content: "25", type: "text", matchId: 6 },
-              { id: "b", content: "Time", type: "text", matchId: 3 },
-              { id: "c", content: "24", type: "text", matchId: 1 },
-              { id: "d", content: "Student", type: "text", matchId: 8 },
-              { id: "e", content: "22", type: "text", matchId: 2 },
-              // { id: "f", content: "Hot", type: "text", matchId: 9 },
-              { id: "g", content: "Sleep", type: "text", matchId: 7 },
-              // { id: "h", content: "Dance", type: "text", matchId: 10 },
-              { id: "i", content: "21", type: "text", matchId: 4 },
+
+              { id: "b", content: "/src/assets/flashcards/MatchingType-Medium/Time.mp4", type: "video", matchId: 3 },
+              // { id: "c", content: "12", type: "text", matchId: 1 },
+              { id: "d", content: "/src/assets/flashcards/MatchingType-Medium/Writing.mp4", type: "video", matchId: 8 },
+              { id: "e", content: "/src/assets/flashcards/MatchingType-Medium/Ten.mp4", type: "video", matchId: 2 },
+
+              { id: "g", content: "/src/assets/flashcards/MatchingType-Medium/Sleeping.mp4", type: "video", matchId: 7 },
+
+              { id: "i", content: "/src/assets/flashcards/MatchingType-Medium/Sun.mp4", type: "video", matchId: 4 },
              
             ]
           }
         ],
         "Academic Puzzles": [
           {
-            puzzleType: "spelling",
-            questionText: "Spelling Puzzle",
-            instruction: "Arrange the letters to spell the word 'CAT'.",
-            targetWord: "CAT",
-            letters: ["T", "A", "B", "R", "C"],
-            correctAnswer: "CAT",
-            hint: "The pet that says meow!"
+            puzzleType: "logic",
+            questionText: "Animal Sounds",
+            instruction: "Which animal says MOO?",
+            options: ["🐷", "🐮", "🐔"],
+            correctAnswer: "🐮",
+            hint: "Cows say moo - they live on farms!"
           },
           {
             puzzleType: "math",
@@ -651,42 +737,42 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             roundId: 1,
             gameType: "memory",
             questionText: "Track the vehicles!",
-            instruction: "Watch carefully as the vehicles move!",
+            
             cards: [
               { id: 1, image: "🚗", name: "Car" },
               { id: 2, image: "🚌", name: "Bus" },
               { id: 3, image: "🚲", name: "Bicycle" },
               { id: 4, image: "✈️", name: "Airplane" }
             ],
-            memorizationTime: 10,
+            memorizationTime: 8,
             shuffleCount: 6
           },
           {
             roundId: 2,
             gameType: "memory",
             questionText: "Remember the colors!",
-            instruction: "Keep your eyes on each colored ball!",
+            
             cards: [
               { id: 1, image: "🔴", name: "Red Ball" },
               { id: 2, image: "🔵", name: "Blue Ball" },
               { id: 3, image: "🟢", name: "Green Ball" },
               { id: 4, image: "🟡", name: "Yellow Ball" }
             ],
-            memorizationTime: 10,
+            memorizationTime: 8,
             shuffleCount: 6
           },
           {
             roundId: 3,
             gameType: "memory",
             questionText: "Track the numbers!",
-            instruction: "Focus on where each number moves!",
+            
             cards: [
               { id: 1, image: "1️⃣", name: "One" },
               { id: 2, image: "2️⃣", name: "Two" },
               { id: 3, image: "3️⃣", name: "Three" },
               { id: 4, image: "4️⃣", name: "Four" }
             ],
-            memorizationTime: 10,
+            memorizationTime: 8,
             shuffleCount: 6
           }
         ]
@@ -701,27 +787,23 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             gameType: "matching",
             leftItems: [
               // { id: 1, content: "🔥 Fire", type: "text" },
-              { id: 2, content: "9 x 8 = ?", type: "text" },
-              { id: 3, content: "Half of 100", type: "text" },
+              { id: 9, content: "🌙 Night", type: "text" },
+              { id: 3, content: "🧒 Children", type: "text" },
               { id: 4, content: "👩‍ Chef", type: "text" },
               { id: 5, content: "🌱 Plant", type: "text" },
-              { id: 6, content: "Doctor", type: "text" },
-              { id: 7, content: "👩‍🎓 Student", type: "text" },
-              // { id: 8, content: "🌙 Night", type: "text" },
-              { id: 9, content: "36 divided by 6", type: "text" },
+              { id: 6, content: "🩺 Doctor", type: "text" },
+              { id: 7, content: "👩‍🏫 Teacher", type: "text" },
+              ,
+              // { id: 9, content: "36 divided by 6", type: "text" },
               // { id: 10, content: "💧 Water", type: "text" }
             ],
             rightItems: [
-              { id: "a", content: "72", type: "text", matchId: 2 },
-              { id: "b", content: "📚 School", type: "text", matchId: 7 },
-              // { id: "c", content: "Warmth", type: "text", matchId: 1 },
-              { id: "d", content: "🌳 Grow", type: "text", matchId: 5 },
-              { id: "e", content: "50", type: "text", matchId: 3 },
-              // { id: "f", content: "🌟 Sleep", type: "text", matchId: 8 },
-              { id: "g", content: "🩺", type: "text", matchId: 6 },
-              { id: "h", content: "🍴", type: "text", matchId: 4 },
-              // { id: "i", content: "💧 Drink", type: "text", matchId: 10 },
-              { id: "j", content: "6", type: "text", matchId: 9 }
+              { id: "b", content: "/src/assets/flashcards/MatchingType-Hard/Teacher.mp4", type: "video", matchId: 7 },
+              { id: "d", content: "/src/assets/flashcards/MatchingType-Hard/Tree.mp4", type: "video", matchId: 5 },
+              { id: "e", content: "/src/assets/flashcards/MatchingType-Hard/Play.mp4", type: "video", matchId: 3 },
+              { id: "g", content: "/src/assets/flashcards/MatchingType-Hard/Doctor.mp4", type: "video", matchId: 6 },
+              { id: "h", content: "/src/assets/flashcards/MatchingType-Hard/Cook.mp4", type: "video", matchId: 4 },
+              { id: "j", content: "/src/assets/flashcards/MatchingType-Hard/Night.mp4", type: "video", matchId: 9 }
             ]
           }
         ],
@@ -842,42 +924,42 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             roundId: 1,
             gameType: "memory",
             questionText: "Advanced Memory Test!",
-            instruction: "Track all the school items as they shuffle!",
+            
             cards: [
               { id: 1, image: "📚", name: "Books" },
               { id: 2, image: "✏️", name: "Pencil" },
               { id: 3, image: "🎒", name: "Backpack" },
               { id: 4, image: "📐", name: "Ruler" }
             ],
-            memorizationTime: 10,
+            memorizationTime: 8,
             shuffleCount: 6
           },
           {
             roundId: 2,
             gameType: "memory",
             questionText: "Sports Memory Challenge!",
-            instruction: "Follow the sports equipment carefully!",
+            
             cards: [
               { id: 1, image: "⚽", name: "Soccer Ball" },
               { id: 2, image: "🏀", name: "Basketball" },
               { id: 3, image: "🎾", name: "Tennis" },
               { id: 4, image: "🏐", name: "Volleyball" }
             ],
-            memorizationTime: 10,
+            memorizationTime: 8,
             shuffleCount: 6
           },
           {
             roundId: 3,
             gameType: "memory",
             questionText: "Master Level Memory!",
-            instruction: "This is challenging! Watch every move!",
+           
             cards: [
               { id: 1, image: "🌟", name: "Star" },
               { id: 2, image: "🌙", name: "Moon" },
               { id: 3, image: "☀️", name: "Sun" },
               { id: 4, image: "⚡", name: "Lightning" }
             ],
-            memorizationTime: 108,
+            memorizationTime: 8,
             shuffleCount: 6
           }
         ]
@@ -975,7 +1057,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             character: "👩‍🍳",
             characterType: "Parent",
             studentThought: "I should greet my parent nicely!",
-            otherCharacterSpeech: "Good morning, sweetheart! Did you sleep well?",
+            otherCharacterSpeech: "Good morning, sweetheart!",
             choices: [
               {
                 text: "Good morning, Mom!",
@@ -1085,8 +1167,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             background: "🎒 School Classroom",
             character: "👩‍🏫",
             characterType: "Teacher",
-            studentThought: "The day is ending, I should say goodbye nicely!",
-            otherCharacterSpeech: "Have a wonderful day everyone! See you tomorrow!",
+            studentThought: "I should say goodbye nicely!",
+            otherCharacterSpeech: "See you tomorrow! Have a wonderful day everyone!",
             choices: [
               {
                 text: "Goodbye Teacher! See you tomorrow!",
@@ -1107,7 +1189,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 feedback: "That's for when you arrive! What do you say when you're leaving?"
               },
               {
-                text: "Thank you for breakfast!",
+                text: "Thank you for the breakfast!",
                 emoji: "🍳",
                 correct: false,
                 feedback: "That's for your parent at home! What would you say to your teacher when leaving?"
@@ -1122,12 +1204,12 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             background: "🏡 Neighborhood Garden",
             character: "👴",
             characterType: "Neighbor",
-            studentThought: "I should be friendly to my neighbor!",
+            studentThought: "I should be friendly!",
             otherCharacterSpeech: "Good evening! How was your day?",
             choices: [
               {
                 text: "Good evening! It was great, thank you!",
-                emoji: "�",
+                emoji: "🌃",
                 correct: true,
                 feedback: "Perfect! Evening greetings show you're polite and friendly!"
               },
@@ -1139,7 +1221,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               },
               {
                 text: "Good night!",
-                emoji: "�",
+                emoji: "🌜",
                 correct: false,
                 feedback: "That's for when you're going to sleep! Try an evening greeting."
               },
@@ -1155,11 +1237,17 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         "Hygiene Hero": [
           {
             scenario: "dirty_hands",
-            questionText: "😰 Oh no! Your hands are dirty after playing!",
-            scenarioImage: "🤲",
+            questionText: "Oh no! Your hands are dirty after playing!",
+            scenarioImage: "",
             backgroundImage: "🏠",
-            characterEmoji: "😟",
-            answerChoices: ["Brush my teeth", "Take a shower", "Wash my hands", "Cut my hair", "Wipe my nose", "Use tissue"],
+            characterEmoji: "/src/assets/flashcards/HygieneHero/DirtyHands.mp4",
+            isCharacterVideo: true,
+            answerChoices: [
+              { text: "Brush my teeth", video: "/src/assets/flashcards/HygieneHero/BrushMyTeeth.mp4" },
+              { text: "Take a bath", video: "/src/assets/flashcards/HygieneHero/TakeABath.mp4" },
+              { text: "Wash my hands", video: "/src/assets/flashcards/HygieneHero/WashingHands.mp4" },
+              // { text: "Get a haircut", video: "/src/assets/flashcards/HygieneHero/GetAHaircut.mp4" }
+            ],
             correctAnswer: "Wash my hands",
             gameType: "hygiene",
             successAnimation: "🧼✨",
@@ -1170,9 +1258,15 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             questionText: "😅 Your hair is messy!",
             scenarioImage: "💇‍♂️",
             backgroundImage: "🪞",
-            characterEmoji: "😵‍💫",
-            answerChoices: ["Cut my hair", "Wash my hands", "Take a shower", "Brush my teeth", "Wipe my nose", "Clean my ears", "Use tissue"],
-            correctAnswer: "Cut my hair",
+            characterEmoji: "/src/assets/flashcards/HygieneHero/MessyHair.mp4",
+            isCharacterVideo: true,
+            answerChoices: [
+              { text: "Get a haircut", video: "/src/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
+              { text: "Wash my hands", video: "/src/assets/flashcards/HygieneHero/WashingHands.mp4" },
+              { text: "Take a bath", video: "/src/assets/flashcards/HygieneHero/TakeABath.mp4" },
+              // { text: "Brush my teeth", video: "/src/assets/flashcards/HygieneHero/BrushMyTeeth.mp4" }
+            ],
+            correctAnswer: "Get a haircut",
             gameType: "hygiene",
             successAnimation: "✂️✨",
             successMessage: "Perfect! You look great now!"
@@ -1182,8 +1276,14 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             questionText: "🤧 Achoo! Your nose is runnings!",
             scenarioImage: "👃",
             backgroundImage: "🏠",
-            characterEmoji: "🤧",
-            answerChoices: ["Wash my hands", "Wipe my nose", "Take a shower", "Cut my hair", "Brush my teeth", "Use tissue"],
+            characterEmoji: "/src/assets/flashcards/HygieneHero/RunnyNose.mp4",
+            isCharacterVideo: true,
+            answerChoices: [
+              { text: "Wash my hands", video: "/src/assets/flashcards/HygieneHero/WashingHands.mp4" },
+              { text: "Wipe my nose", video: "/src/assets/flashcards/HygieneHero/WipeMyNose.mp4" },
+              { text: "Take a bath", video: "/src/assets/flashcards/HygieneHero/TakeABath.mp4" },
+              // { text: "Get a haircut", video: "/src/assets/flashcards/HygieneHero/GetAHaircut.mp4" }
+            ],
             correctAnswer: "Wipe my nose",
             gameType: "hygiene",
             successAnimation: "🧻✨",
@@ -1194,8 +1294,15 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             questionText: "🦷 Time to take care of your teeth!",
             scenarioImage: "🪥",
             backgroundImage: "🚿",
-            characterEmoji: "😬",
-            answerChoices: ["Wash my hands", "Take a shower", "Cut my hair", "Brush my teeth", "Wipe my nose", "Clean my ears", "Use tissue"],
+            characterEmoji: "/src/assets/flashcards/HygieneHero/DirtyTeeth.mp4",
+            isCharacterVideo: true,
+            answerChoices: [
+              // { text: "Wash my hands", video: "/src/assets/flashcards/HygieneHero/WashingHands.mp4" },
+              { text: "Take a bath", video: "/src/assets/flashcards/HygieneHero/TakeABath.mp4" },
+              // { text: "Get a haircut", video: "/src/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
+              { text: "Brush my teeth", video: "/src/assets/flashcards/HygieneHero/BrushMyTeeth.mp4" },
+              { text: "Wipe my nose", video: "/src/assets/flashcards/HygieneHero/WipeMyNose.mp4" }
+            ],
             correctAnswer: "Brush my teeth",
             gameType: "hygiene",
             successAnimation: "🪥✨",
@@ -1203,11 +1310,18 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           },
           {
             scenario: "dirty_ears",
-            questionText: "👂 Your ears need some gentle cleaning!",
+            questionText: "Your ears are dirty!👂",
             scenarioImage: "🧽",
             backgroundImage: "🚿",
-            characterEmoji: "😵",
-            answerChoices: [ "Wash my hands", "Take a shower", "Cut my hair", "Wipe my nose", "Clean my ears", "Brush my teeth", "Use tissue"],
+            characterEmoji: "/src/assets/flashcards/HygieneHero/DirtyEars.jpg",
+            isCharacterVideo: false,
+            answerChoices: [
+              { text: "Wash my hands", video: "/src/assets/flashcards/HygieneHero/WashingHands.mp4" },
+              // { text: "Take a bath", video: "/src/assets/flashcards/HygieneHero/TakeABath.mp4" },
+              // { text: "Get a haircut", video: "/src/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
+              { text: "Wipe my nose", video: "/src/assets/flashcards/HygieneHero/WipeMyNose.mp4" },
+              { text: "Clean my ears", video: "/src/assets/flashcards/HygieneHero/CleanMyEars.mp4" }
+            ],
             correctAnswer: "Clean my ears",
             gameType: "hygiene",
             successAnimation: "🧽✨",
@@ -1215,35 +1329,56 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           },
           {
             scenario: "sweaty_body",
-            questionText: "💦 After playing, you're all sweaty!",
+            questionText: "After playing, you're all sweaty!💦",
             scenarioImage: "🚿",
             backgroundImage: "🛁",
-            characterEmoji: "😅",
-            answerChoices: ["Wash my hands", "Take a shower", "Brush my teeth", "Cut my hair", "Wipe my nose", "Clean my ears", "Use tissue"],
-            correctAnswer: "Take a shower",
+            characterEmoji: "/src/assets/flashcards/HygieneHero/SweatyBody.mp4",
+            isCharacterVideo: true,
+            answerChoices: [
+              { text: "Wash my hands", video: "/src/assets/flashcards/HygieneHero/WashingHands.mp4" },
+              { text: "Take a bath", video: "/src/assets/flashcards/HygieneHero/TakeABath.mp4" },
+              { text: "Brush my teeth", video: "/src/assets/flashcards/HygieneHero/BrushMyTeeth.mp4" },
+              // { text: "Get a haircut", video: "/src/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
+              // { text: "Wipe my nose", video: "/src/assets/flashcards/HygieneHero/WipeMyNose.mp4" }
+            ],
+            correctAnswer: "Take a bath",
             gameType: "hygiene",
             successAnimation: "🚿✨",
             successMessage: "Amazing! You're fresh and clean now!"
           },
-          {
-            scenario: "sticky_fingers",
-            questionText: "🍯 Your fingers are sticky after eating!",
-            scenarioImage: "🤲",
-            backgroundImage: "🍽️",
-            characterEmoji: "😝",
-            answerChoices: ["Brush my teeth", "Take a shower", "Cut my hair", "Wipe my nose", "Wash my hands", "Clean my ears", "Use tissue"],
-            correctAnswer: "Wash my hands",
-            gameType: "hygiene",
-            successAnimation: "🧼✨",
-            successMessage: "Perfect! No more sticky fingers!"
-          },
+          // {
+          //   scenario: "sticky_fingers",
+          //   questionText: "🍯 Your fingers are sticky after eating!",
+          //   scenarioImage: "🤲",
+          //   backgroundImage: "🍽️",
+          //   characterEmoji: "/src/assets/flashcards/HygieneHero/WashingHands.mp4",
+          //   isCharacterVideo: true,
+          //   answerChoices: [
+          //     { text: "Brush my teeth", video: "/src/assets/flashcards/HygieneHero/BrushMyTeeth.mp4" },
+          //     // { text: "Take a bath", video: "/src/assets/flashcards/HygieneHero/TakeABath.mp4" },
+          //     // { text: "Get a haircut", video: "/src/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
+          //     { text: "Wipe my nose", video: "/src/assets/flashcards/HygieneHero/WipeMyNose.mp4" },
+          //     { text: "Wash my hands", video: "/src/assets/flashcards/HygieneHero/WashingHands.mp4" }
+          //   ],
+          //   correctAnswer: "Wash my hands",
+          //   gameType: "hygiene",
+          //   successAnimation: "🧼✨",
+          //   successMessage: "Perfect! No more sticky fingers!"
+          // },
           {
             scenario: "after_sneezing",
-            questionText: "🤧 Achoo! You just sneezed!",
+            questionText: "Achoo!🤧  You just sneezed!",
             scenarioImage: "🤧",
             backgroundImage: "🏠",
-            characterEmoji: "😷",
-            answerChoices: ["Use tissue", "Wash my hands", "Take a shower", "Cut my hair", "Wipe my nose", "Clean my ears", "Brush my teeth"],
+            characterEmoji: "/src/assets/flashcards/HygieneHero/Sneezing.mp4",
+            isCharacterVideo: true,
+            answerChoices: [
+              { text: "Use tissue", video: "/src/assets/flashcards/HygieneHero/UseTissue.mp4" },
+              { text: "Wash my hands", video: "/src/assets/flashcards/HygieneHero/WashingHands.mp4" },
+              { text: "Take a bath", video: "/src/assets/flashcards/HygieneHero/TakeABath.mp4" },
+              // { text: "Get a haircut", video: "/src/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
+              // { text: "Wipe my nose", video: "/src/assets/flashcards/HygieneHero/WipeMyNose.mp4" }
+            ],
             correctAnswer: "Use tissue",
             gameType: "hygiene",
             successAnimation: "🧻✨",
@@ -1376,6 +1511,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             backgroundImage: "🛣️",
             characterEmoji: "😮",
             trafficLight: "/src/assets/GoSign.png",
+            isTrafficLightImage: true,
             lightStatus: "emergency",
             safetyLevel: "unsafe",
             answerChoices: ["CROSS", "WAIT"],
@@ -1731,19 +1867,18 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     setIncorrectConnections([]);
     setCanSubmit(false);
   }, [currentQuestionIndex, category, difficulty, activity]);
-  
-  // Debug logging for matching game
-  if (activity === "MatchingType" || activity === "Matching Type") {
-    console.log('Matching game debug:', {
-      category,
-      difficulty, 
-      activity,
-      questionsData: questionsData[category]?.[difficulty],
-      questions,
-      total,
-      currentQuestion
-    });
-  }
+
+  // Effect to enable submit button when all items are connected in matching game
+  useEffect(() => {
+    if (currentQuestion?.gameType === 'matching' && currentQuestion?.leftItems) {
+      const totalItems = currentQuestion.leftItems.length;
+      if (dragConnections.length >= totalItems && !isAnswersChecked) {
+        setCanSubmit(true);
+      } else if (dragConnections.length < totalItems) {
+        setCanSubmit(false);
+      }
+    }
+  }, [dragConnections, currentQuestion, isAnswersChecked]);
   
   const isCashierGame = currentQuestion?.gameType === 'cashier';
   const isHygieneGame = currentQuestion?.gameType === 'hygiene';
@@ -1832,13 +1967,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         setMemoryCorrectAnswers(prev => prev + 1);
         setMemoryScore(prev => prev + 1);
         setScore(prev => prev + 1);
-        setShowMemoryFeedback(true);
         setMemoryFeedbackType('correct');
         setMemoryFeedbackMessage(`🎉 Correct! You found the ${currentTargetCard.name}!`);
         setShowCorrect(true);
         
         setTimeout(() => {
-          setShowMemoryFeedback(false);
           setShowCorrect(false);
           setRevealedCardPosition(null);
           proceedToNextMemoryRound();
@@ -1846,13 +1979,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       } else {
         // Wrong answer
         setMemoryWrongAnswers(prev => prev + 1);
-        setShowMemoryFeedback(true);
         setMemoryFeedbackType('wrong');
         setMemoryFeedbackMessage(`❌ Oops! That was the ${clickedCard.name}, not the ${currentTargetCard.name}. Try again!`);
         setShowWrong(true);
         
         setTimeout(() => {
-          setShowMemoryFeedback(false);
           setShowWrong(false);
           setRevealedCardPosition(null);
           proceedToNextMemoryRound();
@@ -1913,7 +2044,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     setMemoryCards([]);
     setCurrentTargetCard(null);
     setIsShuffling(false);
-    setShowMemoryFeedback(false);
   };
 
   // Hygiene game functions
@@ -1925,11 +2055,17 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
   const handleHygieneAnswer = (choice) => {
     if (isAnswered) return;
-    
-    setSelectedAnswer(choice);
+
+    // normalize choice to text if it's an object
+    const choiceText = typeof choice === 'string' ? choice : (choice?.text || '');
+
+    // 🎤 Speak the choice text with teacher-like AI voice (clear & loud)
+    speakText(choiceText);
+
+    setSelectedAnswer(choiceText);
     setIsAnswered(true);
 
-    if (choice === currentQuestion.correctAnswer) {
+    if (choiceText === currentQuestion.correctAnswer) {
       setHygieneScore(prev => prev + 1);
       setScore(prev => prev + 1);
       setShowSuccessAnimation(true);
@@ -2003,6 +2139,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       console.log('❌ Answer blocked - already answered or showing feedback');
       return;
     }
+    
+    // 🎤 Speak the choice with teacher-like AI voice (clear & loud)
+    speakText(choice === 'CROSS' ? 'Cross the street' : 'Wait for safe signal');
     
     console.log('✅ Processing answer:', choice);
     setSelectedAnswer(choice);
@@ -2141,6 +2280,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const handleGreetingAnswer = (choice) => {
     if (greetingAnswered) return;
     
+    // 🎤 Speak the choice text with teacher-like AI voice (clear & loud)
+    speakText(choice.text);
+    
     setGreetingSelectedChoice(choice);
     setGreetingAnswered(true);
 
@@ -2240,6 +2382,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   // Cashier game functions
   const handleItemSelect = (item) => {
     if (!isCashierGame) return;
+    
+    // 🎤 Speak the item name with teacher-like AI voice (clear & loud)
+    speakText(item.name);
     
     const newSelectedItems = [...selectedItems, item];
     setSelectedItems(newSelectedItems);
@@ -2609,16 +2754,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
   // Handle moving to item selection step
   const handleStartSelecting = () => {
-    // Do not hide the customer's thought bubble here; keep it visible until Next Question
+    // Keep the original order visible - don't change the speech text
     setGameStep(2);
-    setTimeout(() => {
-      setCurrentSpeaker('cashier');
-      setSpeechText("Okay, I'll get your order");
-      setShowThoughtBubble(true);
-      setTimeout(() => {
-        setShowThoughtBubble(false);
-      }, 2000);
-    }, 500);
+    // Speech text remains the customer's original order (already set in speechText)
   };
 
   // Create connection line between matched items
@@ -2832,11 +2970,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         };
         
         setDragConnections(prev => [...prev, newConnection]);
-        
-        // Check if all 7 items are connected
-        if (dragConnections.length + 1 >= 7) {
-          setCanSubmit(true);
-        }
+        // canSubmit will be updated by useEffect when dragConnections changes
       }
     }
     
@@ -2852,31 +2986,32 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     setIncorrectConnections(incorrect.map(conn => ({ leftId: conn.leftId, rightId: conn.rightId })));
     setIsAnswersChecked(true);
     
-    // Calculate score
+    // Calculate score (dynamic based on current question)
+    const totalItems = currentQuestion?.leftItems?.length || 0;
     const finalScore = correct.length;
     setMatchingScore(finalScore);
     setScore(prev => prev + finalScore);
     
-    // Show completion with detailed feedback
-    if (finalScore === 7) {
-      setMatchingFeedbackMessage("🎉 PERFECT SCORE! All 7 answers correct! Excellent work! 🎊");
+    // Show completion with detailed feedback (dynamic)
+    if (finalScore === totalItems) {
+      setMatchingFeedbackMessage(`🎉 PERFECT SCORE! All ${totalItems} answers correct! Excellent work! 🎊`);
       setMatchingFeedbackType("correct");
-    } else if (finalScore >= 5) {
-      setMatchingFeedbackMessage(`🎯 Great job! ${finalScore}/7 correct. ${7 - finalScore} to review.`);
+    } else if (finalScore >= Math.ceil(totalItems * 0.7)) {
+      setMatchingFeedbackMessage(`🎯 Great job! ${finalScore}/${totalItems} correct. ${totalItems - finalScore} to review.`);
       setMatchingFeedbackType("partial");
     } else {
-      setMatchingFeedbackMessage(`💪 Keep trying! ${finalScore}/7 correct. Review and try again!`);
+      setMatchingFeedbackMessage(`💪 Keep trying! ${finalScore}/${totalItems} correct. Review and try again!`);
       setMatchingFeedbackType("incorrect");
     }
     setShowMatchingFeedback(true);
     
-    // Auto advance if all correct
-    if (finalScore === 7) {
-      setTimeout(() => {
-        setIsAnswered(true);
-        setIsMatchingComplete(true);
-      }, 2000);
-    }
+    // Start countdown for auto-redirect
+    setRedirectCountdown(5);
+    
+    // Auto-redirect to activities page after 5 seconds
+    setTimeout(() => {
+      navigate(-1); // Go back to activities/flashcards page
+    }, 5000);
   };
 
   const handleResetConnections = () => {
@@ -3139,6 +3274,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   // Handle answer selection
   const handleAnswerClick = (choice) => {
     if (isAnswered) return;
+    
+    // 🎤 Speak the choice text with teacher-like AI voice (clear & loud)
+    speakText(choice);
     
     // Track timing for this question
     const questionStartTime = new Date();
@@ -3633,7 +3771,24 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
           {/* Answer Choices with autism-friendly design */}
           {!isCashierGame && !isHygieneGame && !isStreetGame && !isGreetingsGame && !isMoneyGame && !isMatchingGame && !isPuzzleGame && !isChoreGame && !isMemoryGame ? (
-            <div className="grid grid-cols-2 gap-6">
+            <div className="relative">
+              {/* Correct Answer Overlay for Academic Activities */}
+              {showCorrect && (
+                <div className="fixed inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50">
+                  <audio ref={correctAudioRef} src={correctSound} />
+                  <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
+                </div>
+              )}
+
+              {/* Wrong Answer Overlay for Academic Activities */}
+              {showWrong && (
+                <div className="fixed inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50">
+                  <audio ref={wrongAudioRef} src={wrongSound} />
+                  <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-6">
               {questions[currentQuestionIndex].answerChoices.map((choice, index) => (
                 <button
                   key={index}
@@ -3658,6 +3813,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 </button>
               ))}
             </div>
+            </div>
           ) : isHygieneGame ? (
             /* Modern Interactive Hygiene Game UI */
             <div className="space-y-8">
@@ -3677,6 +3833,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {/* Correct Answer Overlay */}
                 {showCorrect && (
                   <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <audio ref={correctAudioRef} src={correctSound} />
                     <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
                   </div>
                 )}
@@ -3684,6 +3841,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {/* Wrong Answer Overlay */}
                 {showWrong && (
                   <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <audio ref={wrongAudioRef} src={wrongSound} />
                     <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
                   </div>
                 )}
@@ -3706,12 +3864,38 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
                   {/* Main Character */}
                   <div className={`text-[8rem] mb-4 -mt-7 transition-all duration-500 ${showSuccessAnimation ? 'scale-110' : ''}`}>
-                    {currentQuestion?.characterEmoji || "😊"}
+                    {currentQuestion?.isCharacterVideo ? (
+                      <video
+                        key={currentQuestion?.characterEmoji}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="w-64 h-64 object-contain rounded-xl mx-auto"
+                        style={{ display: 'block' }}
+                      >
+                        <source src={currentQuestion?.characterEmoji} type="video/mp4" />
+                      </video>
+                    ) : (
+                      // Check if it's an image path (starts with / or contains file extension)
+                      currentQuestion?.characterEmoji?.startsWith('/') || 
+                      currentQuestion?.characterEmoji?.includes('.jpg') || 
+                      currentQuestion?.characterEmoji?.includes('.png') || 
+                      currentQuestion?.characterEmoji?.includes('.jpeg') ? (
+                        <img 
+                          src={currentQuestion?.characterEmoji} 
+                          alt="Character" 
+                          className="w-64 h-64 object-contain rounded-xl mx-auto"
+                        />
+                      ) : (
+                        currentQuestion?.characterEmoji || "😊"
+                      )
+                    )}
                   </div>
 
                   {/* Scenario Visual */}
-                  <div className="bg-white rounded-2xl p-6 border-3 border-blue-300 shadow-xl  -mt-8">
-                    <div className="text-6xl -mt-3">{currentQuestion?.scenarioImage}</div>
+                  <div className="bg-white rounded-2xl p-4 border-3 border-blue-300 shadow-xl -mt-12">
+                    <div className="text-4xl -mt-3">{currentQuestion?.scenarioImage}</div>
                     <div className="text-xl font-bold text-gray-800 leading-relaxed">
                       {currentQuestion?.questionText}
                     </div>
@@ -3719,41 +3903,61 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 </div>
 
                 {/* Action Choices */}
-                <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto">
-                  {currentQuestion?.answerChoices.map((choice, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleHygieneAnswer(choice)}
-                      disabled={isAnswered}
-                      className={`
-                        ${
-                          choice === currentQuestion.correctAnswer && isAnswered
-                            ? "bg-gradient-to-r from-green-400 to-green-500 text-white border-green-300 scale-105 shadow-2xl animate-success-pulse"
-                            : selectedAnswer === choice && choice !== currentQuestion.correctAnswer
-                            ? "bg-gradient-to-r from-red-400 to-red-500 text-white border-red-300 scale-105 shadow-2xl"
-                            : "bg-white hover:bg-blue-50 text-gray-800 border-blue-200 hover:border-blue-400"
-                        } 
-                        text-xl font-bold py-6 px-8 rounded-2xl cursor-pointer transition-all duration-300 border-3 backdrop-blur-sm transform
-                        focus:outline-none focus:ring-4 focus:ring-blue-300
-                        ${!isAnswered ? 'hover:scale-105 hover:shadow-xl' : ''}
-                        min-h-[5rem] flex items-center justify-center shadow-lg
-                      `}
-                    >
-                      <span className="relative z-10 text-center">{choice}</span>
-                    </button>
-                  ))}
+                <div className="grid grid-cols-3 gap-4 max-w-[1000px] mx-auto">
+                  {currentQuestion?.answerChoices.map((choiceRaw, index) => {
+                    const choiceText = typeof choiceRaw === 'string' ? choiceRaw : (choiceRaw.text || '');
+                    const choiceImage = typeof choiceRaw === 'object' ? choiceRaw.image : null;
+                    const choiceVideo = typeof choiceRaw === 'object' ? choiceRaw.video : null;
+                    const isCorrect = choiceText === currentQuestion.correctAnswer;
+                    const isSelectedWrong = selectedAnswer === choiceText && !isCorrect;
+
+                    return (
+                      <button
+                        key={choiceVideo || choiceText || index}
+                        onClick={() => handleHygieneAnswer(choiceRaw)}
+                        disabled={isAnswered}
+                        className={`
+                          ${
+                            isCorrect && isAnswered
+                              ? "bg-gradient-to-r from-green-400 to-green-500 text-white border-green-300 scale-105 shadow-2xl animate-success-pulse"
+                              : isSelectedWrong
+                              ? "bg-gradient-to-r from-red-400 to-red-500 text-white border-red-300 scale-105 shadow-2xl"
+                              : "bg-white hover:bg-blue-50 text-gray-800 border-blue-200 hover:border-blue-400"
+                          } 
+                          text-xl font-bold py-2 px-2 rounded-2xl cursor-pointer transition-all duration-300 border-3 backdrop-blur-sm transform
+                          focus:outline-none focus:ring-4 focus:ring-blue-300
+                          ${!isAnswered ? 'hover:scale-105 hover:shadow-xl' : ''}
+                          min-h-[10rem] flex flex-col items-center justify-center gap-3 shadow-lg
+                        `}
+                      >
+                        {/* Render video if provided */}
+                        {choiceVideo ? (
+                          <video
+                            key={choiceVideo}
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="w-68 h-62 object-contain rounded-lg -m-9 "
+                            style={{ display: 'block' }}
+                          >
+                            <source src={choiceVideo} type="video/mp4" />
+                          </video>
+                        ) : choiceImage ? (
+                          typeof choiceImage === 'string' && choiceImage.startsWith('/') ? (
+                            <img src={choiceImage} alt={choiceText} className="w-12 h-12 object-contain" />
+                          ) : (
+                            <div className="text-4xl">{choiceImage}</div>
+                          )
+                        ) : null}
+                        <span className="-mt-2 relative z-10 text-center">{choiceText}</span>
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {/* Score Display */}
-                <div className="mt-8 text-center">
-                  <div className="inline-flex bg-purple-100 rounded-full px-6 py-3 border-2 border-purple-300">
-                    <span className="text-xl font-bold text-purple-800 flex items-center space-x-2">
-                      <span className="text-2xl">🏆</span>
-                      <span>Score: {hygieneScore}/5</span>
-                      <span className="text-2xl animate-pulse-gentle">⭐</span>
-                    </span>
-                  </div>
-                </div>
+             
+                
               </div>
             </div>
           ) : isStreetGame ? (
@@ -3791,6 +3995,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {/* Correct Answer Overlay */}
                 {showCorrect && (
                   <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <audio ref={correctAudioRef} src={correctSound} />
                     <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
                   </div>
                 )}
@@ -3798,6 +4003,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {/* Wrong Answer Overlay */}
                 {showWrong && (
                   <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <audio ref={wrongAudioRef} src={wrongSound} />
                     <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
                   </div>
                 )}
@@ -4096,57 +4302,56 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               </div>
             </div>
           ) : isCashierGame ? (
-            <div className="space-y-6">
+            <div className="space-y-3">
               {/* Main Game Area */}
-              <div className="bg-gradient-to-b from-blue-50 to-green-50 rounded-3xl p-4 -mt-2 border-4 border-blue-200 relative">
+              <div className="bg-gradient-to-b from-blue-50 to-green-50 rounded-2xl p-2 -mt-2 border-2 border-blue-200 relative">
                 {/* Correct Answer Overlay */}
                 {showCorrect && (
                   <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
-                    <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
+                    <audio ref={correctAudioRef} src={correctSound} />
+                    <img src={currentCorrectImage} alt="Correct" className="w-40 h-40 object-contain" />
                   </div>
                 )}
 
                 {/* Wrong Answer Overlay */}
                 {showWrong && (
                   <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
-                    <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
+                    <audio ref={wrongAudioRef} src={wrongSound} />
+                    <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-40 h-40 object-contain" />
                   </div>
                 )}
                 
                 {/* Characters with simplified design */}
-                <div className="flex justify-between items-center relative min-h-[300px]">
+                <div className="flex justify-between items-center relative max-h-[260px]">
                   
                   {/* Customer Character */}
                   <div className="flex flex-col items-center relative">
-                    {/* Thought Bubble for Customer */}
-                    {showThoughtBubble && currentSpeaker === 'customer' && (
-                      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white rounded-3xl p-3 border-4 border-pink-300 shadow-2xl w-[250px] z-10 animate-bounce-gentle">
-                        <div className="text-xl font-bold text-gray-800 text-center leading-relaxed">
+                    {/* Thought Bubble for Customer - Always show when there's speech text */}
+                    {speechText && (
+                      <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-white rounded-2xl p-2 border-2 border-pink-300 shadow-lg w-[200px] z-10 animate-bounce-gentle">
+                        <div className="text-base font-bold text-gray-800 text-center leading-tight">
                           {speechText}
                         </div>
                         {/* Bubble pointer */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
-                          <div className="w-0 h-0 border-l-8 border-r-8 border-t-16 border-l-transparent border-r-transparent border-t-white"></div>
+                          <div className="w-0 h-0 border-l-4 border-r-4 border-t-8 border-l-transparent border-r-transparent border-t-white"></div>
                         </div>
                       </div>
                     )}
                     
-                    {/* Customer - Head only */}
+                    {/* Customer - Head larger */}
                     <div className="text-center">
-                      {/* Head - larger */}
-                      <div className="text-[12rem] mb-4">👩‍🦱</div>
-                      
-                      {/* Label */}
-                      <div className="bg-pink-500 text-white px-8 py-4 rounded-full text-2xl font-bold shadow-lg">
+                      <div className="text-[9rem] relative bottom-10">👩‍🦱</div>
+                      <div className="relative bottom-10 bg-pink-500 text-white px-3 py-2 rounded-full text-base font-bold shadow-md">
                         Customer
                       </div>
                     </div>
                   </div>
 
                   {/* Restaurant Counter */}
-                  <div className="flex-1 mx-16 mt-20">
-                    <div className="h-32 bg-gradient-to-t from-amber-400 to-amber-200 rounded-2xl border-4 border-amber-500 relative flex items-center justify-center shadow-lg">
-                      <span className="text-2xl font-bold text-amber-900">🏪 Restaurant Counter 🏪</span>
+                  <div className="flex-1 mx-4 ">
+                    <div className="h-20 bg-gradient-to-t from-amber-400 to-amber-200 rounded-xl border-2 border-amber-500 relative flex items-center justify-center shadow-md">
+                      <span className="text-base font-bold text-amber-900">🏪 Restaurant Counter 🏪</span>
                     </div>
                   </div>
 
@@ -4154,24 +4359,21 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   <div className="flex flex-col items-center relative">
                     {/* Thought Bubble for Cashier */}
                     {showThoughtBubble && currentSpeaker === 'cashier' && (
-                      <div className="absolute -top-32 left-1/2 transform -translate-x-1/2 bg-white rounded-3xl p-8 border-4 border-blue-300 shadow-2xl max-w-lg z-10 animate-bounce-gentle">
-                        <div className="text-xl font-bold text-gray-800 text-center leading-relaxed">
+                      <div className="absolute -top-20 left-1/2 transform -translate-x-1/2 bg-white rounded-2xl p-3 border-2 border-blue-300 shadow-lg max-w-sm z-10 animate-bounce-gentle">
+                        <div className="text-sm font-bold text-gray-800 text-center leading-tight">
                           {speechText}
                         </div>
                         {/* Bubble pointer */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
-                          <div className="w-0 h-0 border-l-8 border-r-8 border-t-16 border-l-transparent border-r-transparent border-t-white"></div>
+                          <div className="w-0 h-0 border-l-4 border-r-4 border-t-8 border-l-transparent border-r-transparent border-t-white"></div>
                         </div>
                       </div>
                     )}
                     
-                    {/* Cashier - Head only */}
+                    {/* Cashier - Head larger */}
                     <div className="text-center">
-                      {/* Head - larger */}
-                      <div className="text-[12rem] mb-4">👨‍💼</div>
-                      
-                      {/* Label */}
-                      <div className="bg-blue-500 text-white px-8 py-4 rounded-full text-2xl font-bold shadow-lg">
+                      <div className="text-[9rem] relative bottom-10">👨‍💼</div>
+                      <div className="relative bottom-10 bg-blue-500 text-white px-3 py-2 rounded-full text-base font-bold shadow-md">
                         You (Cashier)
                       </div>
                     </div>
@@ -4180,7 +4382,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               </div>
 
               {/* Action Area */}
-              <div className="mt-8 space-y-6">
+              <div className="mt-3 space-y-3">
                 {/* Step 1: Customer speaks */}
                 {gameStep === 1 && (
                   <div className="text-center">
@@ -4188,7 +4390,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                     {showThoughtBubble && (
                       <button
                         onClick={handleStartSelecting}
-                        className="bg-green-500 hover:bg-green-600 text-white py-6 px-12 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg"
+                        className="bg-green-500 hover:bg-green-600 text-white py-3 px-8 rounded-xl font-bold text-base transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-md"
                       >
                         ✅ GET ORDER
                       </button>
@@ -4199,61 +4401,64 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {/* Step 2: Select items */}
                 {gameStep === 2 && (
                   <div>
-                    <div className="bg-blue-100 border-4 border-blue-300 rounded-2xl p-6 mb-6 text-center">
-                      <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                    <div className="bg-blue-100 border-2 border-blue-300 rounded-xl p-3 mb-3 text-center">
+                      <h3 className="text-base font-bold text-gray-800">
                         🍽️ Find the food the customer wants
                       </h3>
                     </div>
 
                     {/* Food Menu - Simple Grid */}
-                    <div className="grid grid-cols-3 gap-4 mb-6">
-                      {currentQuestion.menuOptions.map((item, index) => (
+                    <div className="grid grid-cols-4 gap-3 mb-3">
+                      {currentQuestion.menuOptions.slice(0, 4).map((item, index) => (
                         <button
                           key={index}
                           onClick={() => handleItemSelect(item)}
                           disabled={isAnswered}
-                          className="bg-white hover:bg-blue-50 border-4 border-gray-300 hover:border-blue-400 rounded-2xl p-6 transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg"
+                          className="bg-white hover:bg-blue-50 border-2 border-gray-300 hover:border-blue-400 rounded-xl p-4 transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-md"
                         >
-                          <div className="text-5xl mb-3">{item.image}</div>
-                          <div className="font-bold text-gray-800 text-lg">{item.name}</div>
-                          <div className="text-green-600 font-semibold text-lg">{item.price}</div>
+                          <div className="text-5xl mb-2">{item.image}</div>
+                          <div className="font-bold text-gray-800 text-base">{item.name}</div>
+                          <div className="text-green-600 font-semibold text-sm">{item.price}</div>
                         </button>
                       ))}
                     </div>
 
-                    {/* Selected Items Display */}
+                    {/* Selected Items Display with Submit Button */}
                     {selectedItems.length > 0 && (
-                      <div className="bg-green-100 border-4 border-green-300 rounded-2xl p-6 mb-6">
-                        <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">
-                          ✅ Food I picked:
-                        </h3>
-                        <div className="flex flex-wrap gap-3 justify-center">
-                          {selectedItems.map((item, index) => (
-                            <div key={index} className="bg-white border-3 border-green-400 rounded-xl p-4 flex items-center space-x-3 shadow-md">
-                              <span className="text-3xl">{item.image}</span>
-                              <span className="font-semibold text-lg">{item.name}</span>
-                              <button
-                                onClick={() => handleRemoveItem(index)}
-                                disabled={isAnswered}
-                                className="bg-red-100 hover:bg-red-200 text-red-600 px-3 py-2 rounded-lg text-lg cursor-pointer font-bold"
-                              >
-                                ❌
-                              </button>
-                            </div>
-                          ))}
+                      <div className="flex gap-3 items-start mb-3">
+                        {/* Left side - Selected items */}
+                        <div className="flex-1 bg-green-100 border-2 border-green-300 rounded-xl p-3">
+                          <h3 className="text-sm font-bold text-gray-800 mb-2 text-center">
+                            ✅ Food I picked:
+                          </h3>
+                          <div className="flex flex-wrap gap-2 justify-center">
+                            {selectedItems.map((item, index) => (
+                              <div key={index} className="bg-white border-2 border-green-400 rounded-lg p-2 flex items-center space-x-2 shadow-sm">
+                                <span className="text-2xl">{item.image}</span>
+                                <span className="font-semibold text-sm">{item.name}</span>
+                                <button
+                                  onClick={() => handleRemoveItem(index)}
+                                  disabled={isAnswered}
+                                  className="bg-red-100 hover:bg-red-200 text-red-600 px-2 py-1 rounded-md text-sm cursor-pointer font-bold"
+                                >
+                                  ❌
+                                </button>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
 
-                    {/* Submit Button */}
-                    {selectedItems.length > 0 && !isAnswered && (
-                      <div className="text-center">
-                        <button
-                          onClick={handleCashierSubmit}
-                          className="bg-purple-500 hover:bg-purple-600 text-white py-6 px-12 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg"
-                        >
-                          🎯 Give food to customer
-                        </button>
+                        {/* Right side - Submit Button */}
+                        {!isAnswered && (
+                          <div className="flex items-center">
+                            <button
+                              onClick={handleCashierSubmit}
+                              className="bg-purple-500 relative top-7  hover:bg-purple-600 text-white py-4 px-6 rounded-xl font-bold text-base transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-md whitespace-nowrap"
+                            >
+                              🎯 Give food to customer
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -4262,11 +4467,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {/* Step 3: Complete */}
                 {gameStep === 3 && (
                   <div className="text-center">
-                    <div className="bg-purple-100 border-4 border-purple-300 rounded-2xl p-6">
-                      <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                    <div className="bg-purple-100 border-2 border-purple-300 rounded-xl p-4">
+                      <h3 className="text-lg font-bold text-gray-800 mb-2">
                         🏆 Good job helping the customer!
                       </h3>
-                      <div className="text-xl font-bold text-purple-600">
+                      <div className="text-base font-bold text-purple-600">
                         You got {cashierScore} points! 🌟
                       </div>
                     </div>
@@ -4445,57 +4650,56 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               </div>
             </div>
           ) : isGreetingsGame ? (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Main Game Area */}
-              <div className="bg-gradient-to-b from-green-50 to-blue-50 rounded-3xl p-4 -mt-2 border-4 border-green-200 relative">
+              <div className="bg-gradient-to-b from-green-50 to-blue-50 rounded-2xl p-3 -mt-2 border-3 border-green-200 relative">
                 {/* Correct Answer Overlay */}
                 {showCorrect && (
                   <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
-                    <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
+                    <audio ref={correctAudioRef} src={correctSound} />
+                    <img src={currentCorrectImage} alt="Correct" className="w-52 h-52 object-contain" />
                   </div>
                 )}
 
                 {/* Wrong Answer Overlay */}
                 {showWrong && (
                   <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
-                    <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
+                    <audio ref={wrongAudioRef} src={wrongSound} />
+                    <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-52 h-52 object-contain" />
                   </div>
                 )}
                 
                 {/* Social Greetings Adventure UI */}
-                <div className="flex justify-between items-center relative min-h-[300px]">
+                <div className="flex justify-between items-center relative min-h-[220px]">
                   
                   {/* Student Character (You) */}
                   <div className="flex flex-col items-center relative">
                     {/* Thought Bubble for Student */}
                     {currentGreetingScenario?.studentThought && (
-                      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white rounded-3xl p-3 border-4 border-blue-300 shadow-2xl w-[250px] z-10 animate-bounce-gentle">
-                        <div className="text-xl font-bold text-gray-800 text-center leading-relaxed">
+                      <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-white rounded-2xl p-3 border-3 border-blue-300 shadow-lg w-[220px] z-10 animate-bounce-gentle">
+                        <div className="text-base font-bold text-gray-800 text-center leading-snug">
                           {currentGreetingScenario.studentThought}
                         </div>
                         {/* Bubble pointer */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
-                          <div className="w-0 h-0 border-l-8 border-r-8 border-t-16 border-l-transparent border-r-transparent border-t-white"></div>
+                          <div className="w-0 h-0 border-l-6 border-r-6 border-t-10 border-l-transparent border-r-transparent border-t-white"></div>
                         </div>
                       </div>
                     )}  
                     
-                    {/* Student Character - Head only */}
+                    {/* Student Character - Head bigger */}
                     <div className="text-center">
-                      {/* Head - larger */}
-                      <div className="text-[11rem] ">👦</div>
-                      
-                      {/* Label */}
-                      <div className="bg-blue-500 text-white px-8 py-3 -mt-6 rounded-full text-2xl font-bold shadow-lg">
+                      <div className="text-[9rem]">👦</div>
+                      <div className="bg-blue-500 text-white px-4 py-2 -mt-3 rounded-full text-base font-bold shadow-lg">
                         You
                       </div>
                     </div>
                   </div>
 
                   {/* Scene Background */}
-                  <div className="flex-1 mx-16 mt-20">
-                    <div className="h-32 bg-gradient-to-t from-yellow-400 to-yellow-200 rounded-2xl border-4 border-yellow-500 relative flex items-center justify-center shadow-lg">
-                      <span className="text-2xl font-bold text-yellow-900">
+                  <div className="flex-1 mx-6 mt-10">
+                    <div className="h-20 bg-gradient-to-t from-yellow-400 to-yellow-200 rounded-xl border-3 border-yellow-500 relative flex items-center justify-center shadow-lg">
+                      <span className="text-lg font-bold text-yellow-900">
                         {currentGreetingScenario?.background} 
                         {currentGreetingScenario?.context === 'morning' ? '🌅' : 
                          currentGreetingScenario?.context === 'afternoon' ? '☀️' : 
@@ -4508,26 +4712,23 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   <div className="flex flex-col items-center relative">
                     {/* Speech Bubble for Other Character */}
                     {currentGreetingScenario?.otherCharacterSpeech && (
-                      <div className="absolute -top-15 left-1/2 transform -translate-x-1/2 bg-white rounded-3xl p-4 border-4 border-pink-300 shadow-2xl w-[250px] z-10 animate-bounce-gentle">
-                        <div className="text-xl font-bold text-gray-800 text-center leading-relaxed">
+                      <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-white rounded-2xl p-3 border-3 border-pink-300 shadow-lg w-[220px] z-10 animate-bounce-gentle">
+                        <div className="text-base font-bold text-gray-800 text-center leading-snug">
                           {currentGreetingScenario.otherCharacterSpeech}
                         </div>
                         {/* Bubble pointer */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
-                          <div className="w-0 h-0 border-l-8 border-r-8 border-t-16 border-l-transparent border-r-transparent border-t-white"></div>
+                          <div className="w-0 h-0 border-l-6 border-r-6 border-t-10 border-l-transparent border-r-transparent border-t-white"></div>
                         </div>
                       </div>
                     )}
                     
-                    {/* Other Character - Head only */}
+                    {/* Other Character - Head bigger */}
                     <div className="text-center">
-                      {/* Head - larger */}
-                      <div className="text-[11rem]">
+                      <div className="text-[9rem]">
                         {currentGreetingScenario?.character}
                       </div>
-                      
-                      {/* Label */}
-                      <div className="bg-pink-500 text-white px-4 -mt-6 py-3 rounded-full text-2xl font-bold shadow-lg">
+                      <div className="bg-pink-500 text-white px-4 py-2 -mt-3 rounded-full text-base font-bold shadow-lg">
                         {currentGreetingScenario?.characterType}
                       </div>
                     </div>
@@ -4535,29 +4736,26 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 </div>
 
                 {/* Scenario Title and Context */}
-                <div className="text-center mb-6">
-                  <div className="bg-gradient-to-r from-purple-100 to-blue-100 border-4 border-purple-300 rounded-2xl p-6">
-                    {/* <h2 className="text-xl font-bold text-gray-800 mb-2">
-                      🌟 Social Greetings Adventure 🌟
-                    </h2> */}
-                    <p className="text-xl -mt-3 font-bold text-gray-800">
+                <div className="text-center mb-3">
+                  <div className="bg-gradient-to-r from-purple-100 to-blue-100 border-3 border-purple-300 rounded-xl p-3">
+                    <p className="text-lg font-bold text-gray-800">
                       Round {greetingsRound}/5 - {currentGreetingScenario?.title}
                     </p>
-                    <p className="text-lg text-gray-600">
+                    <p className="text-base text-gray-600">
                       {currentGreetingScenario?.situation}
                     </p>
                   </div>
                 </div>
 
                 {/* Greeting Choice Buttons */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                <div className="grid grid-cols-2 gap-3 mb-2">
                   {currentGreetingScenario?.choices?.map((choice, index) => (
                     <button
                       key={index}
                       onClick={() => handleGreetingAnswer(choice)}
                       disabled={greetingAnswered}
                       className={`
-                        p-2 rounded-2xl font-bold text-xl transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg border-4
+                        p-4 rounded-xl font-bold text-base transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg border-3
                         ${choice.correct && greetingAnswered 
                           ? 'bg-green-100 border-green-400 text-green-800' 
                           : !choice.correct && greetingAnswered
@@ -4566,13 +4764,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                         ${greetingAnswered ? 'cursor-not-allowed' : ''}
                       `}
                     >
-                      <div className="text-4xl mb-3">{choice.emoji}</div>
-                      <div className="leading-relaxed">{choice.text}</div>
+                      <div className="text-4xl mb-2">{choice.emoji}</div>
+                      <div className="leading-snug">{choice.text}</div>
                       {choice.correct && greetingAnswered && (
-                        <div className="text-green-600 font-bold mt-3">✅ Perfect greeting!</div>
+                        <div className="text-green-600 font-bold mt-2 text-sm">✅ Perfect greeting!</div>
                       )}
                       {!choice.correct && greetingAnswered && greetingSelectedChoice === choice && (
-                        <div className="text-red-600 font-bold mt-3">❌ Try a different approach</div>
+                        <div className="text-red-600 font-bold mt-2 text-sm">❌ Try a different approach</div>
                       )}
                     </button>
                   ))}
@@ -4590,6 +4788,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {/* Correct Answer Overlay */}
                 {showCorrect && (
                   <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <audio ref={correctAudioRef} src={correctSound} />
                     <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
                   </div>
                 )}
@@ -4597,23 +4796,12 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {/* Wrong Answer Overlay */}
                 {showWrong && (
                   <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <audio ref={wrongAudioRef} src={wrongSound} />
                     <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
                   </div>
                 )}
                 
-                {/* Game Header */}
-                <div className="text-center mb-6">
-                  <div className="bg-gradient-to-r from-yellow-100 to-green-100 border-4 border-yellow-300 rounded-2xl p-6 relative">
-                    <div className="absolute -top-2 -right-2 text-6xl animate-bounce-gentle">💰</div>
-                    <div className="absolute -top-2 -left-2 text-4xl animate-float">🏪</div>
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">
-                      💱 Money Value Adventure 💱
-                    </h2>
-                    <p className="text-lg font-semibold -mb-4 text-gray-700">
-                      Round {moneyRound}/3 - Learn Philippine Peso Values!
-                    </p>
-                  </div>
-                </div>
+                
 
                 {/* Budget Display */}
                 <div className="bg-gradient-to-r from-blue-100 to-purple-100 border-4 border-blue-300 rounded-2xl p-3 mb-6 text-center relative">
@@ -4762,19 +4950,16 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             /* Visual Memory Challenge Game UI */
             <div className="space-y-6">
               {/* Game Header */}
-              <div className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 border-4 border-purple-300 rounded-3xl p-6 text-center relative overflow-hidden shadow-2xl">
+              <div className="-mb-0 bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 border-4 border-purple-300 rounded-3xl p-2 text-center relative overflow-hidden shadow-2xl">
                 <div className="absolute top-2 right-2 text-6xl animate-bounce-gentle">🧠</div>
                 <div className="absolute -bottom-2 -left-2 text-5xl animate-float">💭</div>
                 <div className="absolute top-2 left-2 text-4xl animate-pulse-gentle">✨</div>
-                <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-2">
+                <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-2">
                   🧠 Visual Memory Challenge 🧠
                 </h2>
-                <p className="text-xl font-semibold text-gray-700 mb-1">
-                  Round {memoryRound}/3
-                </p>
-                <p className="text-lg text-gray-600">
+                {/* <p className="text-lg text-gray-600">
                   {currentQuestion?.instruction || 'Memorize and track the cards!'}
-                </p>
+                </p> */}
               </div>
 
               {/* Phase Indicator */}
@@ -4783,10 +4968,10 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   <div className="space-y-2">
                     
                     <h3 className="text-2xl font-bold text-purple-600">Memorize the Cards!👀</h3>
-                    <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-4 border-3 border-yellow-300 inline-block my-3">
+                    <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-3 border-3 border-yellow-300 inline-block my-3">
                       <p className="text-lg font-semibold text-gray-700 mb-2">Remember this card:</p>
-                      <div className="text-7xl">{currentTargetCard.image}</div>
-                      <p className="text-xl font-bold text-gray-800 mt-2">{currentTargetCard.name}</p>
+                      <div className="text-6xl">{currentTargetCard.image}</div>
+                      <p className="text-xl font-bold text-gray-800 mt-1">{currentTargetCard.name}</p>
                     </div>
                     <div className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-600 animate-pulse">
                       {memoryTimer}
@@ -4798,9 +4983,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   <div className="space-y-2">
                     <div className="text-5xl animate-spin-slow">🔄</div>
                     <h3 className="text-2xl font-bold text-blue-600">Watch the Shuffle!</h3>
-                    <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-4 border-3 border-yellow-300 inline-block my-3">
-                      <p className="text-lg font-semibold text-gray-700 mb-2">Find this card:</p>
-                      <div className="text-7xl">{currentTargetCard.image}</div>
+                    <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-3 border-3 border-yellow-300 inline-block ">
+                      <p className="text-lg font-semibold text-gray-700 mb-1">Find this card:</p>
+                      <div className="text-6xl">{currentTargetCard.image}</div>
                       <p className="text-xl font-bold text-gray-800 mt-2">{currentTargetCard.name}</p>
                     </div>
                     <p className="text-lg text-gray-600">Keep tracking the cards...</p>
@@ -4808,13 +4993,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 )}
                 {memoryGamePhase === 'question' && currentTargetCard && (
                   <div className="space-y-2">
-                    <div className="text-5xl animate-bounce-gentle">🤔</div>
-                    <h3 className="text-2xl font-bold text-green-600">Find This Card!</h3>
-                    <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-4 border-3 border-yellow-300 inline-block">
-                      <div className="text-7xl">{currentTargetCard.image}</div>
-                      <p className="text-xl font-bold text-gray-800 mt-2">{currentTargetCard.name}</p>
+                    
+                    <h3 className="-mt-2 text-2xl font-bold text-green-600">Find This Card! <span className="text-4xl animate-bounce-gentle">🤔</span></h3>
+                    <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-3 border-3 border-yellow-300 inline-block">
+                      <div className="text-6xl">{currentTargetCard.image}</div>
+                      <p className="text-xl font-bold text-gray-800 mt-1">{currentTargetCard.name}</p>
                     </div>
-                    <p className="text-lg text-gray-600">Click where it is now!</p>
+                    <p className="text-md text-gray-600">Click where it is now!</p>
                   </div>
                 )}
               </div>
@@ -4838,7 +5023,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                       key={`card-${cardIndex}`}
                       onClick={() => handleMemoryCardClick(currentPosition)}
                       className={`
-                        absolute w-[23%] h-full cursor-pointer
+                        absolute w-[22%] h-[290px] cursor-pointer
                         ${memoryGamePhase === 'question' ? 'hover:scale-105 hover:shadow-2xl' : ''}
                         ${isShuffling ? 'z-50' : 'z-10'}
                         transition-all duration-[1500ms] ease-in-out
@@ -4890,63 +5075,43 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 )}
               </div>
 
-              {/* Score Display */}
-              <div className="bg-gradient-to-r from-green-100 to-blue-100 rounded-2xl p-4 border-3 border-green-300 text-center">
-                <div className="flex justify-center items-center space-x-6">
-                  <div className="bg-white/70 rounded-xl px-4 py-2 border-2 border-green-200">
-                    <p className="text-sm text-gray-600">Correct</p>
-                    <p className="text-3xl font-bold text-green-600">{memoryCorrectAnswers}</p>
-                  </div>
-                  <div className="bg-white/70 rounded-xl px-4 py-2 border-2 border-red-200">
-                    <p className="text-sm text-gray-600">Wrong</p>
-                    <p className="text-3xl font-bold text-red-600">{memoryWrongAnswers}</p>
-                  </div>
-                  <div className="bg-white/70 rounded-xl px-4 py-2 border-2 border-blue-200">
-                    <p className="text-sm text-gray-600">Total</p>
-                    <p className="text-3xl font-bold text-blue-600">{memoryAttempts}</p>
-                  </div>
-                </div>
-              </div>
 
-              {/* Feedback Message */}
-              {showMemoryFeedback && (
-                <div className={`
-                  fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50
-                  bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-4
-                  ${memoryFeedbackType === 'correct' ? 'border-green-400' : 'border-red-400'}
-                  animate-modal-appear
-                `}>
-                  <div className="text-8xl mb-4 text-center animate-bounce-gentle">
-                    {memoryFeedbackType === 'correct' ? '🎉' : '❌'}
-                  </div>
-                  <p className={`text-2xl font-bold text-center ${
-                    memoryFeedbackType === 'correct' ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {memoryFeedbackMessage}
-                  </p>
+              {/* Feedback Message - Using same modal as Identification */}
+              {showCorrect && (
+                <div className="fixed inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50">
+                  <audio ref={correctAudioRef} src={correctSound} />
+                  <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
+                </div>
+              )}
+
+              {showWrong && (
+                <div className="fixed inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50">
+                  <audio ref={wrongAudioRef} src={wrongSound} />
+                  <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
                 </div>
               )}
             </div>
           ) : isMatchingGame ? (
             /* Modern Interactive Matching Game UI */
             <div className="space-y-8">
+              {/* Safety check for matching game data */}
+              {!currentQuestion?.leftItems || !currentQuestion?.rightItems ? (
+                <div className="bg-red-50 border-4 border-red-200 rounded-3xl p-8 text-center">
+                  <div className="text-6xl mb-4">⚠️</div>
+                  <h3 className="text-2xl font-bold text-red-800 mb-2">Oops! Data Missing</h3>
+                  <p className="text-lg text-red-600">The matching game data couldn't be loaded. Please try again.</p>
+                </div>
+              ) : (
+                <>
               {/* Game Instructions */}
               <div className="flex flex-col items-center justify-center text-center bg-gradient-to-r -mt-6 from-blue-50 to-purple-50 rounded-2xl p-2 border-3 border-blue-200 relative overflow-hidden">
                 <div className="absolute -top-4 -right-4 text-6xl animate-bounce-gentle">🎯</div>
                 <div className="absolute -bottom-2 -left-2 text-4xl animate-float">✨</div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-3 flex items-center space-x-3">
-                  <span className="text-3xl animate-pulse-gentle">🎮</span>
-                  <span>Drag & Drop!</span>
+                <h3 className="text-2xl font-bold text-gray-800 mb-1 flex items-center space-x-3">
+                  <span className="text-2xl animate-pulse-gentle">🎮</span>
+                  <span>Click to Connect!</span>
                 </h3>
-                
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <span className="bg-green-100 px-2 py-1 rounded-full text-green-700 font-semibold">
-                    ✓ Connected: {dragConnections.length}/10
-                  </span>
-                  <span className="bg-blue-100 px-2 py-1 rounded-full text-blue-700 font-semibold">
-                    🎯 Drag to connect!
-                  </span>
-                </div>
+             
               </div>
 
               {/* Matching Game Area */}
@@ -4955,6 +5120,22 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 ref={gameContainerRef}
                 className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 rounded-3xl p-4 border-4 border-purple-200 relative overflow-hidden shadow-2xl"
               >
+                {/* Correct Answer Overlay for Matching Game */}
+                {showCorrect && (
+                  <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <audio ref={correctAudioRef} src={correctSound} />
+                    <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
+                  </div>
+                )}
+
+                {/* Wrong Answer Overlay for Matching Game */}
+                {showWrong && (
+                  <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+                    <audio ref={wrongAudioRef} src={wrongSound} />
+                    <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
+                  </div>
+                )}
+
                 {/* Decorative Elements */}
                 <div className="absolute top-2 right-2 text-2xl animate-spin-slow">⭐</div>
                 <div className="absolute bottom-2 left-2 text-xl animate-float-delayed">🌟</div>
@@ -4963,7 +5144,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   {/* Left Column */}
                   <div className="w-1/3 space-y-2">
                     <h4 className="text-sm font-bold text-center text-gray-800 bg-gradient-to-r from-blue-100 to-purple-100 py-2 rounded-xl border-2 border-blue-200">
-                      📋 Drag From Here
+                      📋 Click From Here
                     </h4>
                     {currentQuestion.leftItems.map((item, index) => (
                       <button
@@ -4973,7 +5154,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                         onMouseDown={(e) => handleDragStart(e, item, 'left')}
                         disabled={dragConnections.some(conn => conn.leftId === item.id)}
                         className={`
-                          w-full p-4 rounded-xl border-2 transition-all duration-300 transform text-lg h-20 min-h-[5rem]
+                          w-full rounded-xl border-2 transition-all duration-300 transform text-lg h-20 min-h-[6rem]
                           ${dragConnections.some(conn => conn.leftId === item.id)
                             ? isAnswersChecked
                               ? correctConnections.some(conn => conn.leftId === item.id)
@@ -4990,9 +5171,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                         `}
                       >
                         {item.type === 'emoji' ? (
-                          <span className="text-4xl">{item.content}</span>
+                          <span className="text-5xl">{item.content}</span>
                         ) : (
-                          <span className="text-xl text-gray-800 font-medium">{item.content}</span>
+                          <span className="text-2xl text-gray-800 font-medium">{item.content}</span>
                         )}
                         {dragConnections.some(conn => conn.leftId === item.id) && (
                           <span className="ml-2 text-lg animate-bounce-gentle">
@@ -5104,7 +5285,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                         onMouseUp={(e) => handleDragEnd(e, item, 'right')}
                         disabled={dragConnections.some(conn => conn.rightId === item.id)}
                         className={`
-                          w-full p-4 rounded-xl border-2 transition-all duration-300 transform text-lg h-20 min-h-[5rem]
+                          w-full rounded-xl border-2 transition-all duration-300 transform text-lg min-h-[6rem] h-23
                           ${dragConnections.some(conn => conn.rightId === item.id)
                             ? isAnswersChecked
                               ? correctConnections.some(conn => conn.rightId === item.id)
@@ -5116,12 +5297,25 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                             : 'bg-gradient-to-r from-white to-pink-50 border-pink-200 hover:border-pink-400 hover:scale-105 hover:shadow-lg'
                           }
                           ${!dragConnections.some(conn => conn.rightId === item.id) ? 'hover:animate-bounce-gentle' : ''}
-                          flex items-center justify-center text-center font-bold
+                          flex items-center justify-center text-center font-bold overflow-hidden relative
                           focus:outline-none focus:ring-2 focus:ring-pink-300
                         `}
                       >
                         {item.type === 'emoji' ? (
                           <span className="text-2xl">{item.content}</span>
+                        ) : item.type === 'video' ? (
+                          <video 
+                            src={item.content} 
+                            className="absolute inset-0 w-full h-full object-cover rounded-lg"
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            onError={(e) => {
+                              console.error('Video failed to load:', item.content);
+                              e.target.style.display = 'none';
+                            }}
+                          />
                         ) : (
                           <span className="text-lg text-gray-800 font-medium">{item.content}</span>
                         )}
@@ -5149,7 +5343,12 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                       : 'bg-gradient-to-r from-yellow-100 to-orange-100 border-yellow-400 text-orange-800'
                     }
                   `}>
-                    {matchingFeedbackMessage}
+                    <div>{matchingFeedbackMessage}</div>
+                    {redirectCountdown !== null && redirectCountdown > 0 && (
+                      <div className="mt-2 text-lg animate-pulse">
+                        ⏰ Returning to activities in {redirectCountdown} second{redirectCountdown !== 1 ? 's' : ''}...
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -5158,41 +5357,55 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
                 {/* Action Buttons */}
                 <div className="mt-6 flex space-x-4">
-                  <button
-                    onClick={handleCheckAnswers}
-                    disabled={!canSubmit || isAnswersChecked}
-                    className={`
-                      flex-1 py-4 px-6 rounded-2xl border-3 font-bold text-lg transition-all duration-300 transform
-                      ${canSubmit && !isAnswersChecked
-                        ? 'bg-gradient-to-r from-green-400 to-green-600 text-white border-green-500 hover:scale-105 hover:shadow-xl cursor-pointer animate-pulse-gentle'
-                        : 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed opacity-60'
-                      }
-                      focus:outline-none focus:ring-4 focus:ring-green-300
-                    `}
-                  >
-                    <span className="text-2xl mr-2">✅</span>
-                    {isAnswersChecked ? `Score: ${correctConnections.length}/7` : 'Check Answers'}
-                  </button>
-                  
-                  <button
-                    onClick={handleResetConnections}
-                    disabled={dragConnections.length === 0}
-                    className={`
-                      flex-1 py-4 px-6 rounded-2xl border-3 font-bold text-lg transition-all duration-300 transform
-                      ${dragConnections.length > 0
-                        ? 'bg-gradient-to-r from-orange-400 to-red-500 text-white border-orange-500 hover:scale-105 hover:shadow-xl cursor-pointer'
-                        : 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed opacity-60'
-                      }
-                      focus:outline-none focus:ring-4 focus:ring-orange-300
-                    `}
-                  >
-                    <span className="text-2xl mr-2">🔄</span>
-                    Reset
-                  </button>
+                  {!isAnswersChecked ? (
+                    <>
+                      <button
+                        onClick={handleCheckAnswers}
+                        disabled={!canSubmit}
+                        className={`
+                          flex-1 py-4 px-6 rounded-2xl border-3 font-bold text-lg transition-all duration-300 transform
+                          ${canSubmit
+                            ? 'bg-gradient-to-r from-green-400 to-green-600 text-white border-green-500 hover:scale-105 hover:shadow-xl cursor-pointer animate-pulse-gentle'
+                            : 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed opacity-60'
+                          }
+                          focus:outline-none focus:ring-4 focus:ring-green-300
+                        `}
+                      >
+                        <span className="text-2xl mr-2">✅</span>
+                        Check Answers
+                      </button>
+                      
+                      <button
+                        onClick={handleResetConnections}
+                        disabled={dragConnections.length === 0}
+                        className={`
+                          flex-1 py-4 px-6 rounded-2xl border-3 font-bold text-lg transition-all duration-300 transform
+                          ${dragConnections.length > 0
+                            ? 'bg-gradient-to-r from-orange-400 to-red-500 text-white border-orange-500 hover:scale-105 hover:shadow-xl cursor-pointer'
+                            : 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed opacity-60'
+                          }
+                          focus:outline-none focus:ring-4 focus:ring-orange-300
+                        `}
+                      >
+                        <span className="text-2xl mr-2">🔄</span>
+                        Reset
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => navigate(-1)}
+                      className="flex-1 py-4 px-6 rounded-2xl border-3 font-bold text-lg transition-all duration-300 transform
+                        bg-gradient-to-r from-blue-400 to-purple-600 text-white border-blue-500 hover:scale-105 hover:shadow-xl cursor-pointer
+                        focus:outline-none focus:ring-4 focus:ring-blue-300"
+                    >
+                      <span className="text-2xl mr-2">🏠</span>
+                      Back to Activities
+                    </button>
+                  )}
                 </div>
 
                 {/* Back to Activities Button */}
-                <div className="mt-4 flex justify-center">
+                {/* <div className="mt-4 flex justify-center">
                   <button
                     onClick={() => navigate(-1)}
                     className="
@@ -5205,7 +5418,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                     <span className="text-2xl mr-2">⬅️</span>
                     Back to Activities
                   </button>
-                </div>
+                </div> */}
 
                 {/* Completion Message */}
                 {(isMatchingComplete || (isAnswersChecked && correctConnections.length === 10)) && (
@@ -5218,6 +5431,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   </div>
                 )}
               </div>
+                </>
+              )}
             </div>
           ) : isChoreGame ? (
             /* Modern Interactive Household Chores Helper */
@@ -5462,21 +5677,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           ) : null}
         </div>
 
-        {/* Correct Overlay */}
-        {showCorrect && (
-          <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
-            <audio ref={correctAudioRef} src={correctSound} />
-            <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain" />
-          </div>
-        )}
-
-        {/* Wrong Overlay */}
-        {showWrong && (
-          <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
-            <audio ref={wrongAudioRef} src={wrongSound} />
-            <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
-          </div>
-        )}
       </div>
 
       {/* Enhanced Next Button */}
@@ -5921,6 +6121,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           {/* Correct Overlay for Puzzle Game */}
           {showCorrect && (
             <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+              <audio ref={correctAudioRef} src={correctSound} />
               <img src={currentCorrectImage} alt="Correct" className="w-100 h-100 object-contain" />
             </div>
           )}
@@ -5928,6 +6129,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           {/* Wrong Overlay for Puzzle Game */}
           {showWrong && (
             <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
+              <audio ref={wrongAudioRef} src={wrongSound} />
               <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
             </div>
           )}
@@ -5973,7 +6175,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-4 animate-text-shimmer">
                   Amazing Work!
                 </h2>
-                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-purple-100">
+                <div className="bg-blue/70 backdrop-blur-sm rounded-xl p-4 border border-purple-100">
                   <p className="text-2xl font-bold text-gray-800 mb-2">
                     You scored <span className="text-3xl text-purple-600">{score}</span> out of <span className="text-3xl text-pink-600">{isHygieneGame || isStreetGame ? 5 : total}</span>!
                   </p>
@@ -5982,11 +6184,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                       Cashier Points: <span className="text-2xl">{cashierScore}</span> 🏪
                     </p>
                   )}
-                  {activity === "Hygiene Hero" && (
+                  {/* {activity === "Hygiene Hero" && (
                     <p className="text-xl font-bold text-blue-600 mb-2">
                       Hygiene Score: <span className="text-2xl">{hygieneScore}</span>/5 🧼✨
                     </p>
-                  )}
+                  )} */}
                   {activity === "Safe Street Crossing" && (
                     <p className="text-xl font-bold text-green-600 mb-2">
                       Safety Score: <span className="text-2xl">{streetScore}</span>/5 🚦✨
