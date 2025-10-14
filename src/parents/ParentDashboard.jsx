@@ -334,10 +334,10 @@ const ParentDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div className="min-h-full bg-gradient-to-br from-blue-50 to-indigo-50">
       {/* Header */}
       <header className="bg-white shadow-lg border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
@@ -423,7 +423,7 @@ const ParentDashboard = () => {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div className="mb-4 md:mb-0">
@@ -644,15 +644,21 @@ const ParentDashboard = () => {
         {currentView === 'emotions' && (
           <div className="space-y-8">
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                <HeartIcon className="w-6 h-6 mr-3 text-pink-600" />
-                Emotion Tracking
-                {selectedChild && (
-                  <span className="ml-3 text-lg text-gray-600">
-                    - {selectedChild.full_name || selectedChild.username}
-                  </span>
-                )}
-              </h2>
+              {/* Header with description */}
+              <div className="mb-6">
+                <h2 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
+                  <HeartIcon className="w-8 h-8 mr-3 text-pink-600" />
+                  Emotion Tracking
+                  {selectedChild && (
+                    <span className="ml-3 text-lg text-gray-600">
+                      - {selectedChild.full_name || selectedChild.username}
+                    </span>
+                  )}
+                </h2>
+                <p className="text-lg text-gray-600 ml-11">
+                  Monitor your child's emotional expressions and notes • Updated in real-time
+                </p>
+              </div>
               
               {!selectedChild ? (
                 <div className="text-center py-12">
@@ -674,35 +680,129 @@ const ParentDashboard = () => {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {childEmotions.map((emotion, index) => (
-                    <div key={emotion.entry_id || index} className="p-6 rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="text-3xl">
-                            {getEmotionIcon(emotion.emotion_name)}
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-gray-800 capitalize">
-                              {emotion.emotion_name || 'Unknown'}
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                              {new Date(emotion.created_at).toLocaleDateString()}
-                            </p>
-                            <p className="text-xs text-blue-600 font-semibold">
-                              {selectedChild.username}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
-                            Level {emotion.intensity || 0}
-                          </div>
+                <>
+                  {/* Quick Stats */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+                      <div className="flex items-center">
+                        <div className="text-3xl mr-3">😊</div>
+                        <div className="ml-1">
+                          <p className="text-sm font-medium text-gray-600">Positive Emotions</p>
+                          <p className="text-3xl font-bold text-gray-900">
+                            {childEmotions.filter(e => ['happy', 'excited', 'calm'].includes(e.emotion?.toLowerCase())).length}
+                          </p>
                         </div>
                       </div>
                     </div>
-                  ))}
+                    
+                    <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-500">
+                      <div className="flex items-center">
+                        <ExclamationTriangleIcon className="h-12 w-12 text-red-500" />
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-gray-600">Needs Attention</p>
+                          <p className="text-3xl font-bold text-gray-900">
+                            {childEmotions.filter(e => ['angry', 'sad'].includes(e.emotion?.toLowerCase())).length}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+                      <div className="flex items-center">
+                        <HeartIcon className="h-12 w-12 text-blue-500" />
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-gray-600">Total Emotions</p>
+                          <p className="text-3xl font-bold text-gray-900">{childEmotions.length}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Emotions Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {childEmotions.map((emotion, index) => {
+                    // Determine emotion type for styling
+                    const isPositive = ['happy', 'excited', 'calm'].includes(emotion.emotion?.toLowerCase());
+                    const isHighPriority = ['angry', 'sad'].includes(emotion.emotion?.toLowerCase());
+                    const borderColor = isPositive ? 'border-green-500' : isHighPriority ? 'border-red-500' : 'border-orange-400';
+                    const emotionType = isPositive ? 'positive' : isHighPriority ? 'high-priority' : 'negative';
+                    
+                    // Map emotion names (angry -> Upset, calm -> Tired)
+                    const displayEmotionName = emotion.emotion?.toLowerCase() === 'angry' 
+                      ? 'Upset' 
+                      : emotion.emotion?.toLowerCase() === 'calm'
+                        ? 'Tired'
+                        : emotion.emotion_name || 'Unknown';
+
+                    return (
+                      <div key={emotion.entry_id || index} className={`bg-white rounded-xl shadow-lg p-6 border-l-4 ${borderColor} hover:shadow-xl transition-all duration-300`}>
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center">
+                            <div className="text-3xl mr-3">{getEmotionIcon(emotion.emotion_name)}</div>
+                            <div>
+                              <h3 className="text-lg font-bold text-gray-900 capitalize">{displayEmotionName}</h3>
+                              <p className="text-gray-600 text-sm">
+                                {selectedChild.full_name || selectedChild.username}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              isPositive 
+                                ? 'bg-green-100 text-green-800' 
+                                : isHighPriority 
+                                  ? 'bg-red-100 text-red-800' 
+                                  : 'bg-orange-100 text-orange-800'
+                            }`}>
+                              {isPositive ? '😊 Positive' : isHighPriority ? '🚨 Needs Attention' : '⚠️ Negative'}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Student's Note Display */}
+                        {emotion.note && emotion.note.trim() !== '' ? (
+                          <div className="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-4 mb-4">
+                            <div className="flex items-start">
+                              <div className="flex-shrink-0">
+                                <div className="text-blue-400 text-lg">💬</div>
+                              </div>
+                              <div className="ml-3 flex-1">
+                                <p className="text-sm font-semibold text-blue-800 mb-1">
+                                  📝 {selectedChild.full_name || selectedChild.username}'s Note
+                                </p>
+                                <p className="text-blue-700 text-sm leading-relaxed bg-white rounded p-3 italic">
+                                  "{emotion.note}"
+                                </p>
+                                <p className="text-xs text-blue-600 mt-2">
+                                  🔒 This note is shared with parents and teachers
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-gray-50 rounded-lg p-3 mb-4 text-center">
+                            <p className="text-sm text-gray-500 italic">No additional note provided</p>
+                          </div>
+                        )}
+                        
+                        {/* Timestamp and Priority */}
+                        <div className="flex items-center justify-between text-sm text-gray-500">
+                          <span className="flex items-center">
+                            <ClockIcon className="h-4 w-4 mr-1" />
+                            {new Date(emotion.created_at).toLocaleDateString()} at {new Date(emotion.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          {isHighPriority && (
+                            <span className="flex items-center text-red-500 font-medium">
+                              <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
+                              Alert
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
+                </>
               )}
             </div>
           </div>

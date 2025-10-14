@@ -229,7 +229,7 @@ const StudentProgress = () => {
     if (!progressStats) {
       return [
         { title: 'TOTAL ACTIVITIES', value: '0', change: 'Loading...', icon: <AcademicCapIcon className="w-8 h-8 text-blue-600" />, bgColor: 'bg-blue-50', textColor: 'text-blue-600' },
-        { title: 'COMPLETION RATE', value: '0%', change: 'Loading...', icon: <div className="w-8 h-8 text-green-600 text-2xl">≡ƒÄ»</div>, bgColor: 'bg-green-50', textColor: 'text-green-600' },
+  { title: 'COMPLETION RATE', value: '0%', change: 'Loading...', icon: <CheckCircleIcon className="w-8 h-8 text-green-600" />, bgColor: 'bg-green-50', textColor: 'text-green-600' },
         { title: 'AVERAGE SCORE', value: '0%', change: 'Loading...', icon: <StarIcon className="w-8 h-8 text-yellow-600" />, bgColor: 'bg-yellow-50', textColor: 'text-yellow-600' },
         { title: 'RECENT ACTIVITIES', value: '0', change: 'Loading...', icon: <FireIcon className="w-8 h-8 text-red-600" />, bgColor: 'bg-red-50', textColor: 'text-red-600' },
         { title: 'ACTIVE STREAK', value: '0 days', change: 'Loading...', icon: <FireIcon className="w-8 h-8 text-orange-600" />, bgColor: 'bg-orange-50', textColor: 'text-orange-600' }
@@ -249,7 +249,7 @@ const StudentProgress = () => {
         title: 'COMPLETION RATE',
         value: `${progressStats.completionRate || 0}%`,
         change: progressStats.completionRate > 75 ? 'Excellent progress!' : progressStats.completionRate > 50 ? 'Good progress' : 'Keep going!',
-        icon: <div className="w-8 h-8 text-green-600 text-2xl">≡ƒÄ»</div>,
+  icon: <CheckCircleIcon className="w-8 h-8 text-green-600" />,
         bgColor: 'bg-green-50',
         textColor: 'text-green-600'
       },
@@ -257,7 +257,7 @@ const StudentProgress = () => {
         title: 'AVERAGE ACCURACY',
         value: `${progressStats.averageScore || 0}%`,
         change: progressStats.averageScore > 85 ? 'Outstanding!' : progressStats.averageScore > 70 ? 'Great work!' : 'Improving',
-        icon: <div className="w-8 h-8 text-purple-600 text-2xl">≡ƒÄ»</div>,
+  icon: <StarIcon className="w-8 h-8 text-purple-600" />,
         bgColor: 'bg-purple-50',
         textColor: 'text-purple-600'
       },
@@ -288,42 +288,42 @@ const StudentProgress = () => {
         category: 'Colors', 
         accuracy: Math.min(100, baseAccuracy + Math.floor(Math.random() * 15)), 
         completed: `${Math.floor(Math.random() * 3) + 6}/8`, 
-        icon: '≡ƒÄ¿', 
+  icon: '🎨', 
         color: 'bg-purple-500' 
       },
       { 
         category: 'Shapes', 
         accuracy: Math.max(60, baseAccuracy - Math.floor(Math.random() * 10)), 
         completed: `${Math.floor(Math.random() * 3) + 5}/8`, 
-        icon: '≡ƒö╖', 
+  icon: '🔷', 
         color: 'bg-blue-500' 
       },
       { 
         category: 'Numbers', 
         accuracy: Math.min(100, baseAccuracy + Math.floor(Math.random() * 10)), 
         completed: `${Math.floor(Math.random() * 3) + 4}/6`, 
-        icon: '≡ƒöó', 
+  icon: '🔢', 
         color: 'bg-green-500' 
       },
       { 
         category: 'Letters', 
         accuracy: Math.max(65, baseAccuracy - Math.floor(Math.random() * 15)), 
         completed: `${Math.floor(Math.random() * 3) + 3}/6`, 
-        icon: '≡ƒô¥', 
+  icon: '🔤', 
         color: 'bg-indigo-500' 
       },
       { 
         category: 'Patterns', 
         accuracy: Math.max(60, baseAccuracy - Math.floor(Math.random() * 20)), 
         completed: `${Math.floor(Math.random() * 3) + 2}/5`, 
-        icon: '≡ƒº⌐', 
+  icon: '🔁', 
         color: 'bg-pink-500' 
       },
       { 
         category: 'Daily Life', 
         accuracy: Math.min(100, baseAccuracy + Math.floor(Math.random() * 8)), 
         completed: `${Math.floor(Math.random() * 2) + 4}/5`, 
-        icon: '≡ƒÅá', 
+  icon: '🏠', 
         color: 'bg-orange-500' 
       }
     ];
@@ -363,7 +363,7 @@ const StudentProgress = () => {
         level: 'Beginner', 
         progress: Math.floor((easyCompleted / 20) * 100), 
         completed: `${easyCompleted}/20`, 
-        icon: '≡ƒî▒', 
+  icon: '🟢', 
         color: 'bg-green-500', 
         bgColor: 'bg-green-50' 
       },
@@ -371,7 +371,7 @@ const StudentProgress = () => {
         level: 'Intermediate', 
         progress: Math.floor((mediumCompleted / 15) * 100), 
         completed: `${mediumCompleted}/15`, 
-        icon: '≡ƒöÑ', 
+  icon: '🟠', 
         color: 'bg-orange-500', 
         bgColor: 'bg-orange-50' 
       },
@@ -379,7 +379,7 @@ const StudentProgress = () => {
         level: 'Proficient', 
         progress: Math.floor((hardCompleted / 10) * 100), 
         completed: `${hardCompleted}/10`, 
-        icon: '≡ƒÆÄ', 
+  icon: '🔴', 
         color: 'bg-red-500', 
         bgColor: 'bg-red-50' 
       }
@@ -583,8 +583,8 @@ const StudentProgress = () => {
               <div>
                 <h1 className="text-4xl font-bold text-gray-800">{student?.name || 'Unknown Student'}</h1>
                 <p className="text-lg text-gray-600">
-                  {student?.grade || 'Grade N/A'} ΓÇó 
-                  Age {student?.age || 'N/A'} ΓÇó 
+                  {student?.grade || 'Grade N/A'} · 
+                  Age {student?.age || 'N/A'} · 
                   Individual Progress
                 </p>
                 <p className="text-sm text-gray-500">Email: {student?.email || 'N/A'}</p>
@@ -637,8 +637,8 @@ const StudentProgress = () => {
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-800">Accuracy Rates by Category</h3>
-              <div className="bg-purple-100 p-2 rounded-lg">
-                <span className="text-2xl">≡ƒÄ»</span>
+                <div className="bg-purple-100 p-2 rounded-lg">
+                <span className="text-2xl">🎯</span>
               </div>
             </div>
             <div className="space-y-4">
@@ -670,7 +670,7 @@ const StudentProgress = () => {
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-800">Recent Activities</h3>
               <div className="bg-green-100 p-2 rounded-lg">
-                <span className="text-2xl">≡ƒôä</span>
+                <span className="text-2xl">🕒</span>
               </div>
             </div>
             <div className="space-y-4">
@@ -686,9 +686,9 @@ const StudentProgress = () => {
                       </div>
                       <div>
                         <p className="font-semibold text-gray-800">{activity.title}</p>
-                        <p className="text-sm text-gray-500">
-                          {activity.user} ΓÇó {activity.category} ΓÇó {activity.time}
-                        </p>
+                                <p className="text-sm text-gray-500">
+                                  {activity.user} · {activity.category} · {activity.time}
+                                </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -713,7 +713,7 @@ const StudentProgress = () => {
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-800">Learning Categories</h3>
               <div className="bg-blue-100 p-2 rounded-lg">
-                <span className="text-2xl">≡ƒôè</span>
+                <span className="text-2xl">📚</span>
               </div>
             </div>
             <div className="space-y-6">
@@ -743,7 +743,7 @@ const StudentProgress = () => {
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-800">Difficulty Level Progression</h3>
               <div className="bg-orange-100 p-2 rounded-lg">
-                <span className="text-2xl">≡ƒôê</span>
+                <span className="text-2xl">📈</span>
               </div>
             </div>
             <div className="space-y-4">

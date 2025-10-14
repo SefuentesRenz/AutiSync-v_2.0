@@ -56,11 +56,12 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   });
   const [showBadgePreview, setShowBadgePreview] = useState(false);
   const [previewBadge, setPreviewBadge] = useState(null);
+  const [isMusicMuted, setIsMusicMuted] = useState(false);
 
   const correctImages = [
-    "/src/assets/GreatJob.png",
-    "/src/assets/NiceWork.png",
-    "/src/assets/WellDone.png"
+    "/assets/GreatJob.png",
+    "/assets/NiceWork.png",
+    "/assets/WellDone.png"
   ];
   const [currentCorrectImage, setCurrentCorrectImage] = useState(correctImages[0]);
 
@@ -226,11 +227,98 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const bgMusicRef = useRef(null);
   const gameContainerRef = useRef(null);
 
-  const celebrationSound = "/src/assets/sounds/Activitycompletion.mp3"; // Place your sound file here
-  const correctSound = "/src/assets/sounds/correct.mp3"; 
-  const wrongSound = "/src/assets/sounds/wrong.mp3";
-  const badgeCelebrationSound = "/src/assets/sounds/Activitycompletion.mp3";
-  const jungleBgMusic = "/src/assets/sounds/Jungle_BGmusic.wav";
+  const celebrationSound = "/assets/sounds/Activitycompletion.mp3"; // Place your sound file here
+  const correctSound = "/assets/sounds/correct.mp3"; 
+  const wrongSound = "/assets/sounds/wrong.mp3";
+  const badgeCelebrationSound = "/assets/sounds/Activitycompletion.mp3";
+  const jungleBgMusic = "/assets/sounds/Jungle_BGmusic.wav";
+
+  // Background music mapping for different activities
+  const getBackgroundMusic = () => {
+    // For Academic activities
+    if (category === "Academic") {
+      if (activity === "Academic Puzzles") {
+        return "/assets/sounds/BgMusicc_AcademicPuzzle.mp3";
+      } else if (activity === "Matching Type") {
+        return "/assets/sounds/BgMusic_MatchingType.mp3";
+      } else if (activity === "Numbers" || activity === "Identification") {
+        return "/assets/sounds/BgMusic_Numbersidentification.mp3";
+      } else if (activity === "Visual Memory Challenge") {
+        return "/assets/sounds/Jungle_BGmusic.wav";
+      } else if (activity === "Colors") {
+        return "/assets/sounds/BgMusic_Numbersidentification.mp3";
+      }
+    }
+    
+    // For Social / Daily Life Skills
+    if (category === "Social / Daily Life Skill") {
+      if (activity === "Hygiene Hero") {
+        return "/assets/sounds/Jungle_BGmusic.wav";
+      } else if (activity === "Cashier Game" || activity === "Money Value Game") {
+        return "/assets/sounds/Jungle_BGmusic.wav";
+      } else if (activity === "Safe Street Crossing" || activity === "Social Greetings") {
+        return "/assets/sounds/BgMusic_Numbersidentification.mp3";
+      } else if (activity === "Household Chores Helper") {
+        return "/assets/sounds/BgMusicc_AcademicPuzzle.mp3";
+      }
+    }
+    
+    // Default background music
+    return "/assets/sounds/Jungle_BGmusic.wav";
+  };
+
+  // Play background music when component mounts
+  useEffect(() => {
+    const bgMusic = getBackgroundMusic();
+    if (bgMusicRef.current && bgMusic) {
+      bgMusicRef.current.src = bgMusic;
+      bgMusicRef.current.volume = 0.3; // Set volume to 30%
+      bgMusicRef.current.loop = true;
+      
+      // Always try to play (not muted by default)
+      const playPromise = bgMusicRef.current.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.log("Background music autoplay prevented by browser. Music will start on first user interaction:", error);
+          // Set up a one-time click handler to start music
+          const startMusic = () => {
+            if (bgMusicRef.current && !isMusicMuted) {
+              bgMusicRef.current.play().catch(e => console.log("Play error:", e));
+            }
+            document.removeEventListener('click', startMusic);
+          };
+          document.addEventListener('click', startMusic);
+        });
+      }
+    }
+
+    // Cleanup: pause music when component unmounts
+    return () => {
+      if (bgMusicRef.current) {
+        bgMusicRef.current.pause();
+        bgMusicRef.current.currentTime = 0;
+      }
+    };
+  }, [category, activity]);
+
+  // Handle music mute/unmute
+  useEffect(() => {
+    if (bgMusicRef.current) {
+      if (isMusicMuted) {
+        bgMusicRef.current.pause();
+      } else {
+        bgMusicRef.current.play().catch(error => {
+          console.log("Background music play prevented:", error);
+        });
+      }
+    }
+  }, [isMusicMuted]);
+
+  // Toggle music function
+  const toggleMusic = () => {
+    setIsMusicMuted(!isMusicMuted);
+  };
 
   // Pause video and play sound when modal appears
   useEffect(() => {
@@ -399,31 +487,31 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         Identification: [
           {
             questionText: "What are they doing?", 
-            videoSrc: "/src/assets/flashcards/brushyourteeth.mp4",
+            videoSrc: "/assets/flashcards/brushyourteeth.mp4",
             answerChoices: ["Sleeping", "Eating", "Reading a Book", "Brushing Teeth"],
             correctAnswer: "Brushing Teeth"   
           },
           {
             questionText: "What animal is this?",
-            videoSrc: "/src/assets/flashcards/dog_academic.mp4",
+            videoSrc: "/assets/flashcards/dog_academic.mp4",
             answerChoices: ["Dog", "Cat", "Fish", "Bird"],
             correctAnswer: "Dog"
           },
           {
             questionText: "What number is this?",
-            videoSrc: "/src/assets/flashcards/Easy-identificaction/number9.mp4",
+            videoSrc: "/assets/flashcards/Easy-identificaction/number9.mp4",
             answerChoices: ["Eight", "Seven", "Nine", "Ten"],
             correctAnswer: "Nine"
           },
           {
             questionText: "What number is this?",
-            videoSrc: "/src/assets/flashcards/Easy-identificaction/number4.mp4",
+            videoSrc: "/assets/flashcards/Easy-identificaction/number4.mp4",
             answerChoices: ["Four", "Eight", "Six", "Ten"],
             correctAnswer: "Four"
           },
           {
             questionText: "What number is this?",
-            videoSrc: "/src/assets/flashcards/Easy-identificaction/number8.mp4",
+            videoSrc: "/assets/flashcards/Easy-identificaction/number8.mp4",
             answerChoices: ["Six", "Nine", "Eight", "Three"],
             correctAnswer: "Eight"
           }
@@ -431,42 +519,66 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         Numbers: [
           {
             questionText: "How many cows are there?",
-            imageSrc: "/src/assets/cow.png",
+            imageSrc: "/assets/cow.png",
             answerChoices: ["Six (6)", "Seven (7)", "Eight (8)", "Five (5)"],
             correctAnswer: "Seven (7)"
           },
           {
             questionText: "What number is missing?",
-            videoSrc: "/src/assets/flashcards/Easy-Numbers/numbers-4-easy.mp4",
+            videoSrc: "/assets/flashcards/Easy-Numbers/numbers-4-easy.mp4",
             answerChoices: ["One (1)", "Two (2)", "Three (3)", "Four (4)"],
             correctAnswer: "Four (4)"
           },
           {
             questionText: "What number is missing?",
-            videoSrc: "/src/assets/flashcards/Easy-Numbers/numbers-1-easy.mp4",
+            videoSrc: "/assets/flashcards/Easy-Numbers/numbers-1-easy.mp4",
             answerChoices: ["Three (3)", "Four (4)", "Two (2)", "One (1)"],
             correctAnswer: "One (1)"
           },
           {
             questionText: "What numbers are missing?",
-            videoSrc: "/src/assets/flashcards/Easy-Numbers/number6&7-easy.mp4",
+            videoSrc: "/assets/flashcards/Easy-Numbers/number6&7-easy.mp4",
             answerChoices: ["Six and Seven (6 & 7)", "Six and Eight (6 & 8)", "Five and Seven (5 & 7)", "Five and Eight (5 & 8)"],
             correctAnswer: "Six and Seven (6 & 7)"
           },
           {
             questionText: "What number is missing?",
-            videoSrc: "/src/assets/flashcards/Easy-Numbers/numbers-2-easy.mp4",
+            videoSrc: "/assets/flashcards/Easy-Numbers/numbers-2-easy.mp4",
             answerChoices: ["Two (2)", "Five (5)", "Three (3)", "Six (6)"],
             correctAnswer: "Two (2)"
           },
         ],
         Colors: [
           {
-            questionText: "What color is this?",
-            imageSrc: "/src/assets/flashcards/blue_circle.jpg",
+            questionText: "What is the Color of the Grass?",
+            videoSrc: "/assets/flashcards/Colors-Easy/Green.mp4",
+            answerChoices: ["Red", "Blue", "Green", "Yellow"],
+            correctAnswer: "Green"
+          },
+          {
+            questionText: "What is the Color of the Sky?",
+            videoSrc: "/assets/flashcards/Colors-Easy/Blue.mp4",
             answerChoices: ["Red", "Blue", "Green", "Yellow"],
             correctAnswer: "Blue"
-          }
+          },
+          {
+            questionText: "What is the Color of the Flower?",
+            videoSrc: "/assets/flashcards/Colors-Easy/Red.mp4",
+            answerChoices: ["Red", "Blue", "Green", "Yellow"],
+            correctAnswer: "Red"
+          },
+          {
+            questionText: "What is the Color of the Bird?",
+            videoSrc: "/assets/flashcards/Colors-Easy/Yellow.mp4",
+            answerChoices: ["Red", "Blue", "Green", "Yellow"],
+            correctAnswer: "Yellow"
+          },
+          {
+            questionText: "What is the Color of the Grass?",
+            videoSrc: "/assets/flashcards/Colors-Easy/Black.mp4",
+            answerChoices: ["Red", "Black", "Green", "Yellow"],
+            correctAnswer: "Black"
+          },
         ],
         "Matching Type": [
           {
@@ -486,12 +598,12 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             ],
             rightItems: [
               
-              { id: "b", content: "/src/assets/flashcards/MatchingType-Easy/Sitting.mp4", type: "video", matchId: 6 },
+              { id: "b", content: "/assets/flashcards/MatchingType-Easy/Sitting.mp4", type: "video", matchId: 6 },
               // { id: "c", content: "Day", type: "text", matchId: 1 },
               // { id: "d", content: "Meow", type: "text", matchId: 4 },
-              { id: "e", content: "/src/assets/flashcards/MatchingType-Easy/Live.mp4", type: "video", matchId: 9 },
-              { id: "f", content: "/src/assets/flashcards/MatchingType-Easy/Drive.mp4", type: "video", matchId: 5 },
-              { id: "i", content: "/src/assets/flashcards/MatchingType-Easy/Reading.mp4", type: "video", matchId: 7 },
+              { id: "e", content: "/assets/flashcards/MatchingType-Easy/Live.mp4", type: "video", matchId: 9 },
+              { id: "f", content: "/assets/flashcards/MatchingType-Easy/Drive.mp4", type: "video", matchId: 5 },
+              { id: "i", content: "/assets/flashcards/MatchingType-Easy/Reading.mp4", type: "video", matchId: 7 },
               // { id: "j", content: "Bark", type: "text", matchId: 3 }
             ]
           }
@@ -591,31 +703,31 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         Identification: [
           {
             questionText: "What is this Animal?", 
-            videoSrc: "/src/assets/flashcards/Animals/Snake.mp4",
+            videoSrc: "/assets/flashcards/Animals/Snake.mp4",
             answerChoices: ["Lizard", "Worm", "Snake", "Monkey"],
             correctAnswer: "Snake"   
           },
           {
             questionText: "What animal is this?",
-            videoSrc: "/src/assets/flashcards/Animals/Frog.mp4",
+            videoSrc: "/assets/flashcards/Animals/Frog.mp4",
             answerChoices: ["Grasshopper", "Fish", "Bird", "Frog"],
             correctAnswer: "Frog"
           },
           {
             questionText: "What animal is this?",
-            videoSrc: "/src/assets/flashcards/Animals/Panda.mp4",
+            videoSrc: "/assets/flashcards/Animals/Panda.mp4",
             answerChoices: ["Panda", "Monkey", "Cat", "Lion"],
             correctAnswer: "Panda"
           },
           {
             questionText: "What animal is this?",
-            videoSrc: "/src/assets/flashcards/Animals/Racoon.mp4",
+            videoSrc: "/assets/flashcards/Animals/Racoon.mp4",
             answerChoices: ["Dog", "Squirrel", "Cat", "Racoon"],
             correctAnswer: "Racoon"
           },
           {
             questionText: "What animal is this?",
-            videoSrc: "/src/assets/flashcards/Animals/Lion.mp4",
+            videoSrc: "/assets/flashcards/Animals/Lion.mp4",
             answerChoices: ["Tiger", "Lion", "Cat", "Dog"],
             correctAnswer: "Lion"
           }
@@ -624,38 +736,69 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         Numbers: [
           {
             questionText: "How many apples?",
-            videoSrc: "/src/assets/flashcards/Numbers_Medium/7_Numbers.mp4",
+            videoSrc: "/assets/flashcards/Numbers_Medium/7_Numbers.mp4",
             answerChoices: ["Six (6)", "Seven (7)", "Eight (8)", "Five (5)"],
             correctAnswer: "Seven (7)"
           },
           {
             questionText: "How many ducks?",
-            videoSrc: "/src/assets/flashcards/Numbers_Medium/add_6.mp4",
+            videoSrc: "/assets/flashcards/Numbers_Medium/add_6.mp4",
             answerChoices: ["Five (5)", "Four (4)", "Seven (7)", "Six (6)"],
             correctAnswer: "Six (6)"
           },
           {
             questionText: "How many Ice Cream?",
-            videoSrc: "/src/assets/flashcards/Numbers_Medium/5_Numbers.mp4",
+            videoSrc: "/assets/flashcards/Numbers_Medium/5_Numbers.mp4",
             answerChoices: ["Three (3)", "Six (6)", "Four (4)", "Five (5)"],
             correctAnswer: "Five (5)"
           },
           {
             questionText: "How many apples?",
-            videoSrc: "/src/assets/flashcards/Numbers_Medium/add_4.mp4",
+            videoSrc: "/assets/flashcards/Numbers_Medium/add_4.mp4",
             answerChoices: ["Four (4)", "Three (3)", "Six (6)", "Five (5)"],
             correctAnswer: "Four (4)"
           },
           {
             questionText: "How many balls?",
-            videoSrc: "/src/assets/flashcards/Numbers_Medium/11_Numbers.mp4",
+            videoSrc: "/assets/flashcards/Numbers_Medium/11_Numbers.mp4",
             answerChoices: ["Thirteen (13)", "Eleven (11)", "Twelve (12)", "Ten (10)"],
             correctAnswer: "Eleven (11)"
           }
         ],
-      
 
-
+        Colors: [
+          
+          {
+            questionText: "What is the Color of the Orange?",
+            videoSrc: "/assets/flashcards/Colors-Medium/Orange.mp4",
+            answerChoices: ["Brown", "Pink", "Orange", "Purple"],
+            correctAnswer: "Orange"
+          },
+          {
+            questionText: "What is the Color of the Flower?",
+            videoSrc: "/assets/flashcards/Colors-Medium/Purple.mp4",
+            answerChoices: ["Brown", "Pink", "Orange", "Purple"],
+            correctAnswer: "Purple"
+          },
+          {
+            questionText: "What is the Color of the Flower?",
+            videoSrc: "/assets/flashcards/Colors-Medium/Pink.mp4",
+            answerChoices: ["Brown", "Pink", "Orange", "Purple"],
+            correctAnswer: "Pink"
+          },
+          {
+            questionText: "What is the Color of the Dog?",
+            videoSrc: "/assets/flashcards/Colors-Medium/Brown.mp4",
+            answerChoices: ["Brown", "Pink", "Orange", "Purple"],
+            correctAnswer: "Brown"
+          },
+          {
+            questionText: "What is the Color of the Wolf?",
+            videoSrc: "/assets/flashcards/Colors-Medium/Gray.mp4",
+            answerChoices: ["Brown", "Pink", "Gray", "Purple"],
+            correctAnswer: "Gray"
+          },
+        ],
 
 
 
@@ -676,14 +819,14 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             ],
             rightItems: [
 
-              { id: "b", content: "/src/assets/flashcards/MatchingType-Medium/Time.mp4", type: "video", matchId: 3 },
+              { id: "b", content: "/assets/flashcards/MatchingType-Medium/Time.mp4", type: "video", matchId: 3 },
               // { id: "c", content: "12", type: "text", matchId: 1 },
-              { id: "d", content: "/src/assets/flashcards/MatchingType-Medium/Writing.mp4", type: "video", matchId: 8 },
-              { id: "e", content: "/src/assets/flashcards/MatchingType-Medium/Ten.mp4", type: "video", matchId: 2 },
+              { id: "d", content: "/assets/flashcards/MatchingType-Medium/Writing.mp4", type: "video", matchId: 8 },
+              { id: "e", content: "/assets/flashcards/MatchingType-Medium/Ten.mp4", type: "video", matchId: 2 },
 
-              { id: "g", content: "/src/assets/flashcards/MatchingType-Medium/Sleeping.mp4", type: "video", matchId: 7 },
+              { id: "g", content: "/assets/flashcards/MatchingType-Medium/Sleeping.mp4", type: "video", matchId: 7 },
 
-              { id: "i", content: "/src/assets/flashcards/MatchingType-Medium/Sun.mp4", type: "video", matchId: 4 },
+              { id: "i", content: "/assets/flashcards/MatchingType-Medium/Sun.mp4", type: "video", matchId: 4 },
              
             ]
           }
@@ -798,12 +941,12 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               // { id: 10, content: "💧 Water", type: "text" }
             ],
             rightItems: [
-              { id: "b", content: "/src/assets/flashcards/MatchingType-Hard/Teacher.mp4", type: "video", matchId: 7 },
-              { id: "d", content: "/src/assets/flashcards/MatchingType-Hard/Tree.mp4", type: "video", matchId: 5 },
-              { id: "e", content: "/src/assets/flashcards/MatchingType-Hard/Play.mp4", type: "video", matchId: 3 },
-              { id: "g", content: "/src/assets/flashcards/MatchingType-Hard/Doctor.mp4", type: "video", matchId: 6 },
-              { id: "h", content: "/src/assets/flashcards/MatchingType-Hard/Cook.mp4", type: "video", matchId: 4 },
-              { id: "j", content: "/src/assets/flashcards/MatchingType-Hard/Night.mp4", type: "video", matchId: 9 }
+              { id: "b", content: "/assets/flashcards/MatchingType-Hard/Teacher.mp4", type: "video", matchId: 7 },
+              { id: "d", content: "/assets/flashcards/MatchingType-Hard/Tree.mp4", type: "video", matchId: 5 },
+              { id: "e", content: "/assets/flashcards/MatchingType-Hard/Play.mp4", type: "video", matchId: 3 },
+              { id: "g", content: "/assets/flashcards/MatchingType-Hard/Doctor.mp4", type: "video", matchId: 6 },
+              { id: "h", content: "/assets/flashcards/MatchingType-Hard/Cook.mp4", type: "video", matchId: 4 },
+              { id: "j", content: "/assets/flashcards/MatchingType-Hard/Night.mp4", type: "video", matchId: 9 }
             ]
           }
         ],
@@ -811,31 +954,31 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         Numbers: [
           {
             questionText: "What is 3 x 9?",
-            videoSrc: "/src/assets/flashcards/Numbers_Hard/27_multiplication.mp4",
+            videoSrc: "/assets/flashcards/Numbers_Hard/27_multiplication.mp4",
             answerChoices: ["28", "30", "27", "29"],
             correctAnswer: "27"
           },
           {
             questionText: "What is 8 x 4?",
-            videoSrc: "/src/assets/flashcards/Numbers_Hard/32_multiplication.mp4",
+            videoSrc: "/assets/flashcards/Numbers_Hard/32_multiplication.mp4",
             answerChoices: ["32", "34", "33", "31"],
             correctAnswer: "32"
           },
           {
             questionText: "What is 6 x 8?",
-            videoSrc: "/src/assets/flashcards/Numbers_Hard/48_multiplication.mp4",
+            videoSrc: "/assets/flashcards/Numbers_Hard/48_multiplication.mp4",
             answerChoices: ["49", "48", "47", "50"],
             correctAnswer: "48"
           },
           {
             questionText: "What is 5 x 7?",
-            videoSrc: "/src/assets/flashcards/Numbers_Hard/35_multiplication.mp4",
+            videoSrc: "/assets/flashcards/Numbers_Hard/35_multiplication.mp4",
             answerChoices: ["34", "36", "35", "33"],
             correctAnswer: "35"
           },
           {
             questionText: "What is 4 x 9?",
-            videoSrc: "/src/assets/flashcards/Numbers_Hard/36_multiplication.mp4",
+            videoSrc: "/assets/flashcards/Numbers_Hard/36_multiplication.mp4",
             answerChoices: ["36", "40", "38", "35"],
             correctAnswer: "36"
           }
@@ -844,31 +987,31 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         Identification: [
           {
             questionText: "What is the national Animal of the Philippines??", 
-            videoSrc: "/src/assets/flashcards/Identification-Hard/Carabao.mp4",
+            videoSrc: "/assets/flashcards/Identification-Hard/Carabao.mp4",
             answerChoices: ["Carabao", "Cow", "Horse", "Goat"],
             correctAnswer: "Carabao"   
           },
           {
             questionText: "What is the national Fruit of the Philippines?",
-            videoSrc: "/src/assets/flashcards/Identification-Hard/Mango.mp4",
+            videoSrc: "/assets/flashcards/Identification-Hard/Mango.mp4",
             answerChoices: ["Banana", "Watermelon", "Durian", "Mango"],
             correctAnswer: "Mango"
           },
           {
             questionText: "Who is the national hero of the Philippines?",
-            videoSrc: "/src/assets/flashcards/Identification-Hard/Joserizal.mp4",
+            videoSrc: "/assets/flashcards/Identification-Hard/Joserizal.mp4",
             answerChoices: ["Andres Bonifacio", "Jose Rizal", "Emilio Aguinaldo", "Apolinario Mabini"],
             correctAnswer: "Jose Rizal"
           },
           {
             questionText: "What is the national sport of the Philippines?",
-            videoSrc: "/src/assets/flashcards/Identification-Hard/Arnis.mp4",
+            videoSrc: "/assets/flashcards/Identification-Hard/Arnis.mp4",
             answerChoices: ["Basketball", "Arnis", "Volleyball", "Soccer"],
             correctAnswer: "Arnis"
           },
           {
             questionText: "What animal is the national flower of the Philippines?",
-            videoSrc: "/src/assets/flashcards/Identification-Hard/Sampaguita.mp4",
+            videoSrc: "/assets/flashcards/Identification-Hard/Sampaguita.mp4",
             answerChoices: ["Rose", "Orchid", "Sunflower", "Sampaguita"],
             correctAnswer: "Sampaguita"
           }
@@ -989,8 +1132,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { name: "Burger", image: "🍔", price: "$3.99" },
               { name: "Fries", image: "🍟", price: "$2.49" },
               { name: "Pizza", image: "🍕", price: "$4.99" },
-              { name: "Hot Dog", image: "🌭", price: "$2.99" },
               { name: "Drink", image: "🥤", price: "$1.99" },
+              { name: "Hot Dog", image: "🌭", price: "$2.99" },
               { name: "Ice Cream", image: "🍦", price: "$2.99" }
             ],
             correctAnswer: ["Pizza", "Drink"],
@@ -1016,10 +1159,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             menuOptions: [
               { name: "Burger", image: "🍔", price: "$3.99" },
               { name: "Fries", image: "🍟", price: "$2.49" },
+              { name: "Ice Cream", image: "🍦", price: "$2.99" },
               { name: "Pizza", image: "🍕", price: "$4.99" },
               { name: "Hot Dog", image: "🌭", price: "$2.99" },
               { name: "Drink", image: "🥤", price: "$1.99" },
-              { name: "Ice Cream", image: "🍦", price: "$2.99" }
+              
             ],
             correctAnswer: ["Fries", "Ice Cream"],
             gameType: "cashier"
@@ -1031,8 +1175,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { name: "Burger", image: "🍔", price: "$3.99" },
               { name: "Fries", image: "🍟", price: "$2.49" },
               { name: "Pizza", image: "🍕", price: "$4.99" },
-              { name: "Hot Dog", image: "🌭", price: "$2.99" },
               { name: "Drink", image: "🥤", price: "$1.99" },
+              { name: "Hot Dog", image: "🌭", price: "$2.99" },
               { name: "Ice Cream", image: "🍦", price: "$2.99" }
             ],
             correctAnswer: ["Burger", "Fries", "Drink"],
@@ -1042,7 +1186,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         "Shopping Skills": [
           {
             questionText: "You need to buy milk. Where should you go?",
-            imageSrc: "/src/assets/flashcards/grocery_store.jpg",
+            imageSrc: "/assets/flashcards/grocery_store.jpg",
             answerChoices: ["Grocery Store", "Library", "Bank", "Post Office"],
             correctAnswer: "Grocery Store"
           }
@@ -1240,13 +1384,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             questionText: "Oh no! Your hands are dirty after playing!",
             scenarioImage: "",
             backgroundImage: "🏠",
-            characterEmoji: "/src/assets/flashcards/HygieneHero/DirtyHands.mp4",
+            characterEmoji: "/assets/flashcards/HygieneHero/DirtyHands.mp4",
             isCharacterVideo: true,
             answerChoices: [
-              { text: "Brush my teeth", video: "/src/assets/flashcards/HygieneHero/BrushMyTeeth.mp4" },
-              { text: "Take a bath", video: "/src/assets/flashcards/HygieneHero/TakeABath.mp4" },
-              { text: "Wash my hands", video: "/src/assets/flashcards/HygieneHero/WashingHands.mp4" },
-              // { text: "Get a haircut", video: "/src/assets/flashcards/HygieneHero/GetAHaircut.mp4" }
+              { text: "Brush my teeth", video: "/assets/flashcards/HygieneHero/BrushMyTeeth.mp4" },
+              { text: "Take a bath", video: "/assets/flashcards/HygieneHero/TakeABath.mp4" },
+              { text: "Wash my hands", video: "/assets/flashcards/HygieneHero/WashingHands.mp4" },
+              // { text: "Get a haircut", video: "/assets/flashcards/HygieneHero/GetAHaircut.mp4" }
             ],
             correctAnswer: "Wash my hands",
             gameType: "hygiene",
@@ -1258,13 +1402,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             questionText: "😅 Your hair is messy!",
             scenarioImage: "💇‍♂️",
             backgroundImage: "🪞",
-            characterEmoji: "/src/assets/flashcards/HygieneHero/MessyHair.mp4",
+            characterEmoji: "/assets/flashcards/HygieneHero/MessyHair.mp4",
             isCharacterVideo: true,
             answerChoices: [
-              { text: "Get a haircut", video: "/src/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
-              { text: "Wash my hands", video: "/src/assets/flashcards/HygieneHero/WashingHands.mp4" },
-              { text: "Take a bath", video: "/src/assets/flashcards/HygieneHero/TakeABath.mp4" },
-              // { text: "Brush my teeth", video: "/src/assets/flashcards/HygieneHero/BrushMyTeeth.mp4" }
+              { text: "Get a haircut", video: "/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
+              { text: "Wash my hands", video: "/assets/flashcards/HygieneHero/WashingHands.mp4" },
+              { text: "Take a bath", video: "/assets/flashcards/HygieneHero/TakeABath.mp4" },
+              // { text: "Brush my teeth", video: "/assets/flashcards/HygieneHero/BrushMyTeeth.mp4" }
             ],
             correctAnswer: "Get a haircut",
             gameType: "hygiene",
@@ -1276,13 +1420,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             questionText: "🤧 Achoo! Your nose is runnings!",
             scenarioImage: "👃",
             backgroundImage: "🏠",
-            characterEmoji: "/src/assets/flashcards/HygieneHero/RunnyNose.mp4",
+            characterEmoji: "/assets/flashcards/HygieneHero/RunnyNose.mp4",
             isCharacterVideo: true,
             answerChoices: [
-              { text: "Wash my hands", video: "/src/assets/flashcards/HygieneHero/WashingHands.mp4" },
-              { text: "Wipe my nose", video: "/src/assets/flashcards/HygieneHero/WipeMyNose.mp4" },
-              { text: "Take a bath", video: "/src/assets/flashcards/HygieneHero/TakeABath.mp4" },
-              // { text: "Get a haircut", video: "/src/assets/flashcards/HygieneHero/GetAHaircut.mp4" }
+              { text: "Wash my hands", video: "/assets/flashcards/HygieneHero/WashingHands.mp4" },
+              { text: "Wipe my nose", video: "/assets/flashcards/HygieneHero/WipeMyNose.mp4" },
+              { text: "Take a bath", video: "/assets/flashcards/HygieneHero/TakeABath.mp4" },
+              // { text: "Get a haircut", video: "/assets/flashcards/HygieneHero/GetAHaircut.mp4" }
             ],
             correctAnswer: "Wipe my nose",
             gameType: "hygiene",
@@ -1294,14 +1438,14 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             questionText: "🦷 Time to take care of your teeth!",
             scenarioImage: "🪥",
             backgroundImage: "🚿",
-            characterEmoji: "/src/assets/flashcards/HygieneHero/DirtyTeeth.mp4",
+            characterEmoji: "/assets/flashcards/HygieneHero/DirtyTeeth.mp4",
             isCharacterVideo: true,
             answerChoices: [
-              // { text: "Wash my hands", video: "/src/assets/flashcards/HygieneHero/WashingHands.mp4" },
-              { text: "Take a bath", video: "/src/assets/flashcards/HygieneHero/TakeABath.mp4" },
-              // { text: "Get a haircut", video: "/src/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
-              { text: "Brush my teeth", video: "/src/assets/flashcards/HygieneHero/BrushMyTeeth.mp4" },
-              { text: "Wipe my nose", video: "/src/assets/flashcards/HygieneHero/WipeMyNose.mp4" }
+              // { text: "Wash my hands", video: "/assets/flashcards/HygieneHero/WashingHands.mp4" },
+              { text: "Take a bath", video: "/assets/flashcards/HygieneHero/TakeABath.mp4" },
+              // { text: "Get a haircut", video: "/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
+              { text: "Brush my teeth", video: "/assets/flashcards/HygieneHero/BrushMyTeeth.mp4" },
+              { text: "Wipe my nose", video: "/assets/flashcards/HygieneHero/WipeMyNose.mp4" }
             ],
             correctAnswer: "Brush my teeth",
             gameType: "hygiene",
@@ -1313,14 +1457,14 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             questionText: "Your ears are dirty!👂",
             scenarioImage: "🧽",
             backgroundImage: "🚿",
-            characterEmoji: "/src/assets/flashcards/HygieneHero/DirtyEars.jpg",
+            characterEmoji: "/assets/flashcards/HygieneHero/DirtyEars.jpg",
             isCharacterVideo: false,
             answerChoices: [
-              { text: "Wash my hands", video: "/src/assets/flashcards/HygieneHero/WashingHands.mp4" },
-              // { text: "Take a bath", video: "/src/assets/flashcards/HygieneHero/TakeABath.mp4" },
-              // { text: "Get a haircut", video: "/src/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
-              { text: "Wipe my nose", video: "/src/assets/flashcards/HygieneHero/WipeMyNose.mp4" },
-              { text: "Clean my ears", video: "/src/assets/flashcards/HygieneHero/CleanMyEars.mp4" }
+              { text: "Wash my hands", video: "/assets/flashcards/HygieneHero/WashingHands.mp4" },
+              // { text: "Take a bath", video: "/assets/flashcards/HygieneHero/TakeABath.mp4" },
+              // { text: "Get a haircut", video: "/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
+              { text: "Wipe my nose", video: "/assets/flashcards/HygieneHero/WipeMyNose.mp4" },
+              { text: "Clean my ears", video: "/assets/flashcards/HygieneHero/CleanMyEars.mp4" }
             ],
             correctAnswer: "Clean my ears",
             gameType: "hygiene",
@@ -1332,14 +1476,14 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             questionText: "After playing, you're all sweaty!💦",
             scenarioImage: "🚿",
             backgroundImage: "🛁",
-            characterEmoji: "/src/assets/flashcards/HygieneHero/SweatyBody.mp4",
+            characterEmoji: "/assets/flashcards/HygieneHero/SweatyBody.mp4",
             isCharacterVideo: true,
             answerChoices: [
-              { text: "Wash my hands", video: "/src/assets/flashcards/HygieneHero/WashingHands.mp4" },
-              { text: "Take a bath", video: "/src/assets/flashcards/HygieneHero/TakeABath.mp4" },
-              { text: "Brush my teeth", video: "/src/assets/flashcards/HygieneHero/BrushMyTeeth.mp4" },
-              // { text: "Get a haircut", video: "/src/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
-              // { text: "Wipe my nose", video: "/src/assets/flashcards/HygieneHero/WipeMyNose.mp4" }
+              { text: "Wash my hands", video: "/assets/flashcards/HygieneHero/WashingHands.mp4" },
+              { text: "Take a bath", video: "/assets/flashcards/HygieneHero/TakeABath.mp4" },
+              { text: "Brush my teeth", video: "/assets/flashcards/HygieneHero/BrushMyTeeth.mp4" },
+              // { text: "Get a haircut", video: "/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
+              // { text: "Wipe my nose", video: "/assets/flashcards/HygieneHero/WipeMyNose.mp4" }
             ],
             correctAnswer: "Take a bath",
             gameType: "hygiene",
@@ -1351,14 +1495,14 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           //   questionText: "🍯 Your fingers are sticky after eating!",
           //   scenarioImage: "🤲",
           //   backgroundImage: "🍽️",
-          //   characterEmoji: "/src/assets/flashcards/HygieneHero/WashingHands.mp4",
+          //   characterEmoji: "/assets/flashcards/HygieneHero/WashingHands.mp4",
           //   isCharacterVideo: true,
           //   answerChoices: [
-          //     { text: "Brush my teeth", video: "/src/assets/flashcards/HygieneHero/BrushMyTeeth.mp4" },
-          //     // { text: "Take a bath", video: "/src/assets/flashcards/HygieneHero/TakeABath.mp4" },
-          //     // { text: "Get a haircut", video: "/src/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
-          //     { text: "Wipe my nose", video: "/src/assets/flashcards/HygieneHero/WipeMyNose.mp4" },
-          //     { text: "Wash my hands", video: "/src/assets/flashcards/HygieneHero/WashingHands.mp4" }
+          //     { text: "Brush my teeth", video: "/assets/flashcards/HygieneHero/BrushMyTeeth.mp4" },
+          //     // { text: "Take a bath", video: "/assets/flashcards/HygieneHero/TakeABath.mp4" },
+          //     // { text: "Get a haircut", video: "/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
+          //     { text: "Wipe my nose", video: "/assets/flashcards/HygieneHero/WipeMyNose.mp4" },
+          //     { text: "Wash my hands", video: "/assets/flashcards/HygieneHero/WashingHands.mp4" }
           //   ],
           //   correctAnswer: "Wash my hands",
           //   gameType: "hygiene",
@@ -1370,14 +1514,14 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             questionText: "Achoo!🤧  You just sneezed!",
             scenarioImage: "🤧",
             backgroundImage: "🏠",
-            characterEmoji: "/src/assets/flashcards/HygieneHero/Sneezing.mp4",
+            characterEmoji: "/assets/flashcards/HygieneHero/Sneezing.mp4",
             isCharacterVideo: true,
             answerChoices: [
-              { text: "Use tissue", video: "/src/assets/flashcards/HygieneHero/UseTissue.mp4" },
-              { text: "Wash my hands", video: "/src/assets/flashcards/HygieneHero/WashingHands.mp4" },
-              { text: "Take a bath", video: "/src/assets/flashcards/HygieneHero/TakeABath.mp4" },
-              // { text: "Get a haircut", video: "/src/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
-              // { text: "Wipe my nose", video: "/src/assets/flashcards/HygieneHero/WipeMyNose.mp4" }
+              { text: "Use tissue", video: "/assets/flashcards/HygieneHero/UseTissue.mp4" },
+              { text: "Wash my hands", video: "/assets/flashcards/HygieneHero/WashingHands.mp4" },
+              { text: "Take a bath", video: "/assets/flashcards/HygieneHero/TakeABath.mp4" },
+              // { text: "Get a haircut", video: "/assets/flashcards/HygieneHero/GetAHaircut.mp4" },
+              // { text: "Wipe my nose", video: "/assets/flashcards/HygieneHero/WipeMyNose.mp4" }
             ],
             correctAnswer: "Use tissue",
             gameType: "hygiene",
@@ -1395,7 +1539,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🚶‍♂️",
             backgroundImage: "🛣️",
             characterEmoji: "😊",
-            trafficLight: "/src/assets/GoSign.png",
+            trafficLight: "/assets/GoSign.png",
             isTrafficLightImage: true,
             lightStatus: "walk",
             safetyLevel: "safe",
@@ -1444,7 +1588,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🛣️",
             backgroundImage: "🏙️",
             characterEmoji: "😄",
-            trafficLight: "/src/assets/GoSign.png",
+            trafficLight: "/assets/GoSign.png",
             isTrafficLightImage: true,
             lightStatus: "clear",
             safetyLevel: "safe",
@@ -1493,7 +1637,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🚶‍♂️",
             backgroundImage: "🛣️",
             characterEmoji: "😊",
-            trafficLight: "/src/assets/GoSign.png",
+            trafficLight: "/assets/GoSign.png",
             isTrafficLightImage: true,
             lightStatus: "walk",
             safetyLevel: "safe",
@@ -1510,7 +1654,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             scenarioImage: "🚑🔊",
             backgroundImage: "🛣️",
             characterEmoji: "😮",
-            trafficLight: "/src/assets/GoSign.png",
+            trafficLight: "/assets/GoSign.png",
             isTrafficLightImage: true,
             lightStatus: "emergency",
             safetyLevel: "unsafe",
@@ -1537,7 +1681,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   { id: 1, name: "Juice", image: "🥤", price: 10, category: "food", affordable: true },
                   { id: 2, name: "Car", image: "🚗", price: 450000, category: "vehicle", affordable: false },
                   { id: 3, name: "Phone", image: "📱", price: 25000, category: "electronics", affordable: false },
-                  { id: 4, name: "Pancake", image: "/src/assets/pancakes.jpg", price: 15, category: "food", affordable: true, isImagePath: true }
+                  { id: 4, name: "Pancake", image: "/assets/pancakes.jpg", price: 15, category: "food", affordable: true, isImagePath: true }
                 ]
               },
               {
@@ -1556,7 +1700,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 items: [
                   { id: 9, name: "Ipad", image: "📱", price: 2800, category: "entertainment", affordable: false },
                   { id: 10, name: "Ice Cream", image: "🍦", price: 30, category: "dessert", affordable: true },
-                  { id: 11, name: "Pancake", image: "/src/assets/pancakes.jpg", price: 15, category: "food", affordable: false, isImagePath: true },
+                  { id: 11, name: "Pancake", image: "/assets/pancakes.jpg", price: 15, category: "food", affordable: false, isImagePath: true },
                   { id: 12, name: "Pencil", image: "✏️", price: 10, category: "education", affordable: true }
                 ]
               }
@@ -1578,245 +1722,181 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             choreId: "washing_dishes",
             choreName: "Washing Dishes",
             choreIcon: "🍽️",
-            description: "Learn to wash dishes step by step!",
-            difficulty: "Easy",
+            description: "Clean the dishes!",
             steps: [
               {
                 stepId: 1,
-                instruction: "🍽️ Gather dirty dishes",
+                instruction: "What do you do first?",
                 emoji: "🍽️",
-                action: "collect",
-                target: "dishes",
-                feedback: "Great! All the dirty dishes are ready to wash!",
-                character_thought: "Let's collect all the dishes that need washing! 🍽️"
+                choices: ["Get the sponge", "Turn on TV", "Play games"],
+                correctChoice: "Get the sponge",
+                feedback: "Great! Now we're ready to clean!"
               },
               {
                 stepId: 2,
-                instruction: "💦 Rinse dishes with water",
+                instruction: "What do you need?",
                 emoji: "💦", 
-                action: "rinse",
-                target: "sink",
-                feedback: "Perfect! The dishes are getting clean!",
-                character_thought: "Rinse away the food scraps first! 💦"
+                choices: ["Water and soap", "Juice", "Toys"],
+                correctChoice: "Water and soap",
+                feedback: "Perfect! Water and soap clean dishes!"
               },
               {
                 stepId: 3,
-                instruction: "🧽 Apply soap and scrub",
+                instruction: "How do you clean?",
                 emoji: "🧽",
-                action: "scrub",
-                target: "dishes",
-                feedback: "Excellent scrubbing! The dishes are sparkling!",
-                character_thought: "Scrub, scrub, scrub! Making them shine! 🧽"
-              },
-              {
-                stepId: 4,
-                instruction: "💧 Rinse off soap",
-                emoji: "💧",
-                action: "final_rinse",
-                target: "sink", 
-                feedback: "Amazing! All the soap is washed away!",
-                character_thought: "Almost done! Just need to rinse off the soap! 💧"
-              },
-              {
-                stepId: 5,
-                instruction: "🧴 Dry dishes with towel",
-                emoji: "🧴",
-                action: "dry",
-                target: "towel",
-                feedback: "Perfect! The dishes are clean and dry!",
-                character_thought: "All clean and ready to use! Great job! 🌟"
+                choices: ["Scrub the dishes", "Throw them", "Hide them"],
+                correctChoice: "Scrub the dishes",
+                feedback: "Excellent! The dishes are clean now!"
               }
             ],
             gameType: "household_chores",
-            totalSteps: 5,
-            successMessage: "Fantastic! You've mastered dish washing!",
-            badge: "🏆 Dish Washing Expert!"
-          },
-          {
-            choreId: "sweeping_floor",
-            choreName: "Sweeping Floor",
-            choreIcon: "🧹",
-            description: "Clean the floor by sweeping away the dirt!",
-            difficulty: "Easy-Medium",
-            steps: [
-              {
-                stepId: 1,
-                instruction: "🧹 Pick up big trash first",
-                emoji: "🧹",
-                action: "pick_up",
-                target: "trash",
-                feedback: "Good! Now the floor is ready for sweeping!",
-                character_thought: "Let's pick up the big pieces first! 🧹"
-              },
-              {
-                stepId: 2,
-                instruction: "🧹 Sweep dirt into a pile",
-                emoji: "🧹",
-                action: "sweep",
-                target: "dirt_spots",
-                feedback: "Nice sweeping! Gathering all the dirt together!",
-                character_thought: "Sweep, sweep! Pushing all the dirt together! 💨"
-              },
-              {
-                stepId: 3,
-                instruction: "🗑️ Throw dirt into the trash bin",
-                emoji: "🗑️",
-                action: "dispose",
-                target: "trash_bin",
-                feedback: "Perfect! All the dirt is gone!",
-                character_thought: "Into the trash it goes! �️"
-              },
-              {
-                stepId: 4,
-                instruction: "🧼 Optional: Mop the floor",
-                emoji: "🧼",
-                action: "mop",
-                target: "floor",
-                feedback: "Excellent! The floor is spotless!",
-                character_thought: "Now it's super clean and shiny! 🧼"
-              }
-            ],
-            gameType: "household_chores",
-            totalSteps: 4,
-            successMessage: "Outstanding! You're a sweeping superstar!",
-            badge: "🏆 Floor Cleaning Champion!"
+            totalSteps: 3,
+            successMessage: "Great job! You can wash dishes!",
+            badge: "🏆 Dish Washing Star!"
           },
           {
             choreId: "making_bed",
-            choreName: "Making Bed",
+            choreName: "Making the Bed",
             choreIcon: "🛏️",
-            description: "Make your bed neat and tidy!",
-            difficulty: "Easy",
+            description: "Make your bed neat!",
             steps: [
               {
                 stepId: 1,
-                instruction: "🛏️ Remove pillows",
+                instruction: "What do you do first?",
                 emoji: "🛏️",
-                action: "remove",
-                target: "pillows",
-                feedback: "Great! The pillows are safely set aside!",
-                character_thought: "Let's take the pillows off first! 🛏️"
+                choices: ["Pull up the blanket", "Jump on bed", "Leave it messy"],
+                correctChoice: "Pull up the blanket",
+                feedback: "Good! The bed looks neater!"
               },
               {
                 stepId: 2,
-                instruction: "🛏️ Spread bedsheet evenly",
+                instruction: "What's next after pulling up the blanket?",
                 emoji: "🛏️",
-                action: "spread",
-                target: "bedsheet",
-                feedback: "Perfect! The sheet is nice and smooth!",
-                character_thought: "Make sure the sheet is flat and even! 🛏️"
+                choices: ["Put the pillow on top", "Throw pillow away", "Sleep now"],
+                correctChoice: "Put the pillow on top",
+                feedback: "Perfect! Your bed looks nice!"
               },
               {
                 stepId: 3,
-                instruction: "🛏️ Place blanket neatly",
+                instruction: "Last step?",
                 emoji: "🛏️",
-                action: "place",
-                target: "blanket",
-                feedback: "Wonderful! The blanket looks perfect!",
-                character_thought: "Almost done! Just need to add the blanket! 🛏️"
-              },
-              {
-                stepId: 4,
-                instruction: "🛏️ Arrange pillows",
-                emoji: "🛏️",
-                action: "arrange",
-                target: "pillow_area",
-                feedback: "Amazing! Your bed looks fantastic!",
-                character_thought: "Perfect! Now it's ready for a good night's sleep! 😴"
+                choices: ["Make it smooth", "Make it messy", "Do nothing"],
+                correctChoice: "Make it smooth",
+                feedback: "Amazing! Your bed is perfect!"
               }
             ],
             gameType: "household_chores",
-            totalSteps: 4,
-            successMessage: "Incredible! You're a bed-making expert!",
-            badge: "🏆 Bedroom Organization Star!"
+            totalSteps: 3,
+            successMessage: "Wonderful! You make your bed well!",
+            badge: "🏆 Bed Making Pro!"
           },
           {
-            choreId: "putting_toys_away",
-            choreName: "Putting Toys Away",
-            choreIcon: "🧸",
-            description: "Clean up by putting all toys in their proper place!",
+            choreId: "wiping_table",
+            choreName: "Wiping the Table",
+            choreIcon: "🧽",
+            description: "Clean the table!",
             steps: [
               {
                 stepId: 1,
-                instruction: "Pick up the teddy bear",
-                action: "drag",
-                target: "toy_box",
-                feedback: "Great! Teddy bear is safely in the toy box!",
-                character_thought: "Time to clean up and put everything away! 🧸"
+                instruction: "What do you need?",
+                emoji: "🧽",
+                choices: ["A cloth", "A toy", "A book"],
+                correctChoice: "A cloth",
+                feedback: "Great! You picked the right tool!"
               },
               {
                 stepId: 2,
-                instruction: "Put the blocks in the toy box",
-                action: "drag",
-                target: "toy_box",
-                feedback: "Excellent! The blocks are organized!",
-                character_thought: "One by one, everything goes in its place! 🔵"
+                instruction: "What helps clean better?",
+                emoji: "💧",
+                choices: ["Wet the cloth", "Keep it dry", "Throw it"],
+                correctChoice: "Wet the cloth",
+                feedback: "Perfect! Wet cloth cleans better!"
               },
               {
                 stepId: 3,
-                instruction: "Place the toy car in the garage",
-                action: "drag",
-                target: "toy_garage",
-                feedback: "Perfect! The car is parked safely!",
-                character_thought: "Vroom vroom! The car goes in the garage! 🚗"
-              },
-              {
-                stepId: 4,
-                instruction: "Put the puzzle pieces in their container",
-                action: "drag",
-                target: "puzzle_box",
-                feedback: "Amazing! Everything is organized and tidy!",
-                character_thought: "All done! The room looks so clean now! ✨"
+                instruction: "How do you clean?",
+                emoji: "✨",
+                choices: ["Wipe the table", "Ignore the mess", "Make it dirty"],
+                correctChoice: "Wipe the dirts",
+                feedback: "Excellent! The table is clean!"
               }
             ],
             gameType: "household_chores",
-            totalSteps: 4,
-            successMessage: "Fantastic! You're a toy organization master!",
-            badge: "🏆 Cleanup Champion!"
+            totalSteps: 3,
+            successMessage: "Awesome! You clean tables well!",
+            badge: "🏆 Table Cleaning Expert!"
           },
           {
-            choreId: "taking_out_trash",
-            choreName: "Taking Out the Trash",
-            choreIcon: "🗑️",
-            description: "Help keep the house clean by taking out the trash!",
+            choreId: "watering_plants",
+            choreName: "Watering the Plants",
+            choreIcon: "🌱",
+            description: "Give plants water!",
             steps: [
               {
                 stepId: 1,
-                instruction: "Tie the trash bag closed",
-                action: "click",
-                target: "trash_bag",
-                feedback: "Good! The trash bag is securely closed!",
-                character_thought: "Let's get this trash ready to go out! 🗑️"
+                instruction: "What do you need?",
+                emoji: "🌱",
+                choices: ["A watering can", "A ball", "A phone"],
+                correctChoice: "A watering can",
+                feedback: "Great choice! Plants need water!"
               },
               {
                 stepId: 2,
-                instruction: "Lift the trash bag out of the bin",
-                action: "drag",
-                target: "lift_area",
-                feedback: "Great lifting! You've got it!",
-                character_thought: "Careful! This bag might be a little heavy! 💪"
+                instruction: "Where do you pour?",
+                emoji: "💧",
+                choices: ["On the soil", "On the floor", "On yourself"],
+                correctChoice: "On the soil",
+                feedback: "Perfect! Plants drink from soil!"
               },
               {
                 stepId: 3,
-                instruction: "Carry the bag to the outdoor trash bin",
-                action: "drag",
-                target: "outdoor_bin",
-                feedback: "Excellent! You carried it all the way outside!",
-                character_thought: "Almost there! Just need to get it outside! 🚶‍♂️"
-              },
-              {
-                stepId: 4,
-                instruction: "Put a new bag in the indoor trash bin",
-                action: "drag",
-                target: "indoor_bin",
-                feedback: "Perfect! The trash bin is ready for more trash!",
-                character_thought: "All set! The bin is ready for next time! 🌟"
+                instruction: "How much water?",
+                emoji: "💦",
+                choices: ["Just enough", "Too much", "None"],
+                correctChoice: "Just enough",
+                feedback: "Excellent! Not too much, not too little!"
               }
             ],
             gameType: "household_chores",
-            totalSteps: 4,
-            successMessage: "Outstanding! You're a trash management expert!",
-            badge: "🏆 Cleanliness Hero!"
+            totalSteps: 3,
+            successMessage: "Amazing! You take care of plants!",
+            badge: "🏆 Plant Care Champion!"
+          },
+          {
+            choreId: "sweeping_floor",
+            choreName: "Sweeping the Floor",
+            choreIcon: "🧹",
+            description: "Clean the floor!",
+            steps: [
+              {
+                stepId: 1,
+                instruction: "What do you use?",
+                emoji: "🧹",
+                choices: ["A broom", "A pillow", "A toy"],
+                correctChoice: "A broom",
+                feedback: "Good! A broom cleans floors!"
+              },
+              {
+                stepId: 2,
+                instruction: "What do you do?",
+                emoji: "🧹",
+                choices: ["Sweep the dirt", "Spread the dirt", "Ignore it"],
+                correctChoice: "Sweep the dirt",
+                feedback: "Nice! You're sweeping well!"
+              },
+              {
+                stepId: 3,
+                instruction: "Where does dirt go?",
+                emoji: "🗑️",
+                choices: ["In the trash", "On the bed", "Leave it"],
+                correctChoice: "In the trash",
+                feedback: "Perfect! The floor is clean!"
+              }
+            ],
+            gameType: "household_chores",
+            totalSteps: 3,
+            successMessage: "Fantastic! You sweep very well!",
+            badge: "🏆 Sweeping Star!"
           }
         ]
     }
@@ -3713,6 +3793,17 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         <div className="absolute top-0 left-0 w-3 h-32 bg-gradient-to-br from-blue-200/20 to-purple-200/20 rounded-full blur-2xl animate-float"></div>
         <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-bl from-pink-200/20 to-yellow-200/20 rounded-full blur-xl animate-float-delayed"></div>
         
+        {/* Music Toggle Button */}
+        <button
+          onClick={toggleMusic}
+          className="absolute top-4 right-4 z-50 bg-white/80 hover:bg-white rounded-full p-3 shadow-lg transition-all duration-300 hover:scale-110 border-2 border-purple-200/50"
+          title={isMusicMuted ? "Unmute Music" : "Mute Music"}
+        >
+          <span className="text-2xl">
+            {isMusicMuted ? "🔇" : "🎵"}
+          </span>
+        </button>
+
         <div className="relative z-10 ">
           {/* Question Counter with modern design */}
           <div className="-mt-20 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl px-6 py-1 border border-blue-200/30 inline-block">
@@ -3784,7 +3875,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               {showWrong && (
                 <div className="fixed inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50">
                   <audio ref={wrongAudioRef} src={wrongSound} />
-                  <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
+                  <img src="/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
                 </div>
               )}
 
@@ -3842,7 +3933,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {showWrong && (
                   <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
                     <audio ref={wrongAudioRef} src={wrongSound} />
-                    <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
+                    <img src="/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
                   </div>
                 )}
 
@@ -3973,21 +4064,15 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               </div> */}
               
               {/* Round Progress Indicator */}
-              <div className="text-center mb-6">
+              <div className="text-center -mt-2 mb-2">
                 <div className="inline-flex bg-gradient-to-r from-green-100 to-blue-100 rounded-full px-8 py-2 border-3 border-green-300 shadow-xl">
                   <span className="text-xl font-bold text-green-800 flex items-center space-x-3">
                     <span className="text-3xl animate-bounce-gentle">🚦</span>
-                    <span>Round {streetRound} of 5 - Street Safety</span>
+                    <span>Street Safety</span>
                     <span className="text-3xl animate-pulse-gentle">🚶‍♂️</span>
                   </span>
                 </div>
-                {/* Animated Progress Bar */}
-                {/* <div className="w-80 bg-gray-200 rounded-full h-5 mt-3 mx-auto shadow-inner border-2 border-gray-300">
-                  <div 
-                    className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 h-5 rounded-full transition-all duration-1000 ease-out shadow-lg"
-                    style={{ width: `${(streetRound / 5) * 100}%` }}
-                  ></div>
-                </div> */}
+               
               </div>
 
               {/* 🏙️ MAIN INTERACTIVE STREET ENVIRONMENT 🏙️ */}
@@ -4004,7 +4089,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {showWrong && (
                   <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
                     <audio ref={wrongAudioRef} src={wrongSound} />
-                    <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
+                    <img src="/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
                   </div>
                 )}
 
@@ -4317,7 +4402,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {showWrong && (
                   <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
                     <audio ref={wrongAudioRef} src={wrongSound} />
-                    <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-40 h-40 object-contain" />
+                    <img src="/assets/NiceTry.png" alt="Nice Try" className="w-40 h-40 object-contain" />
                   </div>
                 )}
                 
@@ -4665,7 +4750,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {showWrong && (
                   <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
                     <audio ref={wrongAudioRef} src={wrongSound} />
-                    <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-52 h-52 object-contain" />
+                    <img src="/assets/NiceTry.png" alt="Nice Try" className="w-52 h-52 object-contain" />
                   </div>
                 )}
                 
@@ -4797,7 +4882,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {showWrong && (
                   <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
                     <audio ref={wrongAudioRef} src={wrongSound} />
-                    <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
+                    <img src="/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
                   </div>
                 )}
                 
@@ -5087,7 +5172,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               {showWrong && (
                 <div className="fixed inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50">
                   <audio ref={wrongAudioRef} src={wrongSound} />
-                  <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
+                  <img src="/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
                 </div>
               )}
             </div>
@@ -5132,7 +5217,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {showWrong && (
                   <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
                     <audio ref={wrongAudioRef} src={wrongSound} />
-                    <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
+                    <img src="/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
                   </div>
                 )}
 
@@ -5466,59 +5551,27 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   );
                 }
 
-                // Enhanced choice generation with better educational options
-                const generateChoices = (step, choreData) => {
-                  const correctAnswer = step.instruction;
-                  
-                  // Create contextual wrong answers based on the chore type
-                  const choreSpecificWrongAnswers = {
-                    "washing_dishes": [
-                      "🔥 Put dishes in microwave",
-                      "❄️ Put dishes in freezer", 
-                      "🧹 Sweep the dishes",
-                      "📱 Take a photo first",
-                      "🛏️ Put dishes on bed"
-                    ],
-                    "sweeping_floor": [
-                      "💦 Pour water on dirt",
-                      "🍽️ Eat the dirt",
-                      "📺 Watch TV instead",
-                      "🛏️ Sleep on the floor",
-                      "🎵 Dance on the dirt"
-                    ],
-                    "making_bed": [
-                      "🔥 Set bed on fire",
-                      "💦 Pour water on bed",
-                      "🍕 Put pizza on pillow",
-                      "🐱 Let cat sleep there",
-                      "📚 Stack books on bed"
-                    ]
-                  };
-
-                  const currentChoreWrongAnswers = choreSpecificWrongAnswers[choreData.choreId] || [
-                    "🚫 Skip this step completely",
-                    "⏰ Do it much later",
-                    "👥 Ask someone else to do it",
-                    "📱 Google how to do it",
-                    "🎮 Play games instead"
-                  ];
-
-                  // Get 3 random wrong answers
-                  const shuffledWrongAnswers = [...currentChoreWrongAnswers].sort(() => Math.random() - 0.5);
-                  const wrongAnswers = shuffledWrongAnswers.slice(0, 3);
-
-                  // Combine and shuffle all choices
-                  const allChoices = [correctAnswer, ...wrongAnswers];
-                  return allChoices.sort(() => Math.random() - 0.5);
-                };
-
-                const choices = generateChoices(currentStep, choreData);
-
                 return (
                   <div className="bg-white rounded-xl p-8 shadow-xl border border-gray-100 relative overflow-hidden">
                     {/* Decorative background elements */}
                     <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-100/30 to-transparent rounded-full -mr-16 -mt-16"></div>
                     <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-100/30 to-transparent rounded-full -ml-12 -mb-12"></div>
+                    
+                    {/* Correct Answer Modal Overlay */}
+                    {showCorrect && (
+                      <div className="absolute inset-0 backdrop-blur-sm bg-white/50 flex flex-col justify-center items-center z-50 rounded-xl">
+                        <audio ref={correctAudioRef} src={correctSound} />
+                        <img src={currentCorrectImage} alt="Correct" className="w-64 h-64 object-contain animate-bounce-gentle" />
+                      </div>
+                    )}
+
+                    {/* Wrong Answer Modal Overlay */}
+                    {showWrong && (
+                      <div className="absolute inset-0 backdrop-blur-sm bg-white/50 flex flex-col justify-center items-center z-50 rounded-xl">
+                        <audio ref={wrongAudioRef} src={wrongSound} />
+                        <img src="/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain animate-bounce-gentle" />
+                      </div>
+                    )}
                     
                     {/* Question Section */}
                     <div className="text-center mb-8 md:mb-10 relative z-10">
@@ -5526,23 +5579,22 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                         {currentStep.emoji || choreData.choreIcon || '🏠'}
                       </div>
                       <h4 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 leading-relaxed px-4">
-                        What's the next step for {choreData.choreName.toLowerCase()}?
+                        {currentStep.instruction}
                       </h4>
                       <div className="w-12 md:w-16 h-1 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full mx-auto"></div>
                     </div>
 
-                    {/* Interactive Answer Choices */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
-                      {choices.map((choice, index) => (
+                    {/* Interactive Answer Choices - 3 in 1 row */}
+                    <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 relative z-10 max-w-4xl mx-auto">
+                      {currentStep.choices.map((choice, index) => (
                         <button
                           key={index}
                           disabled={showChoreFeedback}
                           onClick={() => {
-                            if (showChoreFeedback) return; // Prevent multiple clicks
+                            if (showChoreFeedback) return;
                             
-                            const isCorrect = choice === currentStep.instruction;
+                            const isCorrect = choice === currentStep.correctChoice;
                             
-                            // Always move to next question regardless of answer
                             if (isCorrect) {
                               setScore(prev => prev + 1);
                               setShowCorrect(true);
@@ -5550,47 +5602,55 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                               setChoreFeedbackMessage(currentStep.feedback || "Perfect! Great job! 🌟");
                               setChoreFeedbackType('correct');
                               setCompletedChoreSteps(prev => [...prev, currentChoreStep]);
+                              
+                              // Only advance to next step if correct
+                              setTimeout(() => {
+                                if (currentChoreStep < choreData.steps.length - 1) {
+                                  setCurrentChoreStep(prev => prev + 1);
+                                } else {
+                                  setIsChoreComplete(true);
+                                }
+                                setShowCorrect(false);
+                                setShowWrong(false);
+                                setShowChoreFeedback(false);
+                              }, 2500);
                             } else {
+                              setShowWrong(true);
                               setShowChoreFeedback(true);
-                              setChoreFeedbackMessage(`Not quite! The correct step was: ${currentStep.instruction}`);
+                              setChoreFeedbackMessage(`Try again! The answer is: ${currentStep.correctChoice}`);
                               setChoreFeedbackType('incorrect');
+                              
+                              // Don't advance on wrong answer, just clear feedback
+                              setTimeout(() => {
+                                setShowCorrect(false);
+                                setShowWrong(false);
+                                setShowChoreFeedback(false);
+                              }, 2500);
                             }
-                            
-                            // Auto-advance to next question after 2.5 seconds
-                            setTimeout(() => {
-                              if (currentChoreStep < choreData.steps.length - 1) {
-                                setCurrentChoreStep(prev => prev + 1);
-                              } else {
-                                setIsChoreComplete(true);
-                              }
-                              setShowCorrect(false);
-                              setShowChoreFeedback(false);
-                            }, 2500);
                           }}
-                          className={`group transition-all duration-300 transform focus:outline-none focus:ring-4 focus:ring-blue-300 relative overflow-hidden rounded-xl p-6 text-left ${
+                          className={`flex-1 group transition-all duration-300 transform focus:outline-none focus:ring-4 focus:ring-blue-300 relative overflow-hidden rounded-xl p-4 sm:p-6 text-center ${
                             showChoreFeedback 
                               ? 'cursor-not-allowed opacity-60' 
                               : 'hover:scale-105 hover:shadow-lg cursor-pointer bg-gradient-to-r from-gray-50 to-blue-50 hover:from-blue-100 hover:to-purple-100 border-2 border-gray-200 hover:border-blue-400'
                           }`}
                           aria-label={`Choice ${String.fromCharCode(65 + index)}: ${choice}`}
                         >
-                          {/* Button highlight effect */}
                           {!showChoreFeedback && (
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                           )}
                           
-                          <div className="relative z-10 flex items-center space-x-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all duration-300 ${
-                              showChoreFeedback && choice === currentStep.instruction
-                                ? 'bg-gradient-to-r from-green-500 to-emerald-500 animate-bounce-gentle'
+                          <div className="relative z-10">
+                            <div className={`text-lg sm:text-xl font-bold mb-2 transition-colors duration-300 ${
+                              showChoreFeedback && choice === currentStep.correctChoice
+                                ? 'text-green-800'
                                 : showChoreFeedback
-                                ? 'bg-gray-400'
-                                : 'bg-gradient-to-r from-blue-400 to-purple-400'
+                                ? 'text-gray-500'
+                                : 'text-gray-800'
                             }`}>
-                              {showChoreFeedback && choice === currentStep.instruction ? '✓' : String.fromCharCode(65 + index)}
+                              {String.fromCharCode(65 + index)}
                             </div>
-                            <div className={`font-semibold text-lg leading-relaxed transition-colors duration-300 ${
-                              showChoreFeedback && choice === currentStep.instruction
+                            <div className={`font-semibold text-sm sm:text-base leading-relaxed transition-colors duration-300 ${
+                              showChoreFeedback && choice === currentStep.correctChoice
                                 ? 'text-green-800'
                                 : showChoreFeedback
                                 ? 'text-gray-500'
@@ -5637,12 +5697,72 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
               {/* Interactive Navigation */}
               <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-4 px-4">
+                {isChoreComplete && currentQuestionIndex > 0 && (
+                  <button
+                    onClick={() => {
+                      // Go back to previous chore
+                      const prevIndex = currentQuestionIndex - 1;
+                      setCurrentQuestionIndex(prevIndex);
+                      
+                      // Reset chore state
+                      setCurrentChoreStep(0);
+                      setChoreProgress([]);
+                      setCompletedChoreSteps([]);
+                      setCompletedSteps([]);
+                      setChoreToolsAvailable([]);
+                      setChoreEnvironmentItems([]);
+                      setDraggedChoreItems([]);
+                      setDroppedChoreItems([]);
+                      setDraggedItem(null);
+                      setChoreScore(0);
+                      setIsChoreComplete(false);
+                      setShowChoreFeedback(false);
+                      setChoreFeedbackType('');
+                      setChoreFeedbackMessage('');
+                      
+                      // Set the previous chore ID
+                      const prevChore = questions[prevIndex];
+                      if (prevChore && prevChore.choreId) {
+                        setCurrentChoreId(prevChore.choreId);
+                      }
+                    }}
+                    className="w-full sm:w-auto bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-base md:text-lg transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2"
+                    aria-label="Go back to previous chore"
+                  >
+                    <span className="text-xl md:text-2xl">⬅️</span>
+                    <span className="text-center">Back</span>
+                  </button>
+                )}
+                
                 {isChoreComplete && (
                   <button
                     onClick={() => {
                       if (currentQuestionIndex < questions.length - 1) {
-                        setCurrentQuestionIndex(prev => prev + 1);
-                        resetChoreState();
+                        // Move to next chore
+                        const nextIndex = currentQuestionIndex + 1;
+                        setCurrentQuestionIndex(nextIndex);
+                        
+                        // Reset chore state
+                        setCurrentChoreStep(0);
+                        setChoreProgress([]);
+                        setCompletedChoreSteps([]);
+                        setCompletedSteps([]);
+                        setChoreToolsAvailable([]);
+                        setChoreEnvironmentItems([]);
+                        setDraggedChoreItems([]);
+                        setDroppedChoreItems([]);
+                        setDraggedItem(null);
+                        setChoreScore(0);
+                        setIsChoreComplete(false);
+                        setShowChoreFeedback(false);
+                        setChoreFeedbackType('');
+                        setChoreFeedbackMessage('');
+                        
+                        // Set the next chore ID
+                        const nextChore = questions[nextIndex];
+                        if (nextChore && nextChore.choreId) {
+                          setCurrentChoreId(nextChore.choreId);
+                        }
                       } else {
                         setShowModal(true);
                       }
@@ -6130,7 +6250,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           {showWrong && (
             <div className="absolute inset-0 backdrop-blur-sm flex flex-col justify-center items-center z-50 rounded-2xl">
               <audio ref={wrongAudioRef} src={wrongSound} />
-              <img src="/src/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
+              <img src="/assets/NiceTry.png" alt="Nice Try" className="w-64 h-64 object-contain" />
             </div>
           )}
         </div>
@@ -6684,8 +6804,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         }
       `}</style>
 
-      {/* Background Music for Medium Identification */}
-      <audio ref={bgMusicRef} src={jungleBgMusic} />
+      {/* Background Music - Auto-selected based on activity */}
+      <audio ref={bgMusicRef} />
     </div>
   );
 };

@@ -720,24 +720,7 @@ const StudentProfile = () => {
               </div>
             </div>
 
-            {/* Grade */}
-            <div className="flex items-center p-4 bg-gradient-to-r from-red-50 to-pink-50 rounded-2xl border border-red-200/50">
-              <span className="text-2xl mr-4">📚</span>
-              <div className="flex-1">
-                <label className="block text-sm font-semibold text-gray-700">Grade</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    name="grade"
-                    value={userInfo.grade}
-                    onChange={handleInputChange}
-                    className="w-full bg-transparent border-b border-red-400 focus:outline-none text-gray-800 py-1"
-                  />
-                ) : (
-                  <p className="text-gray-800 font-medium">{userInfo.grade || 'Not provided'}</p>
-                )}
-              </div>
-            </div>
+            
 
             {/* Gender */}
             <div className="flex items-center p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-200/50">
