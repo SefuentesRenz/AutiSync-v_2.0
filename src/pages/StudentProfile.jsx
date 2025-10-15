@@ -515,7 +515,7 @@ const StudentProfile = () => {
           <div className="flex justify-between items-center -my-2">
             <div className="flex items-center space-x-4">
               <img
-                src="/src/assets/logo.png"
+                src="/assets/logo.png"
                 alt="AutiSync Logo"
                 className="w-16 h-16 object-contain"
               />
@@ -575,7 +575,7 @@ const StudentProfile = () => {
             <div className="flex-shrink-0">
               <div className="w-32 h-32 rounded-full overflow-hidden shadow-2xl border-4 border-white animate-pulse">
                 <img 
-                  src="/src/assets/kidprofile1.jpg" 
+                  src="/assets/kidprofile1.jpg" 
                   alt="Student Profile" 
                   className="w-full h-full object-cover"
                 />

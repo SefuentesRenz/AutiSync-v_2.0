@@ -72,7 +72,7 @@ const ParentHomepage = () => {
                 className="bg-gradient-to-r cursor-pointer from-blue-500 to-purple-600 text-white p-1 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
               >
                 <img
-                  src="/src/assets/kidprofile1.jpg"
+                  src="/assets/kidprofile1.jpg"
                   alt="Profile"
                   className="h-10 w-10 rounded-full object-cover"
                 />

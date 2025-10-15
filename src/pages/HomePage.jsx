@@ -500,7 +500,7 @@ const HomePage = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
               <img
-                  src="/src/assets/logo.png"
+                  src="/assets/logo.png"
                   alt="AutiSync Logo"
                   className="w-16 h-16 object-contain"
                 />
@@ -528,7 +528,7 @@ const HomePage = () => {
                 className="cursor-pointer group flex items-center space-x-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-2 hover:shadow-lg transition-all duration-300"
               >
                 <img
-                  src="/src/assets/kidprofile1.jpg"
+                  src="/assets/kidprofile1.jpg"
                   alt="Profile"
                   className="w-10 h-10 rounded-xl object-cover border-2 border-white shadow-sm group-hover:scale-105 transition-transform duration-300"
                 />
@@ -605,9 +605,9 @@ const HomePage = () => {
                 loop
                 muted
                 autoPlay
-                poster="/src/assets/banner.jpg"
+                poster="/assets/banner.jpg"
               >
-                <source src="/src/assets/videotutorial.mp4" type="video/mp4" />
+                <source src="/assets/videotutorial.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
             </div>

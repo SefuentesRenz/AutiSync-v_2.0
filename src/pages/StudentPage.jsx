@@ -139,7 +139,7 @@ const StudentPage = () => {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-4">
               <img
-                  src="/src/assets/logo.png"
+                  src="/assets/logo.png"
                   alt="AutiSync Logo"
                   className="w-16 h-16 object-contain"
                 />
@@ -171,7 +171,7 @@ const StudentPage = () => {
                 className="cursor-pointer group flex items-center space-x-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-2 hover:shadow-lg transition-all duration-300"
               >
                 <img
-                  src="/src/assets/kidprofile1.jpg"
+                  src="/assets/kidprofile1.jpg"
                   alt="Profile"
                   className="w-10 h-10 rounded-xl object-cover border-2 border-white shadow-sm group-hover:scale-105 transition-transform duration-300"
                 />
@@ -187,7 +187,7 @@ const StudentPage = () => {
       {/* Banner Section */}
       <div className="relative z-10 h-48 sm:h-64 overflow-hidden">
         <img
-          src="/src/assets/bg_cover.png"
+          src="/assets/bg_cover.png"
           alt="Learning Banner"
           className="w-full h-full object-cover"
         />
@@ -236,7 +236,7 @@ const StudentPage = () => {
                   </div>
                   <div className="flex items-center justify-center animate-bounce-gentle">
                     <img 
-                      src="/src/assets/firesticker.png" 
+                      src="/assets/firesticker.png" 
                       alt="Streak" 
                       className="w-28 h-28 relative right-10 object-contain -mt-2" 
                       style={{ 

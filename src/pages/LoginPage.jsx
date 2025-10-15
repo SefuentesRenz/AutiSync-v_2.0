@@ -116,7 +116,7 @@ function LoginPage() {
         <div className="text-center mb-7">
           <div className="flex items-center justify-center -mb-3 -mt-7">
             <img
-                  src="/src/assets/logo.png"
+                  src="/assets/logo.png"
                   alt="AutiSync Logo"
                   className="w-23 h-23 object-contain"
                 />

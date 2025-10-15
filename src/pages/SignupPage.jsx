@@ -248,7 +248,7 @@ function SignupPage() {
         <div className="text-center mb-8">
           <div className="flex items-center -mt-7 justify-center ">
             <img
-                  src="/src/assets/logo.png"
+                  src="/assets/logo.png"
                   alt="AutiSync Logo"
                   className="w-22 h-22 object-contain"
                 />

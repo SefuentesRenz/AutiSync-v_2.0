@@ -125,7 +125,7 @@ const FlashcardsPage = () => {
       {/* Background Music */}
       <audio
         ref={bgmRef}
-        src="/src/assets/sounds/game-bgmusic.mp3"
+        src="/assets/sounds/game-bgmusic.mp3"
         autoPlay
         loop
         style={{ display: 'none' }}
