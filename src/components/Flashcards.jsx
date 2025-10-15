@@ -935,8 +935,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { id: 4, content: "👩‍ Chef", type: "text" },
               { id: 5, content: "🌱 Plant", type: "text" },
               { id: 6, content: "🩺 Doctor", type: "text" },
-              { id: 7, content: "👩‍🏫 Teacher", type: "text" },
-              ,
+              { id: 7, content: "👩‍🏫 Teacher", type: "text" }
               // { id: 9, content: "36 divided by 6", type: "text" },
               // { id: 10, content: "💧 Water", type: "text" }
             ],
@@ -1951,7 +1950,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   // Effect to enable submit button when all items are connected in matching game
   useEffect(() => {
     if (currentQuestion?.gameType === 'matching' && currentQuestion?.leftItems) {
-      const totalItems = currentQuestion.leftItems.length;
+      // Filter out null/undefined entries to get accurate count
+      const validLeftItems = currentQuestion.leftItems.filter(item => item != null);
+      const totalItems = validLeftItems.length;
       if (dragConnections.length >= totalItems && !isAnswersChecked) {
         setCanSubmit(true);
       } else if (dragConnections.length < totalItems) {
