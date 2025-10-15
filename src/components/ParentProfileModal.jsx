@@ -213,7 +213,7 @@ const ParentProfileModal = ({ isOpen, onClose }) => {
           <div className="flex items-center space-x-4">
             <div className="w-20 h-20 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center">
               <img
-                src="/src/assets/kidprofile1.jpg"
+                src="/assets/kidprofile1.jpg"
                 alt="Parent Profile"
                 className="w-16 h-16 rounded-xl object-cover border-2 border-white"
               />

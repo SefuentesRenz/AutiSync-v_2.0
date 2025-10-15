@@ -9,7 +9,7 @@ const CategorySelector = ({ onSelectCategory, onJoinFriend }) => {
     <div className="bg-gradient-to-br -mt-15 from-blue-50 via-purple-50 to-pink-50 rounded-3xl p-8 pt-13 shadow-2xl border border-white/20 w-270 mx-auto ">
 
     <img 
-                src="/src/assets/categoryheader.jpg" 
+                src="/assets/categoryheader.jpg" 
                 alt="Learning Adventure" 
                 className="w-full -mt-8 sm:max-w-3xl sm:h-75 rounded-3xl shadow-2xl mx-auto transform hover:scale-105 transition-all duration-500 border-4 border-white/50 backdrop-blur-sm"
               />

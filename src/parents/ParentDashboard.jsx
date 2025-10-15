@@ -115,7 +115,7 @@ const ParentDashboard = () => {
             email: childProfile.email,
             grade: childProfile.grade,
             gender: childProfile.gender,
-            profile_picture: childProfile.profile_picture || "/src/assets/kidprofile1.jpg",
+            profile_picture: childProfile.profile_picture || "/assets/kidprofile1.jpg",
             relation_id: relation.id,
             linked_at: relation.linked_at
           };

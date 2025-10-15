@@ -56,7 +56,7 @@ const ActivityDetailsModal = ({ isOpen, onClose, activity }) => {
 
   const mockQuestion = "What color is this apple?";
   const mockMediaType = "image";
-  const mockMediaUrl = "/src/assets/cow.png"; // Example media
+  const mockMediaUrl = "/assets/cow.png"; // Example media
 
   return (
     <>

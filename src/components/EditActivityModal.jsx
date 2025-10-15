@@ -37,7 +37,7 @@ const EditActivityModal = ({ isOpen, onClose, activity, onSave }) => {
         { title: 'Yellow', isCorrect: false }
       ]);
       // Set mock media
-      setPreview("/src/assets/cow.png");
+      setPreview("/assets/cow.png");
       setMediaType("image");
     }
   }, [activity, isOpen]);

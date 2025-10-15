@@ -149,7 +149,7 @@ const StudentProgress = () => {
       averageScore: 87,
       lastActive: '2 hours ago',
       profileColor: 'bg-pink-500',
-      profileImage: '/src/assets/kidprofile1.jpg'
+      profileImage: '/assets/kidprofile1.jpg'
     },
     {
       id: 2,
@@ -165,7 +165,7 @@ const StudentProgress = () => {
       averageScore: 92,
       lastActive: '1 hour ago',
       profileColor: 'bg-blue-500',
-      profileImage: '/src/assets/kidprofile1.jpg'
+      profileImage: '/assets/kidprofile1.jpg'
     },
     {
       id: 3,
@@ -181,7 +181,7 @@ const StudentProgress = () => {
       averageScore: 89,
       lastActive: '3 hours ago',
       profileColor: 'bg-purple-500',
-      profileImage: '/src/assets/kidprofile1.jpg'
+      profileImage: '/assets/kidprofile1.jpg'
     },
     {
       id: 4,
@@ -197,7 +197,7 @@ const StudentProgress = () => {
       averageScore: 75,
       lastActive: '2 days ago',
       profileColor: 'bg-green-500',
-      profileImage: '/src/assets/kidprofile1.jpg'
+      profileImage: '/assets/kidprofile1.jpg'
     },
     {
       id: 5,
@@ -213,7 +213,7 @@ const StudentProgress = () => {
       averageScore: 94,
       lastActive: '30 minutes ago',
       profileColor: 'bg-orange-500',
-      profileImage: '/src/assets/kidprofile1.jpg'
+      profileImage: '/assets/kidprofile1.jpg'
     }
   ];
 
@@ -542,7 +542,7 @@ const StudentProgress = () => {
                 className="cursor-pointer -my-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-1 rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
               >
                 <img
-                  src="/src/assets/kidprofile1.jpg"
+                  src="/assets/kidprofile1.jpg"
                   alt="Profile"
                   className="h-10 w-10 rounded-full object-cover"
                 />
@@ -576,7 +576,7 @@ const StudentProgress = () => {
           <div className="mb-4 md:mb-0">
             <div className="flex items-center space-x-4 mb-2">
               <img
-                src="/src/assets/kidprofile1.jpg"
+                src="/assets/kidprofile1.jpg"
                 alt={student?.name || 'Student'}
                 className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
               />

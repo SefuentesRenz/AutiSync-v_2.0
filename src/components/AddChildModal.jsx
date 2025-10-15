@@ -147,7 +147,7 @@ const AddChildModal = ({ isOpen, onClose, onChildAdded }) => {
           username: childData.username,
           age: parseInt(childData.age),
           email: childEmail,
-          profilePicture: profilePicturePreview || "/src/assets/kidprofile1.jpg"
+          profilePicture: profilePicturePreview || "/assets/kidprofile1.jpg"
         });
       }
 
