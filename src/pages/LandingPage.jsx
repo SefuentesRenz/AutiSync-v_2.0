@@ -32,7 +32,7 @@ const LandingPage = () => {
               className="flex items-center space-x-3 cursor-pointer group"
             >
               <img
-                  src="logo.png"
+                  src="/public/logo.png"
                   alt="AutiSync Logo"
                   className="w-16 h-16 object-contain"
                 />
