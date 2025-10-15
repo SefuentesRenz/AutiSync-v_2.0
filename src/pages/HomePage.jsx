@@ -7,11 +7,11 @@ import { supabase } from '../lib/supabase';
 
 
 const Emotions = [
-  { name: "Happy", image: "src/assets/happy.png", color: "from-yellow-400 to-orange-500", bgColor: "bg-yellow-50" },
-  { name: "Sad", image: "src/assets/sad.png", color: "from-blue-400 to-blue-600", bgColor: "bg-blue-50" },
-  { name: "Upset", image: "src/assets/Upset.jpg", color: "from-red-400 to-red-600", bgColor: "bg-red-50" },
-  { name: "Excited", image: "src/assets/excited.png", color: "from-purple-400 to-pink-500", bgColor: "bg-purple-50" },
-  { name: "Tired", image: "src/assets/tired.jpg", color: "from-green-400 to-teal-500", bgColor: "bg-green-50" },
+  { name: "Happy", image: "/assets/happy.png", color: "from-yellow-400 to-orange-500", bgColor: "bg-yellow-50" },
+  { name: "Sad", image: "/assets/sad.png", color: "from-blue-400 to-blue-600", bgColor: "bg-blue-50" },
+  { name: "Upset", image: "/assets/Upset.jpg", color: "from-red-400 to-red-600", bgColor: "bg-red-50" },
+  { name: "Excited", image: "/assets/excited.png", color: "from-purple-400 to-pink-500", bgColor: "bg-purple-50" },
+  { name: "Tired", image: "/assets/tired.jpg", color: "from-green-400 to-teal-500", bgColor: "bg-green-50" },
 ];
 
 const HomePage = () => {
@@ -21,12 +21,12 @@ const HomePage = () => {
 
   const [emotionNote, setEmotionNote] = useState("");
   const [expressions, setExpressions] = useState([
-    { emotion: "Happy", image: "src/assets/happy.png", level: 2, time: "2 hours ago", userName: "Emma" },
-    { emotion: "Tired", image: "src/assets/tired.jpg", level: 5, time: "5 hours ago", userName: "Alex" },
-    { emotion: "Excited",  image: "src/assets/excited.png", level: 4, time: "Yesterday", userName: "Sam" },
-    { emotion: "Tired", image: "src/assets/tired.jpg", level: 2, time: "1 hour ago", userName: "Jordan" },
-    { emotion: "Sad",  image: "src/assets/sad.png", level: 3, time: "2 hours ago", userName: "Riley" },
-    { emotion: "Excited", image: "src/assets/excited.png", level: 1, time: "Yesterday", userName: "Casey" },
+    { emotion: "Happy", image: "/assets/happy.png", level: 2, time: "2 hours ago", userName: "Emma" },
+    { emotion: "Tired", image: "/assets/tired.jpg", level: 5, time: "5 hours ago", userName: "Alex" },
+    { emotion: "Excited",  image: "/assets/excited.png", level: 4, time: "Yesterday", userName: "Sam" },
+    { emotion: "Tired", image: "/assets/tired.jpg", level: 2, time: "1 hour ago", userName: "Jordan" },
+    { emotion: "Sad",  image: "/assets/sad.png", level: 3, time: "2 hours ago", userName: "Riley" },
+    { emotion: "Excited", image: "/assets/excited.png", level: 1, time: "Yesterday", userName: "Casey" },
   ]);
 
   const [note, setNote] = useState('');
