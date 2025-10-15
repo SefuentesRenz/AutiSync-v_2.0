@@ -29,7 +29,7 @@ const NavBar = ({ onProfileClick }) => {
             
         <div className="flex items-center space-x-4">
               <img
-                  src="/src/assets/logo.png"
+                  src="/assets/logo.png"
                   alt="AutiSync Logo"
                   className="w-16 h-16 object-contain"
                 />
@@ -54,7 +54,7 @@ const NavBar = ({ onProfileClick }) => {
             className="cursor-pointer group flex items-center space-x-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-1 w-23 hover:shadow-lg transition-all duration-300"
           >
             <img
-              src="/src/assets/kidprofile1.jpg"
+              src="/assets/kidprofile1.jpg"
               alt="Profile"
               className="w-8 h-8 rounded-xl object-cover border-2 border-white shadow-sm group-hover:scale-105 transition-transform duration-300"
             />

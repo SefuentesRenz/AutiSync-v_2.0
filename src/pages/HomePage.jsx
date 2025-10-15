@@ -250,7 +250,7 @@ const HomePage = () => {
             
             return {
               emotion: displayEmotion || 'Unknown',
-              image: `src/assets/${imageFile || 'neutral.png'}`,
+              image: `/assets/${imageFile || 'neutral.png'}`,
               level: expr.intensity || 3,
               time: getTimeAgo(new Date(expr.created_at)),
               userName: 'Student',
@@ -290,7 +290,7 @@ const HomePage = () => {
           
           return {
             emotion: displayEmotion || 'Unknown',
-            image: `src/assets/${imageFile || 'neutral.png'}`,
+            image: `/assets/${imageFile || 'neutral.png'}`,
             level: expr.intensity || 3,
             time: timeAgo,
             userName: displayName,
