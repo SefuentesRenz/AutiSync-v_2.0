@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import logo from '../assets/logo.png';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ const LandingPage = () => {
               className="flex items-center space-x-3 cursor-pointer group"
             >
               <img
-                  src="/public/assets/logo.png"
+                  src={logo}
                   alt="AutiSync Logo"
                   className="w-16 h-16 object-contain"
                 />
