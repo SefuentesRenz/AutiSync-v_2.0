@@ -605,6 +605,8 @@ const HomePage = () => {
                 loop
                 muted
                 autoPlay
+                preload="metadata"
+                playsInline
                 poster="/assets/banner.jpg"
               >
                 <source src="/assets/videotutorial.mp4" type="video/mp4" />

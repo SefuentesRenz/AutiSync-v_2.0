@@ -3858,6 +3858,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   controls
                   autoPlay
                   loop
+                  preload="metadata"
+                  playsInline
                 >
                   <source src={questions[currentQuestionIndex].videoSrc} type="video/mp4" />
                   Your browser does not support the video tag.
@@ -3968,6 +3970,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                         loop
                         muted
                         playsInline
+                        preload="metadata"
                         className="w-64 h-64 object-contain rounded-xl mx-auto"
                         style={{ display: 'block' }}
                       >
@@ -4035,6 +4038,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                             loop
                             muted
                             playsInline
+                            preload="metadata"
                             className="w-68 h-62 object-contain rounded-lg -m-9 "
                             style={{ display: 'block' }}
                           >
@@ -5402,6 +5406,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                             loop
                             muted
                             playsInline
+                            preload="metadata"
                             onError={(e) => {
                               console.error('Video failed to load:', item.content);
                               e.target.style.display = 'none';
