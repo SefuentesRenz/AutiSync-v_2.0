@@ -1202,17 +1202,18 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             studentThought: "I should greet my parent nicely!",
             otherCharacterSpeech: "Good morning, sweetheart!",
             choices: [
-              {
-                text: "Good morning, Mom!",
-                emoji: "🌅",
-                correct: true,
-                feedback: "Perfect! Starting the day with a nice greeting makes everyone happy!"
-              },
+              
               {
                 text: "Good night!",
                 emoji: "🌙", 
                 correct: false,
                 feedback: "That's for bedtime! Try a morning greeting instead."
+              },
+              {
+                text: "Good morning, Mom!",
+                emoji: "🌅",
+                correct: true,
+                feedback: "Perfect! Starting the day with a nice greeting makes everyone happy!"
               },
               {
                 text: "Goodbye!",
@@ -1239,12 +1240,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             studentThought: "I should be polite to my teacher!",
             otherCharacterSpeech: "Hello! Welcome to class today!",
             choices: [
-              {
-                text: "Good morning, Teacher!",
-                emoji: "📚",
-                correct: true,
-                feedback: "Excellent! Polite greetings show respect to your teacher!"
-              },
+              
               {
                 text: "Hi Mom!",
                 emoji: "👩",
@@ -1256,6 +1252,12 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 emoji: "👋",
                 correct: false,
                 feedback: "That's for leaving, not arriving! What would you say when you first get to school?"
+              },
+              {
+                text: "Good morning, Teacher!",
+                emoji: "📚",
+                correct: true,
+                feedback: "Excellent! Polite greetings show respect to your teacher!"
               },
               {
                 text: "Good night!",
@@ -1350,17 +1352,18 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             studentThought: "I should be friendly!",
             otherCharacterSpeech: "Good evening! How was your day?",
             choices: [
-              {
-                text: "Good evening! It was great, thank you!",
-                emoji: "🌃",
-                correct: true,
-                feedback: "Perfect! Evening greetings show you're polite and friendly!"
-              },
+              
               {
                 text: "Good morning!",
                 emoji: "🌅",
                 correct: false,
                 feedback: "It's evening time, not morning! Look at the sky for a clue."
+              },
+               {
+                text: "Good evening! It was great, thank you!",
+                emoji: "🌃",
+                correct: true,
+                feedback: "Perfect! Evening greetings show you're polite and friendly!"
               },
               {
                 text: "Good night!",
