@@ -715,7 +715,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           },
           {
             questionText: "What animal is this?",
-            videoSrc: "/assets/flashcards/Animals/Panda.mp4",
+            videoSrc: "/assets/flashcards/Animals/panda.mp4",
             answerChoices: ["Panda", "Monkey", "Cat", "Lion"],
             correctAnswer: "Panda"
           },
@@ -868,12 +868,12 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           },
           {
             puzzleType: "logic",
-            questionText: "Opposites Puzzle",
-            instruction: "What is the opposite of BIG?",
-            options: ["Small", "Tall", "Round"],
-            correctAnswer: "Small",
-            hint: "Think about size - what's the opposite of big?"
-          }
+            questionText: "Pattern Puzzle",
+            instruction: "What come's next?",
+            options: ["⚪", "⭐", "🔺","⚪"],
+            correctAnswer: "⭐",
+            hint: ""
+          },
         ],
         "Visual Memory Challenge": [
           {
@@ -952,10 +952,10 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         
         Numbers: [
           {
-            questionText: "What is 3 x 9?",
-            videoSrc: "/assets/flashcards/Numbers_Hard/27_multiplication.mp4",
-            answerChoices: ["28", "30", "27", "29"],
-            correctAnswer: "27"
+            questionText: "How many Apples?",
+            videoSrc: "/assets/flashcards/Numbers_Hard/3_Numbers.mp4",
+            answerChoices: ["4", "5", "3", "2"],
+            correctAnswer: "3"
           },
           {
             questionText: "What is 8 x 4?",
@@ -964,23 +964,25 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             correctAnswer: "32"
           },
           {
-            questionText: "What is 6 x 8?",
-            videoSrc: "/assets/flashcards/Numbers_Hard/48_multiplication.mp4",
-            answerChoices: ["49", "48", "47", "50"],
-            correctAnswer: "48"
+            questionText: "How many ducks ?",
+            videoSrc: "/assets/flashcards/Numbers_Hard/1_Numbers.mp4",
+            answerChoices: ["3", "1", "2", "4"],
+            correctAnswer: "1"
+          },
+          {
+            questionText: "What is 3 x 9?",
+            videoSrc: "/assets/flashcards/Numbers_Hard/27_multiplication.mp4",
+            answerChoices: ["28", "30", "27", "29"],
+            correctAnswer: "27"
           },
           {
             questionText: "What is 5 x 7?",
             videoSrc: "/assets/flashcards/Numbers_Hard/35_multiplication.mp4",
-            answerChoices: ["34", "36", "35", "33"],
+            answerChoices: ["35", "36", "34", "37 "],
             correctAnswer: "35"
           },
-          {
-            questionText: "What is 4 x 9?",
-            videoSrc: "/assets/flashcards/Numbers_Hard/36_multiplication.mp4",
-            answerChoices: ["36", "40", "38", "35"],
-            correctAnswer: "36"
-          }
+          
+          
         ],
 
         Identification: [
@@ -1194,7 +1196,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           {
             id: 1,
             title: "Morning Greeting to Parents",
-            situation: "You just woke up and see your parent in the kitchen making breakfast",
+            situation: "",
             context: "morning",
             background: "🏠 Home Kitchen",
             character: "👩‍🍳",
@@ -1232,7 +1234,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           {
             id: 2,
             title: "Morning Greeting to Teacher",
-            situation: "You arrive at school and your teacher smiles at you in the classroom",
+            situation: "",
             context: "morning",
             background: "🏫 School Classroom",
             character: "👩‍🏫",
@@ -1270,7 +1272,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           {
             id: 3,
             title: "Greeting a Friend at Recess",
-            situation: "Your friend is playing on the playground and notices you approaching",
+            situation: "",
             context: "afternoon",
             background: "🛝 School Playground",
             character: "👦",
@@ -1313,7 +1315,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             character: "👩‍🏫",
             characterType: "Teacher",
             studentThought: "I should say goodbye nicely!",
-            otherCharacterSpeech: "See you tomorrow! Have a wonderful day everyone!",
+            otherCharacterSpeech: "See you tomorrow! ",
             choices: [
               {
                 text: "Goodbye Teacher! See you tomorrow!",
@@ -1344,7 +1346,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           {
             id: 5,
             title: "Evening Greeting to Neighbor",
-            situation: "You're walking outside and meet a friendly neighbor in their garden",
+            situation: "",
             context: "evening",
             background: "🏡 Neighborhood Garden",
             character: "👴",
@@ -4787,8 +4789,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
                   {/* Scene Background */}
                   <div className="flex-1 mx-6 mt-10">
-                    <div className="h-20 bg-gradient-to-t from-yellow-400 to-yellow-200 rounded-xl border-3 border-yellow-500 relative flex items-center justify-center shadow-lg">
-                      <span className="text-lg font-bold text-yellow-900">
+                    <div className="h-25 bg-gradient-to-t from-yellow-400 to-yellow-200 rounded-xl border-3 border-yellow-500 relative flex items-center justify-center shadow-lg">
+                      <span className="text-xl font-bold text-yellow-900">
                         {currentGreetingScenario?.background} 
                         {currentGreetingScenario?.context === 'morning' ? '🌅' : 
                          currentGreetingScenario?.context === 'afternoon' ? '☀️' : 
@@ -4828,7 +4830,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 <div className="text-center mb-3">
                   <div className="bg-gradient-to-r from-purple-100 to-blue-100 border-3 border-purple-300 rounded-xl p-3">
                     <p className="text-lg font-bold text-gray-800">
-                      Round {greetingsRound}/5 - {currentGreetingScenario?.title}
+                      {currentGreetingScenario?.title}
                     </p>
                     <p className="text-base text-gray-600">
                       {currentGreetingScenario?.situation}
@@ -4854,7 +4856,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                       `}
                     >
                       <div className="text-4xl mb-2">{choice.emoji}</div>
-                      <div className="leading-snug">{choice.text}</div>
+                      <div className="leading-snug text-lg">{choice.text}</div>
                       {choice.correct && greetingAnswered && (
                         <div className="text-green-600 font-bold mt-2 text-sm">✅ Perfect greeting!</div>
                       )}
