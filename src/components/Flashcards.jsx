@@ -83,6 +83,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [successAnimationText, setSuccessAnimationText] = useState('');
   const [isHygieneGameActive, setIsHygieneGameActive] = useState(false);
+  const [shuffledHygieneScenarios, setShuffledHygieneScenarios] = useState([]); // Store shuffled scenarios
+  const [hygieneScenarioIndex, setHygieneScenarioIndex] = useState(0); // Track current scenario index
 
   // Safe Street Crossing game specific state
   const [streetScore, setStreetScore] = useState(0);
@@ -93,6 +95,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const [showStreetFeedback, setShowStreetFeedback] = useState(false);
   const [streetFeedbackMessage, setStreetFeedbackMessage] = useState('');
   const [streetFeedbackType, setStreetFeedbackType] = useState(''); // 'safe' or 'unsafe'
+  const [shuffledStreetScenarios, setShuffledStreetScenarios] = useState([]); // Store shuffled scenarios for current game
+  const [streetScenarioIndex, setStreetScenarioIndex] = useState(0); // Track which scenario in shuffled array
 
   // Social Greetings game specific state
   const [greetingsScore, setGreetingsScore] = useState(0);
@@ -107,6 +111,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const [showCharacterThought, setShowCharacterThought] = useState(false);
   const [greetingAnswered, setGreetingAnswered] = useState(false);
   const [greetingSelectedChoice, setGreetingSelectedChoice] = useState(null);
+  const [shuffledGreetingScenarios, setShuffledGreetingScenarios] = useState([]); // Store 5 shuffled scenarios for current game
+  const [greetingScenarioIndex, setGreetingScenarioIndex] = useState(0); // Track which scenario in shuffled array
 
   // Money Value Game specific state
   const [moneyScore, setMoneyScore] = useState(0);
@@ -1113,7 +1119,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     "Social / Daily Life Skill": {
       "Cashier Game": [
           {
-            questionText: "I want a burger and fries, please!",
+            questionText: "I want a burger🍔 and fries🍟, please!",
             orderItems: ["Burger", "Fries"],
             menuOptions: [
               { name: "Burger", image: "🍔", price: "$3.99" },
@@ -1127,7 +1133,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             gameType: "cashier"
           },
           {
-            questionText: "Can I have a pizza slice and a drink?",
+            questionText: "Can I have a pizza slice🍕 and a drink🥤?",
             orderItems: ["Pizza", "Drink"],
             menuOptions: [
               { name: "Burger", image: "🍔", price: "$3.99" },
@@ -1141,7 +1147,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             gameType: "cashier"
           },
           {
-            questionText: "I'll take a hot dog, please!",
+            questionText: "I'll take a hot dog🌭, please!",
             orderItems: ["Hot Dog"],
             menuOptions: [
               { name: "Burger", image: "🍔", price: "$3.99" },
@@ -1155,7 +1161,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             gameType: "cashier"
           },
           {
-            questionText: "I want fries and ice cream, please!",
+            questionText: "I want fries🍟 and ice cream🍦, please!",
             orderItems: ["Fries", "Ice Cream"],
             menuOptions: [
               { name: "Burger", image: "🍔", price: "$3.99" },
@@ -1170,7 +1176,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             gameType: "cashier"
           },
           {
-            questionText: "Can I get a burger, fries, and a drink?",
+            questionText: "Can I get a burger🍔, fries🍟, and a drink🥤?",
             orderItems: ["Burger", "Fries", "Drink"],
             menuOptions: [
               { name: "Burger", image: "🍔", price: "$3.99" },
@@ -1277,11 +1283,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             background: "🛝 School Playground",
             character: "👦",
             characterType: "Friend",
-            studentThought: "My friend looks like they're having fun!",
+            studentThought: "That looks fun!",
             otherCharacterSpeech: "Hey! Want to play with me?",
             choices: [
               {
-                text: "Hi! That looks fun!",
+                text: "Hi, friend!",
                 emoji: "😊",
                 correct: true,
                 feedback: "Great! Friendly greetings help make strong friendships!"
@@ -1343,44 +1349,192 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               }
             ]
           },
-          {
+           {
             id: 5,
-            title: "Evening Greeting to Neighbor",
+            title: "Meeting a New Friend",
             situation: "",
-            context: "evening",
-            background: "🏡 Neighborhood Garden",
-            character: "👴",
-            characterType: "Neighbor",
+            context: "afternoon",
+            background: "🏫 School Hallway",
+            character: "👧",
+            characterType: "New Student",
             studentThought: "I should be friendly!",
-            otherCharacterSpeech: "Good evening! How was your day?",
+            otherCharacterSpeech: "Hi! I'm new here.",
             choices: [
-              
               {
-                text: "Good morning!",
-                emoji: "🌅",
-                correct: false,
-                feedback: "It's evening time, not morning! Look at the sky for a clue."
-              },
-               {
-                text: "Good evening! It was great, thank you!",
-                emoji: "🌃",
+                text: "Hello! Welcome to our school!",
+                emoji: "😊",
                 correct: true,
-                feedback: "Perfect! Evening greetings show you're polite and friendly!"
+                feedback: "Wonderful! Making new friends starts with a warm greeting!"
+              },
+              {
+                text: "Goodbye!",
+                emoji: "👋",
+                correct: false,
+                feedback: "That's for leaving! Try a greeting to make them feel welcome."
               },
               {
                 text: "Good night!",
-                emoji: "🌜",
+                emoji: "🌙",
                 correct: false,
-                feedback: "That's for when you're going to sleep! Try an evening greeting."
+                feedback: "That's for bedtime! What would you say to welcome someone?"
               },
               {
-                text: "Hello teacher!",
-                emoji: "👩‍🏫",
+                text: "See you tomorrow!",
+                emoji: "📅",
                 correct: false,
-                feedback: "That's not your teacher - it's your neighbor! Try again."
+                feedback: "That's for later! Try greeting them first."
               }
             ]
-          }
+          },
+          // {
+          //   id: 6,
+          //   title: "Evening Greeting to Neighbor",
+          //   situation: "",
+          //   context: "evening",
+          //   background: "🏡 Neighborhood Garden",
+          //   character: "👴",
+          //   characterType: "Neighbor",
+          //   studentThought: "I should be friendly!",
+          //   otherCharacterSpeech: "Good evening! How was your day?",
+          //   choices: [
+              
+          //     {
+          //       text: "Good morning!",
+          //       emoji: "🌅",
+          //       correct: false,
+          //       feedback: "It's evening time, not morning! Look at the sky for a clue."
+          //     },
+          //      {
+          //       text: "Good evening! It was great, thank you!",
+          //       emoji: "🌃",
+          //       correct: true,
+          //       feedback: "Perfect! Evening greetings show you're polite and friendly!"
+          //     },
+          //     {
+          //       text: "Good night!",
+          //       emoji: "🌜",
+          //       correct: false,
+          //       feedback: "That's for when you're going to sleep! Try an evening greeting."
+          //     },
+          //     {
+          //       text: "Hello teacher!",
+          //       emoji: "👩‍🏫",
+          //       correct: false,
+          //       feedback: "That's not your teacher - it's your neighbor! Try again."
+          //     }
+          //   ]
+          // },
+          // {
+          //   id: 6,
+          //   title: "Meeting a New Friend",
+          //   situation: "",
+          //   context: "afternoon",
+          //   background: "🏫 School Hallway",
+          //   character: "👧",
+          //   characterType: "New Student",
+          //   studentThought: "I should be friendly!",
+          //   otherCharacterSpeech: "Hi! I'm new here.",
+          //   choices: [
+          //     {
+          //       text: "Hello! Welcome to our school!",
+          //       emoji: "😊",
+          //       correct: true,
+          //       feedback: "Wonderful! Making new friends starts with a warm greeting!"
+          //     },
+          //     {
+          //       text: "Goodbye!",
+          //       emoji: "👋",
+          //       correct: false,
+          //       feedback: "That's for leaving! Try a greeting to make them feel welcome."
+          //     },
+          //     {
+          //       text: "Good night!",
+          //       emoji: "🌙",
+          //       correct: false,
+          //       feedback: "That's for bedtime! What would you say to welcome someone?"
+          //     },
+          //     {
+          //       text: "See you tomorrow!",
+          //       emoji: "📅",
+          //       correct: false,
+          //       feedback: "That's for later! Try greeting them first."
+          //     }
+          //   ]
+          // },
+          // {
+          //   id: 7,
+          //   title: "Thanking Someone for Help",
+          //   situation: "",
+          //   context: "afternoon",
+          //   background: "🏫 School Classroom",
+          //   character: "👦",
+          //   characterType: "Classmate",
+          //   studentThought: "They helped me! I should thank them!",
+          //   otherCharacterSpeech: "Here, let me help you with that!",
+          //   choices: [
+          //     {
+          //       text: "Thank you so much!",
+          //       emoji: "🙏",
+          //       correct: true,
+          //       feedback: "Perfect! Saying thank you shows you appreciate help!"
+          //     },
+          //     {
+          //       text: "Good morning!",
+          //       emoji: "🌅",
+          //       correct: false,
+          //       feedback: "That's a time greeting! How do you show appreciation?"
+          //     },
+          //     {
+          //       text: "Hi!",
+          //       emoji: "😊",
+          //       correct: false,
+          //       feedback: "That's a hello! What do you say when someone helps you?"
+          //     },
+          //     {
+          //       text: "Goodbye!",
+          //       emoji: "👋",
+          //       correct: false,
+          //       feedback: "That's for leaving! Try expressing gratitude instead."
+          //     }
+          //   ]
+          // },
+          // {
+          //   id: 8,
+          //   title: "Bedtime Greeting to Parents",
+          //   situation: "",
+          //   context: "night",
+          //   background: "🏠 Bedroom",
+          //   character: "👨‍👩‍👧",
+          //   characterType: "Parents",
+          //   studentThought: "Time for bed! I should say goodnight!",
+          //   otherCharacterSpeech: "Sweet dreams, dear!",
+          //   choices: [
+          //     {
+          //       text: "Good night, Mom!",
+          //       emoji: "🌜",
+          //       correct: true,
+          //       feedback: "Beautiful! Bedtime greetings help end the day with love!"
+          //     },
+          //     {
+          //       text: "Good morning!",
+          //       emoji: "🌅",
+          //       correct: false,
+          //       feedback: "That's for when you wake up! What do you say before sleep?"
+          //     },
+          //     {
+          //       text: "Hello!",
+          //       emoji: "👋",
+          //       correct: false,
+          //       feedback: "That's for when you meet someone! Try a bedtime greeting."
+          //     },
+          //     {
+          //       text: "Good afternoon!",
+          //       emoji: "☀️",
+          //       correct: false,
+          //       feedback: "That's for the middle of the day! Look at the time - it's nighttime!"
+          //     }
+          //   ]
+          
         ],
         "Hygiene Hero": [
           {
@@ -1732,24 +1886,24 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 stepId: 1,
                 instruction: "What do you do first?",
                 emoji: "🍽️",
-                choices: ["Get the sponge", "Turn on TV", "Play games"],
-                correctChoice: "Get the sponge",
+                choices: ["Get the sponge🧽", "Turn on TV📺", "Play games⚽"],
+                correctChoice: "Get the sponge🧽",
                 feedback: "Great! Now we're ready to clean!"
               },
               {
                 stepId: 2,
                 instruction: "What do you need?",
-                emoji: "💦", 
-                choices: ["Water and soap", "Juice", "Toys"],
-                correctChoice: "Water and soap",
+                emoji: "💦",
+                choices: ["Water and soap💧", "Juice🥤", "Toys🧸"],
+                correctChoice: "Water and soap💧",
                 feedback: "Perfect! Water and soap clean dishes!"
               },
               {
                 stepId: 3,
                 instruction: "How do you clean?",
                 emoji: "🧽",
-                choices: ["Scrub the dishes", "Throw them", "Hide them"],
-                correctChoice: "Scrub the dishes",
+                choices: ["Scrub the dishes🧽", "Throw them🗑️", "Hide them"],
+                correctChoice: "Scrub the dishes🧽",
                 feedback: "Excellent! The dishes are clean now!"
               }
             ],
@@ -1804,23 +1958,23 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 stepId: 1,
                 instruction: "What do you need?",
                 emoji: "🧽",
-                choices: ["A cloth", "A toy", "A book"],
-                correctChoice: "A cloth",
+                choices: ["A cloth🧽", "A toy🧸", "A book📚"],
+                correctChoice: "A cloth🧽",
                 feedback: "Great! You picked the right tool!"
               },
               {
                 stepId: 2,
                 instruction: "What helps clean better?",
                 emoji: "💧",
-                choices: ["Wet the cloth", "Keep it dry", "Throw it"],
-                correctChoice: "Wet the cloth",
+                choices: ["Wet the cloth🧽", "Keep it dry", "Throw it"],
+                correctChoice: "Wet the cloth🧽",
                 feedback: "Perfect! Wet cloth cleans better!"
               },
               {
                 stepId: 3,
                 instruction: "How do you clean?",
                 emoji: "✨",
-                choices: ["Wipe the table", "Ignore the mess", "Make it dirty"],
+                choices: ["Wipe the dirts", "Ignore the mess", "Make it dirty"],
                 correctChoice: "Wipe the dirts",
                 feedback: "Excellent! The table is clean!"
               }
@@ -1840,8 +1994,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 stepId: 1,
                 instruction: "What do you need?",
                 emoji: "🌱",
-                choices: ["A watering can", "A ball", "A phone"],
-                correctChoice: "A watering can",
+                choices: ["A watering can💦", "A ball⚽", "A phone📱"],
+                correctChoice: "A watering can💦",
                 feedback: "Great choice! Plants need water!"
               },
               {
@@ -1876,8 +2030,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 stepId: 1,
                 instruction: "What do you use?",
                 emoji: "🧹",
-                choices: ["A broom", "A pillow", "A toy"],
-                correctChoice: "A broom",
+                choices: ["A broom🧹", "A pillow🛏️", "A toy🧸"],
+                correctChoice: "A broom🧹",
                 feedback: "Good! A broom cleans floors!"
               },
               {
@@ -1892,8 +2046,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 stepId: 3,
                 instruction: "Where does dirt go?",
                 emoji: "🗑️",
-                choices: ["In the trash", "On the bed", "Leave it"],
-                correctChoice: "In the trash",
+                choices: ["In the trash🗑️", "On the bed🛏️", "Leave it"],
+                correctChoice: "In the trash🗑️",
                 feedback: "Perfect! The floor is clean!"
               }
             ],
@@ -2178,11 +2332,25 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       setCurrentRound(1);
       setHygieneScore(0);
       setUsedScenarios([]);
+      setHygieneScenarioIndex(0);
       
-      // Set up first scenario
-      const firstScenario = getRandomScenario();
-      setCurrentScenario(firstScenario);
-      setUsedScenarios([firstScenario.scenario]);
+      // Get all hygiene scenarios and shuffle them
+      const allHygieneScenarios = questionsData[category]?.["Hygiene Hero"] || [];
+      const shuffled = [...allHygieneScenarios].sort(() => Math.random() - 0.5);
+      setShuffledHygieneScenarios(shuffled);
+      
+      // Set up first scenario from shuffled array
+      const firstScenario = shuffled[0];
+      if (firstScenario) {
+        setCurrentScenario(firstScenario);
+        setUsedScenarios([firstScenario.scenario]);
+        
+        // Update current question index to show the first scenario
+        const firstIndex = questions.findIndex(q => q.scenario === firstScenario.scenario);
+        if (firstIndex !== -1) {
+          setCurrentQuestionIndex(firstIndex);
+        }
+      }
     }
   };
 
@@ -2195,6 +2363,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     setSuccessAnimationText('');
     setCurrentScenario(null);
     setIsHygieneGameActive(false);
+    setShuffledHygieneScenarios([]);
+    setHygieneScenarioIndex(0);
   };
 
   // Safe Street Crossing game functions
@@ -2269,12 +2439,15 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           setSelectedAnswer(null);
           setIsAnswered(false);
           
-          // Get next scenario
-          const nextScenario = getRandomStreetScenario();
-          console.log('Next scenario:', nextScenario);
-          setStreetScenario(nextScenario);
-          setCurrentScenario(nextScenario);
-          setUsedScenarios(prev => [...prev, nextScenario.scenario]);
+          // Get next scenario from shuffled array
+          const nextIndex = streetScenarioIndex + 1;
+          setStreetScenarioIndex(nextIndex);
+          const nextScenario = shuffledStreetScenarios[nextIndex];
+          if (nextScenario) {
+            console.log('Next scenario:', nextScenario);
+            setStreetScenario(nextScenario);
+            setCurrentScenario(nextScenario);
+          }
         } else {
           // End game after 5 rounds
           console.log('Game complete!');
@@ -2296,12 +2469,15 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           setSelectedAnswer(null);
           setIsAnswered(false);
           
-          // Get next scenario
-          const nextScenario = getRandomStreetScenario();
-          console.log('Next scenario after wrong answer:', nextScenario);
-          setStreetScenario(nextScenario);
-          setCurrentScenario(nextScenario);
-          setUsedScenarios(prev => [...prev, nextScenario.scenario]);
+          // Get next scenario from shuffled array
+          const nextIndex = streetScenarioIndex + 1;
+          setStreetScenarioIndex(nextIndex);
+          const nextScenario = shuffledStreetScenarios[nextIndex];
+          if (nextScenario) {
+            console.log('Next scenario after wrong answer:', nextScenario);
+            setStreetScenario(nextScenario);
+            setCurrentScenario(nextScenario);
+          }
         } else {
           // End game after 5 rounds
           console.log('Game complete after wrong answer!');
@@ -2328,15 +2504,25 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     setShowWalkingAnimation(false);
     setStreetFeedbackMessage('');
     setStreetFeedbackType('');
+    setStreetScenarioIndex(0);
     
-    // Set up first scenario
-    const firstScenario = getRandomStreetScenario();
+    // Get all street scenarios and shuffle them
+    const allStreetScenarios = questionsData[category]?.["Safe Street Crossing"] || [];
+    console.log('Total street scenarios available:', allStreetScenarios.length);
+    
+    // Shuffle all scenarios and select first 5
+    const shuffled = [...allStreetScenarios].sort(() => Math.random() - 0.5);
+    const selectedScenarios = shuffled.slice(0, 5);
+    setShuffledStreetScenarios(selectedScenarios);
+    console.log('Shuffled and selected 5 scenarios');
+    
+    // Set up first scenario from shuffled selection
+    const firstScenario = selectedScenarios[0];
     console.log('🎯 First scenario loaded:', firstScenario);
     
     if (firstScenario) {
       setStreetScenario(firstScenario);
       setCurrentScenario(firstScenario);
-      setUsedScenarios([firstScenario.scenario]);
       console.log('✅ Street game initialized successfully');
     } else {
       console.error('❌ Failed to load first scenario');
@@ -2352,6 +2538,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     setShowStreetFeedback(false);
     setStreetFeedbackMessage('');
     setStreetFeedbackType('');
+    setShuffledStreetScenarios([]);
+    setStreetScenarioIndex(0);
   };
 
   // Social Greetings game functions
@@ -2392,9 +2580,12 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           setGreetingAnswered(false);
           setGreetingSelectedChoice(null);
           
-          const nextScenario = getRandomGreetingScenario();
+          // Get next scenario from shuffled array
+          const nextIndex = greetingScenarioIndex + 1;
+          setGreetingScenarioIndex(nextIndex);
+          const nextScenario = shuffledGreetingScenarios[nextIndex];
           setCurrentGreetingScenario(nextScenario);
-          setUsedScenarios(prev => [...prev, nextScenario.id]);
+          
           setCharacterSpeech(nextScenario.otherCharacterSpeech);
           setShowCharacterThought(true);
         } else {
@@ -2417,9 +2608,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           setGreetingAnswered(false);
           setGreetingSelectedChoice(null);
           
-          const nextScenario = getRandomGreetingScenario();
+          // Get next scenario from shuffled array
+          const nextIndex = greetingScenarioIndex + 1;
+          setGreetingScenarioIndex(nextIndex);
+          const nextScenario = shuffledGreetingScenarios[nextIndex];
           setCurrentGreetingScenario(nextScenario);
-          setUsedScenarios(prev => [...prev, nextScenario.id]);
           setCharacterSpeech(nextScenario.otherCharacterSpeech);
           setShowCharacterThought(true);
         } else {
@@ -2437,12 +2630,21 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       setUsedScenarios([]);
       setGreetingAnswered(false);
       setGreetingSelectedChoice(null);
+      setGreetingScenarioIndex(0);
       
-      // Set up first scenario
-      const firstScenario = getRandomGreetingScenario();
+      // Get all greeting scenarios
+      const allGreetingScenarios = questionsData[category]?.[difficulty]?.["Social Greetings"] || 
+                                    questionsData[category]?.["Social Greetings"] || [];
+      
+      // Shuffle all scenarios and select first 5
+      const shuffled = [...allGreetingScenarios].sort(() => Math.random() - 0.5);
+      const selectedScenarios = shuffled.slice(0, 5);
+      setShuffledGreetingScenarios(selectedScenarios);
+      
+      // Set up first scenario from shuffled selection
+      const firstScenario = selectedScenarios[0];
       setCurrentGreetingScenario(firstScenario);
       if (firstScenario) {
-        setUsedScenarios([firstScenario.id]);
         setCharacterSpeech(firstScenario.otherCharacterSpeech);
         setShowCharacterThought(true);
       }
@@ -2463,6 +2665,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     setGreetingAnswered(false);
     setGreetingSelectedChoice(null);
     setUsedScenarios([]);
+    setShuffledGreetingScenarios([]);
+    setGreetingScenarioIndex(0);
   };
 
   // Cashier game functions
@@ -2580,6 +2784,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       setMoneyFeedbackMessage(`✔️ Correct! You can afford the ${item.name} for ₱${item.price.toLocaleString()}`);
       setShowPurchaseAnimation(true);
       setShowCorrect(true);
+      setShowMoneyFeedback(true);
+      
+      // Play correct audio
+      if (correctAudioRef.current) {
+        correctAudioRef.current.currentTime = 0;
+        correctAudioRef.current.play();
+      }
       
       setTimeout(() => {
         setShowPurchaseAnimation(false);
@@ -2592,6 +2803,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       setMoneyFeedbackType('wrong');
       setMoneyFeedbackMessage(`❌ Sorry! The ${item.name} costs ₱${item.price.toLocaleString()}, but you only have ₱${currentBudget.toLocaleString()}`);
       setShowWrong(true);
+      setShowMoneyFeedback(true);
+      
+      // Play wrong audio
+      if (wrongAudioRef.current) {
+        wrongAudioRef.current.currentTime = 0;
+        wrongAudioRef.current.play();
+      }
       
       // Auto-advance to next round after wrong answer
       setTimeout(() => {
@@ -2616,8 +2834,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         }
       }, 2500);
     }
-    
-    setShowMoneyFeedback(true);
   };
 
   const proceedToNextMoneyRound = () => {
@@ -3457,14 +3673,21 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       setSelectedAnswer(null);
       setIsAnswered(false);
       
-      // Get next scenario that hasn't been used
-      const nextScenario = getRandomScenario();
-      setCurrentScenario(nextScenario);
-      setUsedScenarios(prev => [...prev, nextScenario.scenario]);
+      // Get next scenario from shuffled array
+      const nextIndex = hygieneScenarioIndex + 1;
+      setHygieneScenarioIndex(nextIndex);
+      const nextScenario = shuffledHygieneScenarios[nextIndex];
       
-      // Update current question index to show the new scenario
-      const nextIndex = questions.findIndex(q => q.scenario === nextScenario.scenario);
-      setCurrentQuestionIndex(nextIndex);
+      if (nextScenario) {
+        setCurrentScenario(nextScenario);
+        setUsedScenarios(prev => [...prev, nextScenario.scenario]);
+        
+        // Update current question index to show the new scenario
+        const questionIndex = questions.findIndex(q => q.scenario === nextScenario.scenario);
+        if (questionIndex !== -1) {
+          setCurrentQuestionIndex(questionIndex);
+        }
+      }
     } else if (isHygieneGame && currentRound >= 5) {
       // End hygiene game after 5 rounds
       setShowModal(true);
@@ -3815,7 +4038,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           <div className="-mt-20 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl px-6 py-1 border border-blue-200/30 inline-block">
             <div className="text-base font-bold text-gray-700 flex items-center justify-center space-x-2">
               <span className="text-2xl animate-bounce-gentle">
-                {isHygieneGame ? "🧼" : isChoreGame ? "🏠" : "📝"}
+                {isHygieneGame ? "🧼" : isChoreGame ? "🏠" : "🌟"}
               </span>
               <span>
                 {isHygieneGame 
@@ -4420,11 +4643,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 <div className="flex justify-between items-center relative max-h-[260px]">
                   
                   {/* Customer Character */}
-                  <div className="flex flex-col items-center relative">
+                  <div className="flex mt-14 flex-col items-center relative">
                     {/* Thought Bubble for Customer - Always show when there's speech text */}
                     {speechText && (
-                      <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-white rounded-2xl p-2 border-2 border-pink-300 shadow-lg w-[200px] z-10 animate-bounce-gentle">
-                        <div className="text-base font-bold text-gray-800 text-center leading-tight">
+                      <div className="absolute -top-15 left-1/2 transform -translate-x-1/2 bg-white rounded-2xl p-2 border-2 border-pink-300 shadow-lg w-[200px] z-10 animate-bounce-gentle">
+                        <div className="text-lg font-bold text-gray-800 text-center leading-tight">
                           {speechText}
                         </div>
                         {/* Bubble pointer */}
@@ -4436,7 +4659,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                     
                     {/* Customer - Head larger */}
                     <div className="text-center">
-                      <div className="text-[9rem] relative bottom-10">👩‍🦱</div>
+                      <div className="text-[10rem] relative bottom-10 -mb-6">👩‍🦱</div>
                       <div className="relative bottom-10 bg-pink-500 text-white px-3 py-2 rounded-full text-base font-bold shadow-md">
                         Customer
                       </div>
@@ -4451,11 +4674,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   </div>
 
                   {/* Cashier Character (You) */}
-                  <div className="flex flex-col items-center relative">
+                  <div className="flex flex-col mt-14 items-center relative">
                     {/* Thought Bubble for Cashier */}
                     {showThoughtBubble && currentSpeaker === 'cashier' && (
                       <div className="absolute -top-20 left-1/2 transform -translate-x-1/2 bg-white rounded-2xl p-3 border-2 border-blue-300 shadow-lg max-w-sm z-10 animate-bounce-gentle">
-                        <div className="text-sm font-bold text-gray-800 text-center leading-tight">
+                        <div className="text-md font-bold text-gray-800 text-center leading-tight">
                           {speechText}
                         </div>
                         {/* Bubble pointer */}
@@ -4467,7 +4690,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                     
                     {/* Cashier - Head larger */}
                     <div className="text-center">
-                      <div className="text-[9rem] relative bottom-10">👨‍💼</div>
+                      <div className="text-[10rem] relative bottom-10 -mb-6">👨‍💼</div>
                       <div className="relative bottom-10 bg-blue-500 text-white px-3 py-2 rounded-full text-base font-bold shadow-md">
                         You (Cashier)
                       </div>
@@ -4986,14 +5209,25 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   )}
                 </div>
 
-                {selectedPurchases.length > 0 && !isRoundComplete && (
-                  <button
-                    onClick={proceedToNextMoneyRound}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-4 px-8 rounded-2xl text-xl font-bold shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer w-full"
-                  >
-                    {moneyRound < 3 ? '➡️ Next Round' : '🏆 Complete Game'}
-                  </button>
-                )}
+                {(() => {
+                  const affordableItems = currentMoneyItems.filter(item => item.price <= currentBudget);
+                  const allAffordablePurchased = affordableItems.length > 0 && 
+                    affordableItems.every(item => selectedPurchases.some(p => p.id === item.id));
+                  
+                  return (
+                    <button
+                      onClick={proceedToNextMoneyRound}
+                      disabled={!allAffordablePurchased || isRoundComplete}
+                      className={`py-4 px-8 rounded-2xl text-xl font-bold shadow-lg transition-all duration-300 w-full
+                        ${allAffordablePurchased && !isRoundComplete
+                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white transform hover:scale-105 cursor-pointer' 
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                        }`}
+                    >
+                      {moneyRound < 3 ? '➡️ Next Round' : '🏆 Complete Game'}
+                    </button>
+                  );
+                })()}
 
                 {/* Badge Completion Modal */}
                 {showBadgeCompletion && (
@@ -5624,11 +5858,16 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                             } else {
                               setShowWrong(true);
                               setShowChoreFeedback(true);
-                              setChoreFeedbackMessage(`Try again! The answer is: ${currentStep.correctChoice}`);
+                              setChoreFeedbackMessage(`The correct answer is: ${currentStep.correctChoice}`);
                               setChoreFeedbackType('incorrect');
                               
-                              // Don't advance on wrong answer, just clear feedback
+                              // Advance to next step even on wrong answer
                               setTimeout(() => {
+                                if (currentChoreStep < choreData.steps.length - 1) {
+                                  setCurrentChoreStep(prev => prev + 1);
+                                } else {
+                                  setIsChoreComplete(true);
+                                }
                                 setShowCorrect(false);
                                 setShowWrong(false);
                                 setShowChoreFeedback(false);
@@ -5785,6 +6024,19 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                     </span>
                   </button>
                 )}
+                
+                {/* {isChoreComplete && (
+                  <button
+                    onClick={() => {
+                      setShowModal(true);
+                    }}
+                    className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-base md:text-lg transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2"
+                    aria-label="Back to Flashcards"
+                  >
+                    <span className="text-xl md:text-2xl">🏠</span>
+                    <span className="text-center">Back to Flashcards</span>
+                  </button>
+                )} */}
                 
                
               </div>
