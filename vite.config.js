@@ -8,17 +8,4 @@ export default defineConfig({
     tailwindcss(),
     react()
   ],
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-        }
-      }
-    },
-    chunkSizeWarningLimit: 1000,
-  },
-  optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom']
-  }
 })

@@ -48,8 +48,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const [showWrong, setShowWrong] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showBadgeModal, setShowBadgeModal] = useState(false);
-  const [videoLoading, setVideoLoading] = useState(true);
-  const [videoError, setVideoError] = useState(false);
   const [earnedBadges, setEarnedBadges] = useState([]);
   const [sessionStats, setSessionStats] = useState({
     startTime: new Date(),
@@ -388,19 +386,6 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       }
     };
   }, [activity, difficulty]);
-
-  // Reset video loading state when question changes and preload next video
-  useEffect(() => {
-    setVideoLoading(true);
-    setVideoError(false);
-    
-    // Preload next video to reduce loading time
-    if (questions && questions[currentQuestionIndex + 1]?.videoSrc) {
-      const nextVideo = document.createElement('video');
-      nextVideo.preload = 'auto';
-      nextVideo.src = questions[currentQuestionIndex + 1].videoSrc;
-    }
-  }, [currentQuestionIndex, questions]);
 
   // 🎤 Text-to-Speech Helper Function - Teacher-like AI Voice
   const speakText = (text, rate = 0.9, pitch = 1.0) => {
@@ -1710,7 +1695,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   { id: 5, name: "Book", image: "📚", price: 450, category: "school", affordable: true },
                   { id: 6, name: "House", image: "🏠", price: 2500000, category: "property", affordable: false },
                   { id: 7, name: "Bicycle", image: "🚲", price: 3500, category: "vehicle", affordable: false },
-                  { id: 8, name: "empanada", image: "🥟", price: 20, category: "food", affordable: true }
+                  { id: 8, name: "Bread", image: "🥐", price: 20, category: "food", affordable: true }
                 ]
               },
               {
@@ -3866,38 +3851,19 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             )}
             {questions[currentQuestionIndex].videoSrc && (
               <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-4 border-2 border-purple-200/30 shadow-lg">
-                {videoLoading && (
-                  <div className="w-full max-w-xl h-64 flex items-center justify-center bg-gray-100 rounded-xl">
-                    <div className="text-center">
-                      <div className="animate-spin text-6xl mb-4">⏳</div>
-                      <p className="text-gray-600 font-semibold">Loading video...</p>
-                    </div>
-                  </div>
-                )}
                 <video
                   key={questions[currentQuestionIndex].videoSrc}
                   ref={videoRef}
-                  className={`w-full max-w-xl rounded-xl shadow-md ${videoLoading ? 'hidden' : ''}`}
+                  className="w-full max-w-xl rounded-xl shadow-md"
                   controls
                   autoPlay
                   loop
-                  preload="auto"
+                  preload="metadata"
                   playsInline
-                  onLoadedData={() => setVideoLoading(false)}
-                  onError={() => {
-                    setVideoLoading(false);
-                    setVideoError(true);
-                  }}
-                  onLoadStart={() => setVideoLoading(true)}
                 >
                   <source src={questions[currentQuestionIndex].videoSrc} type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
-                {videoError && (
-                  <div className="w-full max-w-xl h-64 flex items-center justify-center bg-red-50 rounded-xl">
-                    <p className="text-red-600 font-semibold">⚠️ Video failed to load</p>
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -4004,13 +3970,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                         loop
                         muted
                         playsInline
-                        preload="auto"
+                        preload="metadata"
                         className="w-64 h-64 object-contain rounded-xl mx-auto"
                         style={{ display: 'block' }}
-                        onError={(e) => {
-                          console.error('Character video failed:', currentQuestion?.characterEmoji);
-                          e.target.style.display = 'none';
-                        }}
                       >
                         <source src={currentQuestion?.characterEmoji} type="video/mp4" />
                       </video>
@@ -4076,13 +4038,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                             loop
                             muted
                             playsInline
-                            preload="auto"
-                            className="w-68 h-62 object-contain rounded-lg -m-9"
+                            preload="metadata"
+                            className="w-68 h-62 object-contain rounded-lg -m-9 "
                             style={{ display: 'block' }}
-                            onError={(e) => {
-                              console.error('Choice video failed:', choiceVideo);
-                              e.target.style.display = 'none';
-                            }}
                           >
                             <source src={choiceVideo} type="video/mp4" />
                           </video>
@@ -5016,10 +4974,10 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   </div>
                 )}
 
-                {/* Progress and Controls */}
-                <div className="text-center">
-                  {/* Score Display */}
-                  <div className="bg-purple-100 border-4 border-purple-300 rounded-2xl p-4 mb-4">
+                {/* Progress and Controls - Two Column Layout */}
+                <div className="grid grid-cols-2 gap-4 items-start">
+                  {/* Left Column: Score Display */}
+                  <div className="bg-purple-100 border-4 border-purple-300 rounded-2xl p-4">
                     <div className="text-2xl font-bold text-purple-800">
                       Correct Purchases: {moneyScore} 🏆
                     </div>
@@ -5030,15 +4988,17 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                     )}
                   </div>
 
-                  {/* Next Round Button */}
-                  {selectedPurchases.length > 0 && !isRoundComplete && (
-                    <button
-                      onClick={proceedToNextMoneyRound}
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-4 px-8 rounded-2xl text-xl font-bold shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer"
-                    >
-                      {moneyRound < 3 ? '➡️ Next Round' : '🏆 Complete Game'}
-                    </button>
-                  )}
+                  {/* Right Column: Complete Game Button */}
+                  <div className="flex items-center justify-center h-full">
+                    {selectedPurchases.length > 0 && !isRoundComplete && (
+                      <button
+                        onClick={proceedToNextMoneyRound}
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-4 px-8 rounded-2xl text-xl font-bold shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer w-full"
+                      >
+                        {moneyRound < 3 ? '➡️ Next Round' : '🏆 Complete Game'}
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Badge Completion Modal */}
@@ -5448,9 +5408,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                             loop
                             muted
                             playsInline
-                            preload="auto"
+                            preload="metadata"
                             onError={(e) => {
-                              console.error('Matching video failed to load:', item.content);
+                              console.error('Video failed to load:', item.content);
                               e.target.style.display = 'none';
                             }}
                           />
