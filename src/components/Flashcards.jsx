@@ -803,7 +803,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             videoSrc: "/assets/flashcards/Colors-Medium/Gray.mp4",
             answerChoices: ["Brown", "Pink", "Gray", "Purple"],
             correctAnswer: "Gray"
-          },
+          }
         ],
 
 
@@ -894,7 +894,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { id: 4, image: "✈️", name: "Airplane" }
             ],
             memorizationTime: 8,
-            shuffleCount: 6
+            shuffleCount: 5
           },
           {
             roundId: 2,
@@ -908,7 +908,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { id: 4, image: "🟡", name: "Yellow Ball" }
             ],
             memorizationTime: 8,
-            shuffleCount: 6
+            shuffleCount: 5
           },
           {
             roundId: 3,
@@ -922,7 +922,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
               { id: 4, image: "4️⃣", name: "Four" }
             ],
             memorizationTime: 8,
-            shuffleCount: 6
+            shuffleCount: 5
           }
         ]
       },
@@ -930,7 +930,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
                                             // HARD - LEVEL OF DIFFICULTY  
       Hard: {
-        " ": [
+        "Matching Type": [
           {
             questionText: "Associations & Cause-Effect - Match the pairs!",
             gameType: "matching",
