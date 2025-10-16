@@ -4901,11 +4901,11 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {/* Budget Display */}
                 <div className="bg-gradient-to-r from-blue-100 to-purple-100 border-4 border-blue-300 rounded-2xl p-3 mb-6 text-center relative">
                   <div className="absolute -top-3 -left-3 text-5xl animate-pulse-gentle">💳</div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-3">Your Budget</h3>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-1">Your Budget</h3>
                   <div className="text-4xl font-extrabold text-green-600 bg-white/70 backdrop-blur-sm rounded-xl p-2 border-2 border-green-200">
                     ₱{currentBudget.toLocaleString()}
                   </div>
-                  <p className="text-lg text-gray-600 mt-3">Choose items you can afford!</p>
+                  <p className="text-md text-gray-600 mt-3">Choose items you can afford!</p>
                 </div>
 
                 {/* Shopping Items - 4 items in 1 horizontal row */}
@@ -4974,32 +4974,26 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   </div>
                 )}
 
-                {/* Progress and Controls - Two Column Layout */}
-                <div className="grid grid-cols-2 gap-4 items-start">
-                  {/* Left Column: Score Display */}
-                  <div className="bg-purple-100 border-4 border-purple-300 rounded-2xl p-4">
-                    <div className="text-2xl font-bold text-purple-800">
-                      Correct Purchases: {moneyScore} 🏆
+                {/* Progress and Controls */}
+                <div className="bg-purple-100 border-4 border-purple-300 rounded-2xl p-2 mb-4">
+                  <div className="text-xl font-bold text-purple-800">
+                    Correct Purchases: {moneyScore} 🏆
+                  </div>
+                  {selectedPurchases.length > 0 && (
+                    <div className="text-md text-gray-700 ">
+                      Total Spent: ₱{totalSpent.toLocaleString()}
                     </div>
-                    {selectedPurchases.length > 0 && (
-                      <div className="text-lg text-gray-700 mt-2">
-                        Total Spent: ₱{totalSpent.toLocaleString()}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Right Column: Complete Game Button */}
-                  <div className="flex items-center justify-center h-full">
-                    {selectedPurchases.length > 0 && !isRoundComplete && (
-                      <button
-                        onClick={proceedToNextMoneyRound}
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-4 px-8 rounded-2xl text-xl font-bold shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer w-full"
-                      >
-                        {moneyRound < 3 ? '➡️ Next Round' : '🏆 Complete Game'}
-                      </button>
-                    )}
-                  </div>
+                  )}
                 </div>
+
+                {selectedPurchases.length > 0 && !isRoundComplete && (
+                  <button
+                    onClick={proceedToNextMoneyRound}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-4 px-8 rounded-2xl text-xl font-bold shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer w-full"
+                  >
+                    {moneyRound < 3 ? '➡️ Next Round' : '🏆 Complete Game'}
+                  </button>
+                )}
 
                 {/* Badge Completion Modal */}
                 {showBadgeCompletion && (
