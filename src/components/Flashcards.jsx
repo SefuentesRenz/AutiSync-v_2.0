@@ -48,6 +48,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const [showWrong, setShowWrong] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showBadgeModal, setShowBadgeModal] = useState(false);
+  const [videoLoading, setVideoLoading] = useState(true);
+  const [videoError, setVideoError] = useState(false);
   const [earnedBadges, setEarnedBadges] = useState([]);
   const [sessionStats, setSessionStats] = useState({
     startTime: new Date(),
@@ -387,6 +389,19 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     };
   }, [activity, difficulty]);
 
+  // Reset video loading state when question changes and preload next video
+  useEffect(() => {
+    setVideoLoading(true);
+    setVideoError(false);
+    
+    // Preload next video to reduce loading time
+    if (questions && questions[currentQuestionIndex + 1]?.videoSrc) {
+      const nextVideo = document.createElement('video');
+      nextVideo.preload = 'auto';
+      nextVideo.src = questions[currentQuestionIndex + 1].videoSrc;
+    }
+  }, [currentQuestionIndex, questions]);
+
   // 🎤 Text-to-Speech Helper Function - Teacher-like AI Voice
   const speakText = (text, rate = 0.9, pitch = 1.0) => {
     // Check if browser supports speech synthesis
@@ -500,20 +515,20 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
           {
             questionText: "What number is this?",
             videoSrc: "/assets/flashcards/Easy-identificaction/number9.mp4",
-            answerChoices: ["Eight", "Seven", "Nine", "Ten"],
-            correctAnswer: "Nine"
+            answerChoices: ["Eight (8)", "Seven (7)", "Nine (9)", "Ten (10)"],
+            correctAnswer: "Nine (9)"
           },
           {
             questionText: "What number is this?",
             videoSrc: "/assets/flashcards/Easy-identificaction/number4.mp4",
-            answerChoices: ["Four", "Eight", "Six", "Ten"],
-            correctAnswer: "Four"
+            answerChoices: ["Four (4)", "Eight (8)", "Six (6)", "Ten (10)"],
+            correctAnswer: "Four (4)"
           },
           {
             questionText: "What number is this?",
             videoSrc: "/assets/flashcards/Easy-identificaction/number8.mp4",
-            answerChoices: ["Six", "Nine", "Eight", "Three"],
-            correctAnswer: "Eight"
+            answerChoices: ["Six (6)", "Nine (9)", "Eight (8)", "Three (3)"],
+            correctAnswer: "Eight (8)"
           }
         ],
         Numbers: [
@@ -924,7 +939,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
                                             // HARD - LEVEL OF DIFFICULTY  
       Hard: {
-        "Matching Type": [
+        " ": [
           {
             questionText: "Associations & Cause-Effect - Match the pairs!",
             gameType: "matching",
@@ -3851,19 +3866,38 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             )}
             {questions[currentQuestionIndex].videoSrc && (
               <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-4 border-2 border-purple-200/30 shadow-lg">
+                {videoLoading && (
+                  <div className="w-full max-w-xl h-64 flex items-center justify-center bg-gray-100 rounded-xl">
+                    <div className="text-center">
+                      <div className="animate-spin text-6xl mb-4">⏳</div>
+                      <p className="text-gray-600 font-semibold">Loading video...</p>
+                    </div>
+                  </div>
+                )}
                 <video
                   key={questions[currentQuestionIndex].videoSrc}
                   ref={videoRef}
-                  className="w-full max-w-xl rounded-xl shadow-md"
+                  className={`w-full max-w-xl rounded-xl shadow-md ${videoLoading ? 'hidden' : ''}`}
                   controls
                   autoPlay
                   loop
-                  preload="metadata"
+                  preload="auto"
                   playsInline
+                  onLoadedData={() => setVideoLoading(false)}
+                  onError={() => {
+                    setVideoLoading(false);
+                    setVideoError(true);
+                  }}
+                  onLoadStart={() => setVideoLoading(true)}
                 >
                   <source src={questions[currentQuestionIndex].videoSrc} type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
+                {videoError && (
+                  <div className="w-full max-w-xl h-64 flex items-center justify-center bg-red-50 rounded-xl">
+                    <p className="text-red-600 font-semibold">⚠️ Video failed to load</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -3970,9 +4004,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                         loop
                         muted
                         playsInline
-                        preload="metadata"
+                        preload="auto"
                         className="w-64 h-64 object-contain rounded-xl mx-auto"
                         style={{ display: 'block' }}
+                        onError={(e) => {
+                          console.error('Character video failed:', currentQuestion?.characterEmoji);
+                          e.target.style.display = 'none';
+                        }}
                       >
                         <source src={currentQuestion?.characterEmoji} type="video/mp4" />
                       </video>
@@ -4038,9 +4076,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                             loop
                             muted
                             playsInline
-                            preload="metadata"
-                            className="w-68 h-62 object-contain rounded-lg -m-9 "
+                            preload="auto"
+                            className="w-68 h-62 object-contain rounded-lg -m-9"
                             style={{ display: 'block' }}
+                            onError={(e) => {
+                              console.error('Choice video failed:', choiceVideo);
+                              e.target.style.display = 'none';
+                            }}
                           >
                             <source src={choiceVideo} type="video/mp4" />
                           </video>
@@ -5406,9 +5448,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                             loop
                             muted
                             playsInline
-                            preload="metadata"
+                            preload="auto"
                             onError={(e) => {
-                              console.error('Video failed to load:', item.content);
+                              console.error('Matching video failed to load:', item.content);
                               e.target.style.display = 'none';
                             }}
                           />

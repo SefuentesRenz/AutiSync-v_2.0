@@ -605,9 +605,13 @@ const HomePage = () => {
                 loop
                 muted
                 autoPlay
-                preload="metadata"
+                preload="auto"
                 playsInline
                 poster="/assets/banner.jpg"
+                onError={(e) => {
+                  console.error('Tutorial video failed to load');
+                  e.target.poster = "/assets/banner.jpg";
+                }}
               >
                 <source src="/assets/videotutorial.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
