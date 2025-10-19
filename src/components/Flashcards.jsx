@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Confetti from 'react-confetti';
 import { 
@@ -7,6 +7,39 @@ import {
   getBadgeAchievementMessage 
 } from '../utils/badgeSystem';
 import { useAuth } from '../contexts/AuthContext';
+
+// Optimized Video Component
+const OptimizedVideo = memo(({ src, className, autoPlay, loop, muted, controls, style }) => {
+  const videoRef = useRef();
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.load();
+    }
+  }, [src]);
+
+  return (
+    <video
+      ref={videoRef}
+      className={className}
+      autoPlay={autoPlay}
+      loop={loop}
+      muted={muted}
+      controls={controls}
+      preload="metadata"
+      playsInline
+      loading="lazy"
+      style={style}
+      onLoadStart={(e) => {
+        e.target.playbackRate = 1.0;
+        if (!muted) e.target.volume = 0.7;
+      }}
+    >
+      <source src={src} type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+  );
+});
 
 const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const navigate = useNavigate();
@@ -4074,19 +4107,16 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             )}
             {questions[currentQuestionIndex].videoSrc && (
               <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-4 border-2 border-purple-200/30 shadow-lg">
-                <video
-                  key={questions[currentQuestionIndex].videoSrc}
+                <OptimizedVideo
                   ref={videoRef}
+                  src={questions[currentQuestionIndex].videoSrc}
                   className="w-full max-w-xl rounded-xl shadow-md"
-                  controls
-                  autoPlay
-                  loop
-                  preload="metadata"
-                  playsInline
-                >
-                  <source src={questions[currentQuestionIndex].videoSrc} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
+                  controls={true}
+                  autoPlay={true}
+                  loop={true}
+                  muted={true}
+                  style={{ maxHeight: '70vh' }}
+                />
               </div>
             )}
           </div>
@@ -4187,18 +4217,14 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                   {/* Main Character */}
                   <div className={`text-[8rem] mb-4 -mt-7 transition-all duration-500 ${showSuccessAnimation ? 'scale-110' : ''}`}>
                     {currentQuestion?.isCharacterVideo ? (
-                      <video
-                        key={currentQuestion?.characterEmoji}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        preload="metadata"
+                      <OptimizedVideo
+                        src={currentQuestion?.characterEmoji}
                         className="w-64 h-64 object-contain rounded-xl mx-auto"
+                        autoPlay={true}
+                        loop={true}
+                        muted={true}
                         style={{ display: 'block' }}
-                      >
-                        <source src={currentQuestion?.characterEmoji} type="video/mp4" />
-                      </video>
+                      />
                     ) : (
                       // Check if it's an image path (starts with / or contains file extension)
                       currentQuestion?.characterEmoji?.startsWith('/') || 
@@ -5629,14 +5655,12 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                         {item.type === 'emoji' ? (
                           <span className="text-2xl">{item.content}</span>
                         ) : item.type === 'video' ? (
-                          <video 
+                          <OptimizedVideo 
                             src={item.content} 
                             className="absolute inset-0 w-full h-full object-cover rounded-lg"
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            preload="metadata"
+                            autoPlay={true}
+                            loop={true}
+                            muted={true}
                             onError={(e) => {
                               console.error('Video failed to load:', item.content);
                               e.target.style.display = 'none';
