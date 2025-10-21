@@ -42,3 +42,12 @@ lerna-debug.log*
 # OS files
 Thumbs.db
 .DS_Store
+
+# Large files (prevent Git LFS issues)
+*.mp4
+*.mov
+*.avi
+*.zip
+*.rar
+*.tar
+/public/videos/
