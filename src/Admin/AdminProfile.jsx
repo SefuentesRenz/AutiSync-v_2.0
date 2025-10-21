@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { getAdminByUserId } from '../lib/adminsApi';
-import { getUserProfileById, updateUserProfile } from '../lib/userProfilesApi';
+import { getAdminByUserId, updateAdminByUserId } from '../lib/adminsApi';
 import { useAuth } from '../contexts/AuthContext';
 import { AcademicCapIcon, PencilIcon, CheckIcon, XMarkIcon, UserCircleIcon, CalendarIcon, MapPinIcon, IdentificationIcon, ArrowRightOnRectangleIcon, PhoneIcon } from '@heroicons/react/24/solid';
 
@@ -23,6 +22,8 @@ export default function AdminProfile() {
     address: "",
     gender: "",
     username: "",
+    department: "",
+    permissions: {},
     profileImage: "/assets/kidprofile1.jpg"
   });
 
@@ -36,46 +37,35 @@ export default function AdminProfile() {
       setError(null);
       
       try {
-        console.log('Fetching profile for user:', user.id);
+        console.log('Fetching admin profile for user:', user.id);
         
-        // Try to get user profile first
-        const { data: profileData, error: profileError } = await getUserProfileById(user.id);
+        // Get admin profile data from admins table
+        const { data: adminData, error: adminError } = await getAdminByUserId(user.id);
         
-        if (profileError && profileError.code !== 'PGRST116') { // PGRST116 = no rows returned
-          console.error('Error fetching user profile:', profileError);
-          setError('Failed to load profile data');
+        if (adminError && adminError.code !== 'PGRST116') { // PGRST116 = no rows returned
+          console.error('Error fetching admin profile:', adminError);
+          setError('Failed to load admin profile data');
           setLoading(false);
           return;
         }
 
-        // If profile exists, use it; otherwise use auth user data
+        // Use admin data if available, otherwise use auth user data
         const formattedProfile = {
-          fullName: profileData?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || "Admin User",
-          email: profileData?.email || user.email || "",
-          phone: profileData?.phone_number || profileData?.phone || "",
-          birthday: profileData?.age ? `Age: ${profileData.age}` : "",
-          address: profileData?.address || "",
-          gender: profileData?.gender || "",
-          username: profileData?.username || user.user_metadata?.username || user.email?.split('@')[0] || "",
+          fullName: adminData?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || "Admin User",
+          email: adminData?.email || user.email || "",
+          phone: adminData?.phone_number || "",
+          birthday: "", // Admin table doesn't have birthday
+          address: adminData?.address || "",
+          gender: "", // Admin table doesn't have gender
+          username: user.user_metadata?.username || user.email?.split('@')[0] || "",
+          department: adminData?.department || "General",
+          permissions: adminData?.permissions || {},
           profileImage: "/assets/kidprofile1.jpg"
         };
         
-        console.log('Profile data loaded:', formattedProfile);
+        console.log('Admin profile data loaded:', formattedProfile);
         setUserInfo(formattedProfile);
         setOriginalUserInfo(formattedProfile);
-
-        // Check if user is admin (optional verification)
-        const { data: adminData, error: adminError } = await supabase
-          .from('admins')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-          
-        if (adminError && adminError.code !== 'PGRST116') {
-          console.log('Admin verification failed, but continuing with profile');
-        } else if (adminData) {
-          console.log('Admin verified:', adminData);
-        }
         
       } catch (err) {
         console.error('Error fetching admin profile:', err);
@@ -122,35 +112,34 @@ export default function AdminProfile() {
     setError(null); // Clear any previous errors
     
     try {
-      // Prepare update data - only include fields that exist in the database
+      // Prepare update data for admins table
       const updateData = {
         full_name: userInfo.fullName,
-        username: userInfo.username,
-        gender: userInfo.gender,
         address: userInfo.address,
-        phone_number: userInfo.phone, // Map to correct field name
-        age: userInfo.birthday ? parseInt(userInfo.birthday.replace('Age: ', '')) || null : null
+        phone_number: userInfo.phone,
+        department: userInfo.department,
+        permissions: userInfo.permissions
         // Note: email updates need special handling with Supabase auth
       };
 
-      console.log('Updating profile with user_id:', user.id);
+      console.log('Updating admin profile with user_id:', user.id);
       console.log('Update data:', updateData);
 
-      const { data, error } = await updateUserProfile(user.id, updateData);
+      const { data, error } = await updateAdminByUserId(user.id, updateData);
       
       if (error) {
-        console.error('Error updating profile:', error);
+        console.error('Error updating admin profile:', error);
         setError(`Database error: ${error.message}`);
         // Revert to original data
         setUserInfo(originalUserInfo);
       } else {
-        console.log('Profile updated successfully:', data);
+        console.log('Admin profile updated successfully:', data);
         setOriginalUserInfo(userInfo); // Update the baseline
         setIsEditing(false);
         setError(null);
       }
     } catch (err) {
-      console.error('Unexpected error saving profile:', err);
+      console.error('Unexpected error saving admin profile:', err);
       setError(`Failed to save profile changes: ${err.message}`);
       setUserInfo(originalUserInfo);
     } finally {

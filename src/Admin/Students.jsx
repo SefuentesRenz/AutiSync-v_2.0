@@ -40,108 +40,90 @@ const Students = () => {
         });
       }
       
-      // Alternative approach: Get students and profiles separately to avoid join issues
+      // Now get all user_profiles directly since we removed the students table
       const { data: studentsData, error: studentsError } = await supabase
-        .from('students')
-        .select('*');
+        .from('user_profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
       
       if (studentsError) {
-        console.error('Error fetching students:', studentsError);
+        console.error('Error fetching user profiles:', studentsError);
         setError('Failed to load students: ' + studentsError.message);
         setStudents(getFallbackStudents());
         return;
       }
       
       if (!studentsData || studentsData.length === 0) {
-        console.log('No students found in database, using fallback data');
+        console.log('No user profiles found in database, using fallback data');
         setStudents(getFallbackStudents());
         return;
       }
       
-      // Get profile data for each student
-      const profileIds = studentsData.map(student => student.profile_id);
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .in('id', profileIds);
+      console.log('User profiles data:', studentsData);
       
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        // Continue with student data but without profile details
-      }
-      
-      console.log('Students data:', studentsData);
-      console.log('Profiles data:', profilesData);
-      
-      // Combine student and profile data
-      const transformedStudents = await Promise.all(studentsData.map(async (student, index) => {
-        const profile = profilesData?.find(p => p.id === student.profile_id);
+      // Transform user_profiles to student format expected by the UI
+      const transformedStudents = await Promise.all(studentsData.map(async (profile, index) => {
         
         // Get real progress data for each student using their user_id
         let progressStats = null;
         let lastActivityTime = 'No recent activity';
         
         try {
-          // Use the profile's user_id (which is the auth user id) for progress lookup
-          const userAuthId = profile?.user_id;
+          console.log(`Fetching progress for student: ${profile?.full_name} (${profile.user_id})`);
           
-          if (userAuthId) {
-            console.log(`Fetching progress for student: ${profile?.full_name} (${userAuthId})`);
-            
-            // Get recent progress directly from user_activity_progress table
-            const { data: recentProgress, error: progressError } = await supabase
-              .from('user_activity_progress')
-              .select('*')
-              .eq('student_id', userAuthId)
-              .order('date_completed', { ascending: false })
-              .limit(20);
+          // Get recent progress directly from user_activity_progress table
+          const { data: recentProgress, error: progressError } = await supabase
+            .from('user_activity_progress')
+            .select('*')
+            .eq('user_id', profile.user_id) // Now using user_id directly
+            .order('date_completed', { ascending: false })
+            .limit(20);
 
-            if (!progressError && recentProgress && recentProgress.length > 0) {
-              console.log(`Found ${recentProgress.length} activities for ${profile?.full_name}`);
-              
-              const completedActivities = recentProgress.length;
-              const totalScore = recentProgress.reduce((sum, activity) => sum + (activity.score || 0), 0);
-              const averageScore = completedActivities > 0 ? Math.round(totalScore / completedActivities) : 0;
-              
-              // Get last activity time
-              const lastActivity = recentProgress[0];
-              const lastDate = new Date(lastActivity.date_completed);
-              const now = new Date();
-              const diffInHours = Math.floor((now - lastDate) / (1000 * 60 * 60));
-              
-              if (diffInHours < 1) {
-                lastActivityTime = 'Just now';
-              } else if (diffInHours < 24) {
-                lastActivityTime = `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
-              } else {
-                const diffInDays = Math.floor(diffInHours / 24);
-                lastActivityTime = `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
-              }
-              
-              progressStats = {
-                completedActivities,
-                averageScore,
-                lastActivityTime
-              };
+          if (!progressError && recentProgress && recentProgress.length > 0) {
+            console.log(`Found ${recentProgress.length} activities for ${profile?.full_name}`);
+            
+            const completedActivities = recentProgress.length;
+            const totalScore = recentProgress.reduce((sum, activity) => sum + (activity.score || 0), 0);
+            const averageScore = completedActivities > 0 ? Math.round(totalScore / completedActivities) : 0;
+            
+            // Get last activity time
+            const lastActivity = recentProgress[0];
+            const lastDate = new Date(lastActivity.date_completed);
+            const now = new Date();
+            const diffInHours = Math.floor((now - lastDate) / (1000 * 60 * 60));
+            
+            if (diffInHours < 1) {
+              lastActivityTime = 'Just now';
+            } else if (diffInHours < 24) {
+              lastActivityTime = `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
             } else {
-              console.log(`No activities found for ${profile?.full_name}`);
+              const diffInDays = Math.floor(diffInHours / 24);
+              lastActivityTime = `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
             }
+            
+            progressStats = {
+              completedActivities,
+              averageScore,
+              lastActivityTime
+            };
+          } else {
+            console.log(`No activities found for ${profile?.full_name}`);
           }
         } catch (err) {
           console.log('Could not fetch progress for student:', profile?.full_name, err);
         }
         
         return {
-          id: student.id,
-          profileId: profile?.user_id, // Use the auth user ID for navigation
-          profileUUID: profile?.id, // Also store the profile UUID for reference
+          id: profile.user_id, // Now using user_id as the main ID
+          profileId: profile.user_id, // Use the auth user ID for navigation
+          profileUUID: profile.user_id, // Same as profileId since we removed students table
           name: profile?.full_name || 'Unknown Student',
           age: profile?.age || 0,
           address: profile?.address || 'No address provided',
           gender: profile?.gender || 'Not specified',
           email: profile?.email || '',
           phone: profile?.phone_number || '',
-          joinDate: new Date(student.created_at).toLocaleDateString(),
+          joinDate: new Date(profile.created_at).toLocaleDateString(),
           status: 'Active',
           completedActivities: progressStats?.completedActivities || 0,
           averageScore: progressStats?.averageScore || 0,

@@ -1,5 +1,6 @@
 // src/lib/progressApi.js
 import { supabase } from './supabase';
+import { checkAndAwardBadges } from './badgesApi';
 
 // Record activity completion and score
 export async function recordActivityProgress(studentId, activityId, score, completionStatus = 'completed') {
@@ -32,12 +33,21 @@ export async function recordActivityProgress(studentId, activityId, score, compl
     const studentName = studentProfile?.full_name || 'Unknown Student';
     console.log('👤 Student name:', studentName);
 
+    // Since we no longer use the students table, we work directly with user_profiles
+    // Verify that the studentId exists in user_profiles
+    console.log('🔍 Verifying studentId exists in user_profiles...');
+    if (!studentProfile) {
+      console.error('❌ Student profile not found in user_profiles');
+      return { data: null, error: { message: 'Student profile not found' } };
+    }
+    console.log('✅ Student profile verified:', studentProfile);
+
     // Check if progress already exists for this student and activity
     console.log('🔍 Checking for existing progress...');
     const { data: existingProgress, error: checkError } = await supabase
   .from('user_activity_progress')
       .select('*')
-      .eq('student_id', studentId)
+      .eq('user_id', studentId) // Use user_id not student_id
       .eq('activity_id', activityId)
       .single();
 
@@ -60,7 +70,7 @@ export async function recordActivityProgress(studentId, activityId, score, compl
           student_name: studentName,
           date_completed: new Date().toISOString()
         })
-        .eq('student_id', studentId)
+        .eq('user_id', studentId) // Use user_id not student_id
         .eq('activity_id', activityId)
         .select();
       
@@ -70,7 +80,7 @@ export async function recordActivityProgress(studentId, activityId, score, compl
       // Insert new progress record
       console.log('➕ Inserting new progress record...');
       const progressRecord = {
-        student_id: studentId,
+        user_id: studentId, // Use user_id not student_id
         activity_id: activityId,
         score: score,
         completion_status: completionStatus,
@@ -95,6 +105,24 @@ export async function recordActivityProgress(studentId, activityId, score, compl
     }
 
     console.log('✅ Activity progress recorded successfully!', result.data);
+    
+    // Check for badges after successful progress recording
+    try {
+      console.log('🏆 Checking for badges after activity completion...');
+      const { data: newBadges, error: badgeError } = await checkAndAwardBadges(studentId);
+      if (badgeError) {
+        console.error('❌ Error checking badges:', badgeError);
+        // Don't fail the main operation if badge checking fails
+      } else if (newBadges && newBadges.length > 0) {
+        console.log('🏆 New badges earned:', newBadges);
+        // You could add the badges to the result if needed
+        result.newBadges = newBadges;
+      }
+    } catch (badgeCheckError) {
+      console.error('❌ Unexpected error checking badges:', badgeCheckError);
+      // Don't fail the main operation if badge checking fails
+    }
+    
     return result;
   } catch (error) {
     console.error('Unexpected error recording progress:', error);
@@ -114,7 +142,7 @@ export async function getProgressSummary(studentId) {
           difficulty
         )
       `)
-      .eq('student_id', studentId);
+      .eq('user_id', studentId); // Use user_id not student_id
 
     if (error) {
       console.error('Error fetching progress summary:', error);
@@ -174,7 +202,7 @@ export async function getActivityProgress(studentId, activityId) {
     const { data, error } = await supabase
   .from('user_activity_progress')
       .select('*')
-      .eq('student_id', studentId)
+      .eq('user_id', studentId) // Use user_id not student_id
       .eq('activity_id', activityId)
       .single();
 
@@ -216,7 +244,7 @@ export async function getAllStudentsProgress() {
     }
 
     // Get unique user IDs from progress records
-    const userIds = [...new Set(progressRecords.map(record => record.student_id))];
+    const userIds = [...new Set(progressRecords.map(record => record.user_id))]; // Use user_id not student_id
     
     // Get user profiles separately
     const { data: userProfiles, error: profilesError } = await supabase
@@ -262,7 +290,7 @@ export async function getAllStudentsProgress() {
     const studentProgressMap = {};
     
     progressRecords.forEach(record => {
-      const studentId = record.student_id;
+      const studentId = record.user_id; // Use user_id not student_id
       const userProfile = userProfiles?.find(p => p.user_id === studentId);
       const activity = activities?.find(a => a.id === record.activity_id);
       const category = categories?.find(c => c.id === activity?.category_id);
@@ -346,13 +374,15 @@ export async function getStudentProgressStats(studentId) {
     const { data: progressRecords, error: progressError } = await supabase
   .from('user_activity_progress')
       .select('*')
-      .eq('student_id', studentId)
+      .eq('user_id', studentId) // Use user_id not student_id
       .order('date_completed', { ascending: false });
 
     if (progressError) {
       console.error('Error fetching student progress stats:', progressError);
       return { data: null, error: progressError };
     }
+
+    console.log('Progress API: Found', progressRecords?.length || 0, 'progress records for student', studentId);
 
     // Get activities separately if we have activity IDs
     let activities = [];
@@ -366,9 +396,11 @@ export async function getStudentProgressStats(studentId) {
       
       if (!activitiesError) {
         activities = activitiesData || [];
+        console.log('Progress API: Found', activities.length, 'activities:', activities);
         
         // Get unique category IDs from activities
         const categoryIds = [...new Set(activities.map(a => a.category_id).filter(Boolean))];
+        console.log('Progress API: Category IDs:', categoryIds);
         if (categoryIds.length > 0) {
           const { data: categoriesData, error: categoriesError } = await supabase
             .from('Categories')
@@ -377,8 +409,13 @@ export async function getStudentProgressStats(studentId) {
           
           if (!categoriesError) {
             categories = categoriesData || [];
+            console.log('Progress API: Found categories:', categories);
+          } else {
+            console.error('Progress API: Error fetching categories:', categoriesError);
           }
         }
+      } else {
+        console.error('Progress API: Error fetching activities:', activitiesError);
       }
     }
 
@@ -402,7 +439,19 @@ export async function getStudentProgressStats(studentId) {
       const activity = activities.find(a => a.id === record.activity_id);
       const categoryId = activity?.category_id || 'unknown';
       const category = categories.find(c => c.id === categoryId);
-      const categoryName = category?.name || categoryId || 'Unknown Category';
+      
+      // Better fallback logic for category name
+      let categoryName;
+      if (category?.name) {
+        categoryName = category.name;
+      } else if (activity?.title) {
+        // If no category name found, use a generic name based on activity
+        categoryName = 'General Activities';
+      } else {
+        categoryName = 'Unknown Category';
+      }
+      
+      console.log('Progress API: Activity', record.activity_id, 'Category ID:', categoryId, 'Category Name:', categoryName);
       
       if (!categoryStats[categoryName]) {
         categoryStats[categoryName] = {
@@ -443,7 +492,7 @@ export async function getStudentProgress(studentId, limit = 50) {
     const { data: progressRecords, error } = await supabase
   .from('user_activity_progress')
       .select('*')
-      .eq('student_id', studentId)
+      .eq('user_id', studentId) // Use user_id not student_id
       .order('date_completed', { ascending: false })
       .limit(limit);
 

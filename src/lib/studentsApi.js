@@ -1,94 +1,68 @@
 // src/lib/studentsApi.js
+// UPDATED: Now uses user_profiles directly instead of students table
 import { supabase } from './supabase';
 
-// Create a new student
+// Create a new student profile (same as creating a user profile)
 export async function createStudent({ profile_id }) {
-  try {
-    console.log('studentsApi: Creating student with data:', { profile_id });
-    
-    // Only insert the profile_id - keep it simple
-    const studentData = {
-      profile_id: profile_id
-    };
-    
-    const { data, error } = await supabase
-      .from('students')
-      .insert([studentData])
-      .select();
-      
-    console.log('studentsApi: Insert result:', { data, error });
-    return { data, error };
-  } catch (e) {
-    console.error('studentsApi: Unexpected error:', e);
-    return { data: null, error: { message: e.message } };
-  }
+  // This function is now deprecated since we work directly with user_profiles
+  console.warn('createStudent is deprecated. Use userProfilesApi.createUserProfile instead');
+  return { data: null, error: { message: 'This function is deprecated. Use user_profiles directly.' } };
 }
 
-// Get all students
+// Get all students (now gets all user_profiles)
 export async function getStudents() {
   const { data, error } = await supabase
-    .from('students')
-    .select(`
-      *,
-      user_profiles!inner(*)
-    `);
+    .from('user_profiles')
+    .select('*')
+    .order('created_at', { ascending: false });
   return { data, error };
 }
 
-// Get student by profile_id
-export async function getStudentByProfileId(profile_id) {
+// Get student by profile_id (now gets user_profile by user_id)
+export async function getStudentByProfileId(user_id) {
   const { data, error } = await supabase
-    .from('students')
-    .select(`
-      *,
-      user_profiles!inner(*)
-    `)
-    .eq('profile_id', profile_id)
+    .from('user_profiles')
+    .select('*')
+    .eq('user_id', user_id)
     .single();
   return { data, error };
 }
 
-// Get student by ID
-export async function getStudentById(id) {
+// Get student by ID (now gets user_profile by user_id)
+export async function getStudentById(user_id) {
   const { data, error } = await supabase
-    .from('students')
-    .select(`
-      *,
-      user_profiles!inner(*)
-    `)
-    .eq('id', id)
+    .from('user_profiles')
+    .select('*')
+    .eq('user_id', user_id)
     .single();
   return { data, error };
 }
 
-// Update student
-export async function updateStudent(id, updates) {
+// Update student (now updates user_profile)
+export async function updateStudent(user_id, updates) {
   const { data, error } = await supabase
-    .from('students')
+    .from('user_profiles')
     .update(updates)
-    .eq('id', id)
+    .eq('user_id', user_id)
     .select();
   return { data, error };
 }
 
-// Delete student
-export async function deleteStudent(id) {
+// Delete student (now deletes user_profile)
+export async function deleteStudent(user_id) {
   const { data, error } = await supabase
-    .from('students')
+    .from('user_profiles')
     .delete()
-    .eq('id', id);
+    .eq('user_id', user_id);
   return { data, error };
 }
 
-// Get student by user_id (from auth)
+// Get student by user_id (from auth) - now just gets user_profile directly
 export async function getStudentByUserId(user_id) {
   const { data, error } = await supabase
-    .from('students')
-    .select(`
-      *,
-      user_profiles!inner(*)
-    `)
-    .eq('user_profiles.user_id', user_id)
+    .from('user_profiles')
+    .select('*')
+    .eq('user_id', user_id)
     .single();
   return { data, error };
 }

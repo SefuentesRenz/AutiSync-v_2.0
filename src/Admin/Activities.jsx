@@ -202,19 +202,32 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
     }
   };
 
-  const filteredActivities = activities.filter(activity => {
-    const matchesSearch = activity.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         activity.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || activity.category === selectedCategory;
-    const matchesDifficulty = selectedDifficulty === 'all' || activity.difficulty === selectedDifficulty;
-    
-    // Debug filtering
-    if (selectedDifficulty !== 'all') {
-      console.log('Filtering for difficulty:', selectedDifficulty, 'Activity:', activity.title, 'Activity difficulty:', activity.difficulty, 'Matches:', matchesDifficulty);
-    }
-    
-    return matchesSearch && matchesCategory && matchesDifficulty;
-  });
+  const filteredActivities = activities
+    .filter(activity => {
+      const matchesSearch = activity.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           activity.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === 'all' || activity.category === selectedCategory;
+      const matchesDifficulty = selectedDifficulty === 'all' || activity.difficulty === selectedDifficulty;
+      
+      // Debug filtering
+      if (selectedDifficulty !== 'all') {
+        console.log('Filtering for difficulty:', selectedDifficulty, 'Activity:', activity.title, 'Activity difficulty:', activity.difficulty, 'Matches:', matchesDifficulty);
+      }
+      
+      return matchesSearch && matchesCategory && matchesDifficulty;
+    })
+    .sort((a, b) => {
+      // Sort by total completions (most used first), then by title alphabetically
+      const aCompletions = a.totalCompletions || 0;
+      const bCompletions = b.totalCompletions || 0;
+      
+      if (bCompletions !== aCompletions) {
+        return bCompletions - aCompletions; // Descending order (most used first)
+      }
+      
+      // If completions are equal, sort alphabetically by title
+      return a.title.localeCompare(b.title);
+    });
 
   const AdminProfile = (e) => {
     e.preventDefault();
@@ -464,25 +477,41 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
 
         {/* Activities Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredActivities.map((activity) => (
-            <div
-              key={activity.id}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-            >
-              <div className={`h-2 bg-gradient-to-r ${activity.color}`}></div>
-              
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="text-2xl">{activity.icon}</div>
-                    <div>
-                      <h3 className="font-bold text-lg text-gray-800 line-clamp-1">{activity.title}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(activity.difficulty)}`}>
-                        {activity.difficulty}
-                      </span>
+          {filteredActivities.map((activity, index) => {
+            // Determine if this is a top activity (top 3 most used)
+            const isTopActivity = index < 3 && (activity.totalCompletions || 0) > 0;
+            const topActivityBadge = index === 0 ? '🥇 Most Used' : 
+                                   index === 1 ? '🥈 2nd Most' : 
+                                   index === 2 ? '🥉 3rd Most' : '';
+            
+            return (
+              <div
+                key={activity.id}
+                className={`bg-white rounded-2xl shadow-lg border overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 ${
+                  isTopActivity ? 'border-yellow-300 ring-2 ring-yellow-100' : 'border-gray-100'
+                }`}
+              >
+                <div className={`h-2 bg-gradient-to-r ${activity.color}`}></div>
+                
+                <div className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="text-2xl">{activity.icon}</div>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <h3 className="font-bold text-lg text-gray-800 line-clamp-1">{activity.title}</h3>
+                          {isTopActivity && (
+                            <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded-full">
+                              {topActivityBadge}
+                            </span>
+                          )}
+                        </div>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(activity.difficulty)}`}>
+                          {activity.difficulty}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{activity.description}</p>
 
@@ -534,7 +563,8 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* No Results */}

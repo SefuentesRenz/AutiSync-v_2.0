@@ -1,113 +1,105 @@
 // src/lib/parentChildApi.js
+// UPDATED: Now uses the parents table with children_ids array instead of parent_child_relations table
 import { supabase } from './supabase';
+import { getParentByUserId, addChildToParent, removeChildFromParent } from './parentsApi';
 
-// Create a parent-child relationship
+// Create a parent-child relationship using children_ids array
 export async function linkParentToChild(parentUserId, childUserId, parentEmail, childEmail) {
   try {
     console.log('parentChildApi: Linking parent to child:', { parentUserId, childUserId, parentEmail, childEmail });
     
-    // Check if relationship already exists
-    const { data: existing, error: checkError } = await supabase
-      .from('parent_child_relations')
-      .select('id')
-      .eq('parent_user_id', parentUserId)
-      .eq('child_user_id', childUserId)
+    // Get parent record
+    const { data: parent, error: parentError } = await getParentByUserId(parentUserId);
+    if (parentError || !parent) {
+      return { data: null, error: { message: 'Parent account not found' } };
+    }
+
+    // Find student record by user_id (now directly from user_profiles)
+    const { data: student, error: studentError } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id', childUserId)
       .single();
-
-    if (checkError && checkError.code !== 'PGRST116') {
-      // PGRST116 means "no rows returned" which is fine, any other error needs handling
-      if (checkError.message.includes('does not exist') || checkError.message.includes('schema cache')) {
-        return { 
-          data: null, 
-          error: { 
-            message: 'Database table not set up. Please run the database setup script first.',
-            details: 'The parent_child_relations table does not exist. Check the database folder for setup scripts.'
-          } 
-        };
-      }
-      return { data: null, error: checkError };
-    }
-
-    if (existing) {
-      return { data: existing, error: { message: 'Relationship already exists' } };
-    }
-    
-    // Create the relationship using auth UUIDs directly
-    const { data, error } = await supabase
-      .from('parent_child_relations')
-      .insert([{
-        parent_user_id: parentUserId,  // Auth UUID directly
-        child_user_id: childUserId,    // Auth UUID directly
-        parent_email: parentEmail,
-        child_email: childEmail,
-        relationship_type: 'parent',
-        linked_at: new Date().toISOString()
-      }])
-      .select();
       
-    console.log('parentChildApi: Link result:', { data, error });
-    return { data, error };
+    if (studentError || !student) {
+      return { data: null, error: { message: 'Student account not found' } };
+    }
+
+    // Add student.user_id (UUID) to parent's children_ids array
+    const result = await addChildToParent(parent.id, student.user_id);
+    
+    if (result.error && !result.error.message.includes('already linked')) {
+      return result;
+    }
+
+    return {
+      data: {
+        parent_id: parent.id,
+        student_id: student.user_id, // Now using user_id (UUID)
+        child_user_id: childUserId,
+        child_name: student.full_name,
+        child_email: student.email,
+        linked_at: new Date().toISOString()
+      },
+      error: null
+    };
+      
   } catch (e) {
     console.error('parentChildApi: Unexpected error:', e);
     return { data: null, error: { message: e.message } };
   }
 }
 
-// Get all children for a parent (improved version)
+// Get all children for a parent using children_ids array
 export async function getChildrenByParentId(parentUserId) {
   try {
     console.log('getChildrenByParentId: Looking for children of parent user_id:', parentUserId);
     
-    // Direct query using parent_user_id (which should match the auth user.id)
-    const { data, error } = await supabase
-      .from('parent_child_relations')
-      .select(`
-        id,
-        child_user_id,
-        child_email,
-        linked_at,
-        user_profiles!parent_child_relations_child_user_id_fkey (
-          id,
-          user_id,
-          username,
-          first_name,
-          last_name,
-          email,
-          age,
-          grade,
-          gender,
-          profile_picture
-        )
-      `)
-      .eq('parent_user_id', parentUserId);
-    
-    if (error) {
-      console.error('getChildrenByParentId: Database error:', error);
-      return { data: [], error };
+    // Get parent record
+    const { data: parent, error: parentError } = await getParentByUserId(parentUserId);
+    if (parentError || !parent) {
+      return { data: [], error: parentError || { message: 'Parent not found' } };
     }
 
-    if (!data || data.length === 0) {
+    const childrenIds = parent.children_ids || [];
+    if (childrenIds.length === 0) {
       console.log('getChildrenByParentId: No children found for parent');
       return { data: [], error: null };
     }
 
+    // Get student records with their profiles for these IDs (now from user_profiles directly)
+    const { data: students, error: studentsError } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .in('user_id', childrenIds);
+
+    if (studentsError) {
+      console.error('getChildrenByParentId: Database error:', studentsError);
+      return { data: [], error: studentsError };
+    }
+
+    if (!students || students.length === 0) {
+      console.log('getChildrenByParentId: No student records found');
+      return { data: [], error: null };
+    }
+
     // Transform the data to the expected format
-    const transformedData = data.map(relation => {
-      const child = relation.user_profiles;
-      return {
-        id: child.user_id, // Use user_id as the main ID
-        user_id: child.user_id,
-        full_name: `${child.first_name || ''} ${child.last_name || ''}`.trim() || child.username,
-        username: child.username,
-        age: child.age,
-        email: child.email || 'No email provided',
-        grade: child.grade,
-        gender: child.gender,
-        profile_picture: child.profile_picture || "/src/assets/kidprofile1.jpg",
-        relation_id: relation.id,
-        linked_at: relation.linked_at
-      };
-    });
+    const transformedData = students.map(student => ({
+      id: student.user_id, // Use user_id as the main ID
+      user_id: student.user_id,
+      student_id: student.user_id, // Now same as user_id
+      profile_id: student.user_id, // Now same as user_id
+      full_name: student.full_name || student.username,
+      username: student.username,
+      age: student.age,
+      email: student.email || 'No email provided',
+      grade: student.grade,
+      gender: student.gender,
+      activities_done: student.activities_done || 0,
+      starts_earned: student.starts_earned || 0,
+      day_streak: student.day_streak || 0,
+      profile_picture: "/assets/kidprofile1.jpg"
+    }));
 
     console.log('getChildrenByParentId: Successfully found children:', transformedData);
     return { data: transformedData, error: null };
@@ -118,24 +110,19 @@ export async function getChildrenByParentId(parentUserId) {
   }
 }
 
-// Check if parent has any linked children (improved version)
+// Check if parent has any linked children using children_ids array
 export async function hasLinkedChildren(parentUserId) {
   try {
     console.log('hasLinkedChildren: Checking for parent user_id:', parentUserId);
     
-    // Direct query to check for any relationships
-    const { data: relations, error: relationError } = await supabase
-      .from('parent_child_relations')
-      .select('id')
-      .eq('parent_user_id', parentUserId)
-      .limit(1);
-    
-    if (relationError) {
-      console.error('hasLinkedChildren: Database error:', relationError);
-      return { hasChildren: false, error: relationError };
+    // Get parent record
+    const { data: parent, error: parentError } = await getParentByUserId(parentUserId);
+    if (parentError || !parent) {
+      console.error('hasLinkedChildren: Parent not found:', parentError);
+      return { hasChildren: false, error: parentError };
     }
 
-    const hasChildren = relations && relations.length > 0;
+    const hasChildren = parent.children_ids && parent.children_ids.length > 0;
     console.log('hasLinkedChildren: Result:', hasChildren);
     
     return { 
@@ -149,90 +136,58 @@ export async function hasLinkedChildren(parentUserId) {
   }
 }
 
-// Get all parents for a child
-export async function getParentsByStudentId(childUserId) {
+// Get all parents for a child using children_ids array (reverse lookup)
+export async function getParentsByStudentId(user_id) {
   try {
-    // First get the student record
-    const { data: studentData, error: studentError } = await supabase
-      .from('students')
-      .select(`
-        id,
-        user_profiles!inner (
-          user_id
-        )
-      `)
-      .eq('user_profiles.user_id', childUserId)
-      .single();
+    // Find all parents that have this user_id in their children_ids array
+    const { data: parents, error } = await supabase
+      .from('parents')
+      .select('*')
+      .contains('children_ids', [user_id]);
       
-    if (studentError || !studentData) {
-      return { data: [], error: studentError };
-    }
-
-    const { data, error } = await supabase
-      .from('parent_child_relations')
-      .select(`
-        *,
-        parents!inner (
-          id,
-          user_id,
-          full_name,
-          email,
-          phone_number
-        )
-      `)
-      .eq('child_user_id', studentData.id);
-      
-    return { data, error };
+    return { data: parents || [], error };
   } catch (e) {
     return { data: [], error: { message: e.message } };
   }
 }
 
-// Check if parent-child relationship exists
-export async function checkParentChildRelationship(parentUserId, childUserId) {
+// Check if parent-child relationship exists using children_ids array
+export async function checkParentChildRelationship(parentUserId, user_id) {
   try {
-    // Get parent and student IDs first
-    const { data: parentData, error: parentError } = await supabase
-      .from('parents')
-      .select('id')
-      .eq('user_id', parentUserId)
-      .single();
-      
-    const { data: studentData, error: studentError } = await supabase
-      .from('students')
-      .select(`
-        id,
-        user_profiles!inner (
-          user_id
-        )
-      `)
-      .eq('user_profiles.user_id', childUserId)
-      .single();
-      
-    if (parentError || studentError || !parentData || !studentData) {
-      return { data: null, error: parentError || studentError || { message: 'Records not found' } };
+    // Get parent record
+    const { data: parent, error: parentError } = await getParentByUserId(parentUserId);
+    if (parentError || !parent) {
+      return { data: null, error: { message: 'Parent not found' } };
     }
+
+    // Check if user_id is in parent's children_ids array
+    const hasRelationship = parent.children_ids && parent.children_ids.includes(user_id);
     
-    const { data, error } = await supabase
-      .from('parent_child_relations')
-      .select('*')
-      .eq('parent_user_id', parentData.id)
-      .eq('child_user_id', studentData.id)
-      .single();
-      
-    return { data, error };
+    return { 
+      data: hasRelationship ? { exists: true } : null, 
+      error: null 
+    };
   } catch (e) {
     return { data: null, error: { message: e.message } };
   }
 }
 
-// Remove parent-child relationship
-export async function unlinkParentFromChild(relationId) {
-  const { data, error } = await supabase
-    .from('parent_child_relations')
-    .delete()
-    .eq('id', relationId);
-  return { data, error };
+// Remove parent-child relationship using children_ids array
+export async function unlinkParentFromChild(parent_user_id, user_id) {
+  try {
+    // Get parent record
+    const { data: parent, error: parentError } = await getParentByUserId(parent_user_id);
+    if (parentError || !parent) {
+      return { data: null, error: { message: 'Parent not found' } };
+    }
+
+    // Remove child from parent's children_ids array
+    const result = await removeChildFromParent(parent.id, user_id);
+    return result;
+  } catch (e) {
+    console.error('unlinkParentFromChild: Unexpected error:', e);
+    return { data: null, error: { message: e.message } };
+  }
 }
 
 // Find student by email
@@ -245,13 +200,17 @@ export async function findStudentByEmail(email) {
   return { data, error };
 }
 
-// Link parent to child by child's email
+// Link parent to child by child's email using children_ids array
 export async function linkParentToChildByEmail(parentUserId, childEmail) {
   try {
     console.log('parentChildApi: Linking parent to child by email:', { parentUserId, childEmail });
     
-    // First, find the child by email
-    const { data: childProfile, error: childError } = await findStudentByEmail(childEmail);
+    // Find the child by email in user_profiles
+    const { data: childProfile, error: childError } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('email', childEmail)
+      .single();
     
     if (childError || !childProfile) {
       console.error('Child not found by email:', childEmail);
@@ -263,51 +222,27 @@ export async function linkParentToChildByEmail(parentUserId, childEmail) {
 
     console.log('Found child profile:', childProfile);
 
-    // Try to get the student record using the child's user_id
-    // First try the students table
-    let studentData = null;
-    const { data: studentRecord, error: studentError } = await supabase
-      .from('students')
-      .select('id, user_id')
-      .eq('user_id', childProfile.user_id)
-      .single();
-    
-    if (studentRecord && !studentError) {
-      studentData = studentRecord;
-      console.log('Found student record:', studentData);
-    } else {
-      console.log('Student record not found in students table, checking if user_profiles is sufficient...');
-      
-      // If no student record, we can still proceed with just the user_profile
-      // Use the user_profile data directly
-      studentData = {
-        id: childProfile.user_id, // Use user_id as the student id
-        user_id: childProfile.user_id
-      };
-      console.log('Using user_profile as student data:', studentData);
-    }
-
     // Now link using the existing function
     const linkResult = await linkParentToChild(
       parentUserId, 
       childProfile.user_id, 
-      null, // parentEmail not needed for this function
+      null, // parentEmail not needed
       childEmail
     );
 
-    if (linkResult.error) {
+    if (linkResult.error && !linkResult.error.message.includes('already linked')) {
       return linkResult;
     }
 
     // Return success with child information
     return {
       data: {
-        id: linkResult.data?.[0]?.id,
-        childId: studentData.id,
-        childUserId: childProfile.user_id,
-        childName: childProfile.full_name || childProfile.first_name + ' ' + childProfile.last_name || 'Unknown',
-        childEmail: childProfile.email,
-        linkedAt: new Date().toISOString()
+        parent_user_id: parentUserId,
+        student_id: childProfile.user_id, // Now using user_id (UUID)
+        child_user_id: childProfile.user_id,
+        child_name: childProfile.full_name || childProfile.username || 'Unknown',
+        child_email: childProfile.email,
+        linked_at: new Date().toISOString()
       },
       error: null
     };
@@ -323,19 +258,7 @@ export async function getChildEmotionalData(childUserId) {
   try {
     console.log('parentChildApi: Getting emotional data for child:', childUserId);
     
-    // First get the user profile
-    const { data: profileData, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('profile_id')
-      .eq('user_id', childUserId)
-      .single();
-    
-    if (profileError || !profileData) {
-      console.error('User profile not found for child:', childUserId);
-      return { data: null, error: { message: 'Child profile not found' } };
-    }
-
-    // Get recent emotions with expressions
+    // Get recent emotions with expressions (using user_id directly)
     const { data: emotionsData, error: emotionsError } = await supabase
       .from('User_emotion')
       .select(`
@@ -343,7 +266,7 @@ export async function getChildEmotionalData(childUserId) {
         emotions (emotion_name, description),
         expressions (expression_name, description)
       `)
-      .eq('profile_id', profileData.profile_id)
+      .eq('user_id', childUserId) // Now using user_id directly
       .order('created_at', { ascending: false })
       .limit(20);
 
@@ -365,32 +288,20 @@ export async function getChildAcademicProgress(childUserId) {
   try {
     console.log('parentChildApi: Getting academic progress for child:', childUserId);
     
-    // Get student record
-    const { data: studentData, error: studentError } = await supabase
-      .from('students')
-      .select('id')
-      .eq('user_id', childUserId)
-      .single();
-    
-    if (studentError || !studentData) {
-      console.error('Student not found for user_id:', childUserId);
-      return { data: null, error: { message: 'Student record not found' } };
-    }
-
-    // Get activity progress
+    // Get activity progress directly using user_id (since we removed students table)
     const { data: progressData, error: progressError } = await supabase
-      .from('student_activity_progress')
+      .from('user_activity_progress')
       .select(`
         *,
-        Activities (
+        activities (
           title,
           category,
           difficulty,
           instructions
         )
       `)
-      .eq('student_id', studentData.id)
-      .order('completed_at', { ascending: false })
+      .eq('user_id', childUserId) // Now using user_id directly
+      .order('date_completed', { ascending: false })
       .limit(50);
 
     if (progressError) {

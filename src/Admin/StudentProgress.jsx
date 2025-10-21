@@ -2,7 +2,7 @@
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircleIcon, AcademicCapIcon, UsersIcon, StarIcon, FireIcon, ArrowLeftIcon } from '@heroicons/react/24/solid';
 import { getStudentProgressStats, getStudentProgress } from '../lib/progressApi';
-import { getStudentById } from '../lib/studentsApi';
+import { getUserProfileById } from '../lib/userProfilesApi';
 import { getActivities } from '../lib/activitiesApi';
 import { supabase } from '../lib/supabase';
 
@@ -23,65 +23,22 @@ const StudentProgress = () => {
       
       setLoading(true);
       try {
-        // Since the Students.jsx is passing the student database ID, we need to get the actual student UUID
-        // First, let's try to get the student by the profile UUID directly
-        const studentUUID = id; // The ID passed from Students.jsx should be the UUID
+        // Get the student profile directly by user_id
+        const studentUUID = id; // The ID passed should be the user_id
         
-        const [statsResult, progressResult, activitiesResult] = await Promise.all([
+        const [statsResult, progressResult, activitiesResult, profileResult] = await Promise.all([
           getStudentProgressStats(studentUUID),
           getStudentProgress(studentUUID),
-          getActivities()
+          getActivities(),
+          getUserProfileById(studentUUID)
         ]);
 
-        // Get student profile information - try different approaches due to RLS
-        let profileData = null;
-        
-        // First try direct query using 'user_id' column (which contains Supabase Auth UUIDs)
-        const { data: directProfileData, error: directProfileError } = await supabase
-          .from('user_profiles')
-          .select('id, full_name, email, age, gender, address, grade, school, created_at, user_id')
-          .eq('user_id', studentUUID)
-          .single();
-
-        if (directProfileError) {
-          console.error('Direct profile query failed:', directProfileError);
-          
-          // Try querying from students table with join
-          const { data: studentWithProfile, error: studentError } = await supabase
-            .from('students')
-            .select(`
-              id,
-              profile_id,
-              user_profiles (
-                id,
-                full_name,
-                email,
-                age,
-                gender,
-                address,
-                grade,
-                school,
-                created_at
-              )
-            `)
-            .eq('profile_id', studentUUID)
-            .single();
-
-          if (studentError) {
-            console.error('Student with profile query failed:', studentError);
-            setError('Student not found');
-            return;
-          } else {
-            profileData = studentWithProfile?.user_profiles;
-          }
-        } else {
-          profileData = directProfileData;
-        }
-
-        if (profileData) {
+        // Set student profile information
+        if (profileResult.data) {
+          const profileData = profileResult.data;
           // Transform profile data to match expected student format
           setStudent({
-            id: profileData.id,
+            id: profileData.user_id,
             name: profileData.full_name || 'Unknown Student',
             email: profileData.email,
             age: profileData.age || 0,
@@ -92,8 +49,9 @@ const StudentProgress = () => {
             joinDate: new Date(profileData.created_at).toLocaleDateString(),
             status: 'Active'
           });
-        } else {
-          setError('Student profile not found');
+        } else if (profileResult.error) {
+          console.error('Error fetching student profile:', profileResult.error);
+          setError('Failed to load student profile');
         }
 
         if (statsResult.error) {
@@ -280,55 +238,6 @@ const StudentProgress = () => {
     ];
   };
 
-  // Generate dynamic accuracy rates based on student performance
-  const generateAccuracyRates = (student) => {
-    const baseAccuracy = student.averageScore;
-    return [
-      { 
-        category: 'Colors', 
-        accuracy: Math.min(100, baseAccuracy + Math.floor(Math.random() * 15)), 
-        completed: `${Math.floor(Math.random() * 3) + 6}/8`, 
-  icon: '🎨', 
-        color: 'bg-purple-500' 
-      },
-      { 
-        category: 'Shapes', 
-        accuracy: Math.max(60, baseAccuracy - Math.floor(Math.random() * 10)), 
-        completed: `${Math.floor(Math.random() * 3) + 5}/8`, 
-  icon: '🔷', 
-        color: 'bg-blue-500' 
-      },
-      { 
-        category: 'Numbers', 
-        accuracy: Math.min(100, baseAccuracy + Math.floor(Math.random() * 10)), 
-        completed: `${Math.floor(Math.random() * 3) + 4}/6`, 
-  icon: '🔢', 
-        color: 'bg-green-500' 
-      },
-      { 
-        category: 'Letters', 
-        accuracy: Math.max(65, baseAccuracy - Math.floor(Math.random() * 15)), 
-        completed: `${Math.floor(Math.random() * 3) + 3}/6`, 
-  icon: '🔤', 
-        color: 'bg-indigo-500' 
-      },
-      { 
-        category: 'Patterns', 
-        accuracy: Math.max(60, baseAccuracy - Math.floor(Math.random() * 20)), 
-        completed: `${Math.floor(Math.random() * 3) + 2}/5`, 
-  icon: '🔁', 
-        color: 'bg-pink-500' 
-      },
-      { 
-        category: 'Daily Life', 
-        accuracy: Math.min(100, baseAccuracy + Math.floor(Math.random() * 8)), 
-        completed: `${Math.floor(Math.random() * 2) + 4}/5`, 
-  icon: '🏠', 
-        color: 'bg-orange-500' 
-      }
-    ];
-  };
-
   // Generate recent activities based on student
   const generateRecentActivities = (student) => {
     const activities = [
@@ -475,7 +384,6 @@ const StudentProgress = () => {
     averageScore: progressStats?.averageScore || 0
   };
   
-  const accuracyRates = generateAccuracyRates(fallbackStudent);
   const difficultyProgression = generateDifficultyProgression(fallbackStudent);
   const badges = generateBadges(fallbackStudent);
 
@@ -631,41 +539,8 @@ const StudentProgress = () => {
           ))}
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
-          {/* Accuracy Rates by Category */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-800">Accuracy Rates by Category</h3>
-                <div className="bg-purple-100 p-2 rounded-lg">
-                <span className="text-2xl">🎯</span>
-              </div>
-            </div>
-            <div className="space-y-4">
-              {accuracyRates.map((item, idx) => (
-                <div key={idx} className="bg-gray-50 rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-2xl">{item.icon}</span>
-                      <div>
-                        <span className="font-semibold text-gray-700">{item.category}</span>
-                        <p className="text-sm text-gray-500">{item.completed} completed</p>
-                      </div>
-                    </div>
-                    <span className="text-lg font-bold text-gray-800">{item.accuracy}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div
-                      className={`${item.color} h-3 rounded-full transition-all duration-500`}
-                      style={{ width: `${item.accuracy}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recent Activities */}
+        {/* Recent Activities - Full Width */}
+        <div className="mb-8">
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-800">Recent Activities</h3>
@@ -673,7 +548,7 @@ const StudentProgress = () => {
                 <span className="text-2xl">🕒</span>
               </div>
             </div>
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {recentActivitiesDisplay.length > 0 ? recentActivitiesDisplay.map((activity, i) => (
                 <div
                   key={i}
@@ -700,7 +575,7 @@ const StudentProgress = () => {
                   </div>
                 </div>
               )) : (
-                <div className="text-center py-4 text-gray-600">No recent activities found</div>
+                <div className="col-span-full text-center py-4 text-gray-600">No recent activities found</div>
               )}
             </div>
           </div>

@@ -22,17 +22,17 @@ async function testDbConnection() {
       console.log('Alert table data:', alerts);
     }
 
-    // Test 2: Check students table
-    console.log('\n2. Testing students table:');
+    // Test 2: Check user_profiles table (students are now just user_profiles)
+    console.log('\n2. Testing user_profiles table:');
     const { data: students, error: studentError } = await supabase
-      .from('students')
+      .from('user_profiles')
       .select('*')
       .limit(5);
     
     if (studentError) {
-      console.error('Students table error:', studentError);
+      console.error('User profiles table error:', studentError);
     } else {
-      console.log('Students table data:', students);
+      console.log('User profiles table data:', students);
     }
 
     // Test 3: Check user_profiles table

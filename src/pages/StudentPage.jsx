@@ -1,17 +1,212 @@
 ﻿import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { getAllBadges, getStudentBadges } from '../lib/badgesApi';
+import { supabase } from '../lib/supabase';
 
 const StudentPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [streakDays, setStreakDays] = useState(4);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [badges, setBadges] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState(null);
+  const [streakData, setStreakData] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Fetch user profile data
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data: profile, error } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching user profile:', error);
+        } else if (profile) {
+          console.log('👤 User profile loaded:', profile);
+          setUserProfile(profile);
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user?.id]);
+
+  // Fetch streak data from streaks table
+  useEffect(() => {
+    const fetchStreakData = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data: streak, error } = await supabase
+          .from('streaks')
+          .select('current_streak, longest_streak, last_active_date')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching streak data:', error);
+        } else if (streak) {
+          console.log('🔥 Streak data loaded:', streak);
+          console.log('🔥 Current streak from database:', streak.current_streak);
+          setStreakData(streak);
+        }
+      } catch (error) {
+        console.error('Error fetching streak data:', error);
+      }
+    };
+
+    fetchStreakData();
+  }, [user?.id]);
+
+  // Fetch badges data
+  useEffect(() => {
+    const fetchBadgesData = async () => {
+      if (!user?.id) {
+        console.log('No user ID available:', user);
+        return;
+      }
+      
+      console.log('Current user object:', user);
+      console.log('Using user ID for badges:', user.id);
+      
+      setLoading(true);
+      try {
+        // Since badges table has permission issues, let's get all available badges 
+        // from student_badges and create a comprehensive badge list
+        const [allBadgesResult, studentBadgesResult] = await Promise.all([
+          getAllBadges(),
+          getStudentBadges(user.id)
+        ]);
+
+        console.log('All badges result:', allBadgesResult);
+        console.log('Student badges result:', studentBadgesResult);
+
+        // If getAllBadges fails but we have student badges, use student badges as base
+        const earnedBadges = studentBadgesResult.data || [];
+        console.log('Earned badges data:', earnedBadges);
+        console.log('Number of badges earned:', earnedBadges.length);
+
+        let allBadges = allBadgesResult.data || [];
+        
+        // If no badges from badges table, create a comprehensive list from known badges
+        if (allBadges.length === 0) {
+          console.log('🏆 No badges from badges table, creating comprehensive badge list...');
+          allBadges = [
+            { id: 'f9aba128-a8e5-4b2c-8b2e-27ad1403faa6', title: 'First Step', description: 'Awarded for completing your first activity.' },
+            { id: '97054c4c-4b60-4bae-b1d9-46c5b7d0c99a', title: 'Perfect Scorer', description: 'Awarded for getting a perfect score in any activity.' },
+            { id: '2f73958d-d18c-4135-96bd-c65ca554a207', title: 'Academic Star', description: 'Complete 5 academic activities.' },
+            { id: 'c0e0441c-0688-4a4c-bd82-fad73c4392c1', title: 'Color Master', description: 'Complete 2 color activities in different difficulty levels.' },
+            { id: '55544bd9-53a5-42ac-bee8-c6b05632dfff', title: 'Match Finder', description: 'Finish a matching type activity.' },
+            { id: '027f2d92-6a2f-4f07-bda5-aaced096eb00', title: 'Shape Explorer', description: 'Complete 2 shape activities.' },
+            { id: 'd1ec22b8-9c28-44a4-9ee6-851b30948140', title: 'Number Ninja', description: 'Complete at least 1 number flashcard activity.' },
+            { id: '899d3e1b-6a3f-4c88-b52c-4960bb6f0201', title: 'Consistency Champ', description: 'Complete 3 activities in different types.' },
+            { id: '9e1e1566-6aec-479b-9f42-456e0c248386', title: 'High Achiever', description: 'Complete 5 activities with 80%+ average score.' },
+            { id: '1d3f149c-6db2-4303-93a0-a75540902e4f', title: 'Daily Life Hero', description: 'Complete 3 social/daily life skill activities.' },
+            { id: 'dc7243ea-43fb-48af-86c0-7f6dcd4430dd', title: 'All-Rounder', description: 'Complete 5 different types of activity.' }
+          ];
+        }
+        
+        const earnedBadgeIds = earnedBadges.map(eb => eb.badge_id);
+        console.log('Earned badge IDs:', earnedBadgeIds);
+
+        // Map badges with earned status and UI properties
+        const mappedBadges = allBadges.map(badge => {
+          const isEarned = earnedBadgeIds.includes(badge.id);
+          
+          // Map badge properties to UI format
+          const iconMap = {
+            'First Step': '⭐',
+            'Perfect Scorer': '💯',
+            'Academic Star': '📖',
+            'Color Master': '🎨',
+            'Match Finder': '🧩',
+            'Shape Explorer': '🔷',
+            'Number Ninja': '🔢',
+            'Consistency Champ': '📅',
+            'High Achiever': '🏆',
+            'Daily Life Hero': '🏠',
+            'All-Rounder': '🌟'
+          };
+
+          const colorMap = {
+            'First Step': 'from-yellow-400 to-yellow-600',
+            'Perfect Scorer': 'from-green-400 to-green-600',
+            'Academic Star': 'from-blue-400 to-blue-600',
+            'Color Master': 'from-purple-400 to-purple-600',
+            'Match Finder': 'from-pink-400 to-pink-600',
+            'Shape Explorer': 'from-blue-400 to-indigo-600',
+            'Number Ninja': 'from-green-400 to-green-600',
+            'Consistency Champ': 'from-orange-400 to-orange-600',
+            'High Achiever': 'from-red-400 to-red-600',
+            'Daily Life Hero': 'from-teal-400 to-teal-600',
+            'All-Rounder': 'from-gradient-to-r from-purple-400 to-pink-600'
+          };
+
+          const bgColorMap = {
+            'First Step': 'bg-yellow-50',
+            'Perfect Scorer': 'bg-green-50',
+            'Academic Star': 'bg-blue-50',
+            'Color Master': 'bg-purple-50',
+            'Match Finder': 'bg-pink-50',
+            'Shape Explorer': 'bg-blue-50',
+            'Number Ninja': 'bg-green-50',
+            'Consistency Champ': 'bg-orange-50',
+            'High Achiever': 'bg-red-50',
+            'Daily Life Hero': 'bg-teal-50',
+            'All-Rounder': 'bg-purple-50'
+          };
+
+          const animationMap = {
+            'First Step': 'animate-bounce-gentle',
+            'Perfect Scorer': 'animate-pulse-gentle',
+            'Academic Star': 'animate-pulse-gentle',
+            'Color Master': 'animate-bounce-gentle',
+            'Match Finder': 'animate-wiggle',
+            'Shape Explorer': 'animate-float',
+            'Number Ninja': 'animate-wiggle',
+            'Consistency Champ': 'animate-pulse-gentle',
+            'High Achiever': 'animate-bounce-gentle',
+            'Daily Life Hero': 'animate-float-delayed',
+            'All-Rounder': 'animate-float'
+          };
+
+          return {
+            icon: iconMap[badge.title] || '🏆',
+            title: badge.title,
+            description: badge.description,
+            status: isEarned ? 'EARNED' : 'LOCKED',
+            color: isEarned ? (colorMap[badge.title] || 'from-blue-400 to-blue-600') : 'from-gray-400 to-gray-500',
+            bgColor: isEarned ? (bgColorMap[badge.title] || 'bg-blue-50') : 'bg-gray-50',
+            animation: isEarned ? (animationMap[badge.title] || 'animate-pulse-gentle') : ''
+          };
+        });
+
+        setBadges(mappedBadges);
+      } catch (error) {
+        console.error('Error fetching badges data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBadgesData();
+  }, [user?.id]);
 
   const flashcardspage = (e) => {
     e.preventDefault();
@@ -28,99 +223,6 @@ const StudentPage = () => {
     "You're doing great! 🌟",
     "You're a star! ⭐",
     "Super job! 🎯"
-  ];
-
-  const badges = [
-    {
-      icon: '⭐',
-      title: 'First Steps',
-      description: 'Completed your first activity',
-      status: 'EARNED',
-      color: 'from-yellow-400 to-yellow-600',
-      bgColor: 'bg-yellow-50',
-      animation: 'animate-bounce-gentle'
-    },
-    {
-      icon: '📖',
-      title: 'Academic Star',
-      description: 'Completed 5 academic activities',
-      status: 'EARNED',
-      color: 'from-blue-400 to-blue-600',
-      bgColor: 'bg-blue-50',
-      animation: 'animate-pulse-gentle'
-    },
-    {
-      icon: '🏆',
-      title: 'Perfect Week',
-      description: 'Complete activities 7 days in a row',
-      status: 'LOCKED',
-      color: 'from-gray-400 to-gray-500',
-      bgColor: 'bg-gray-50',
-      animation: ''
-    },
-    {
-      icon: '🎨',
-      title: 'Color Master',
-      description: 'Awarded for completing 5 color-related activities',
-      status: 'EARNED',
-      color: 'from-purple-400 to-purple-600',
-      bgColor: 'bg-purple-50',
-      animation: 'animate-bounce-gentle'
-    },
-    {
-      icon: '🔷',
-      title: 'Shape Explorer',
-      description: 'Awarded after finishing 5 shape activities',
-      status: 'EARNED',
-      color: 'from-blue-400 to-indigo-600',
-      bgColor: 'bg-blue-50',
-      animation: 'animate-float'
-    },
-    {
-      icon: '🔢',
-      title: 'Number Ninja',
-      description: 'Earned by correctly answering 20 number-related questions',
-      status: 'EARNED',
-      color: 'from-green-400 to-green-600',
-      bgColor: 'bg-green-50',
-      animation: 'animate-wiggle'
-    },
-    {
-      icon: '📅',
-      title: 'Consistency Champ',
-      description: 'Given for completing activities 3 days in a row',
-      status: 'LOCKED',
-      color: 'from-gray-400 to-gray-500',
-      bgColor: 'bg-gray-50',
-      animation: ''
-    },
-    {
-      icon: '🤝',
-      title: 'Helper Badge',
-      description: 'For activities done collaboratively with a parent/teacher',
-      status: 'EARNED',
-      color: 'from-orange-400 to-orange-600',
-      bgColor: 'bg-orange-50',
-      animation: 'animate-pulse-gentle'
-    },
-    {
-      icon: '🏠',
-      title: 'Daily Life Hero',
-      description: 'Awarded for finishing 5 "Daily Life Skills" activities',
-      status: 'EARNED',
-      color: 'from-teal-400 to-teal-600',
-      bgColor: 'bg-teal-50',
-      animation: 'animate-float-delayed'
-    },
-    {
-      icon: '🌟',
-      title: 'All-Rounder',
-      description: 'Earned when a student completes at least one activity in every category',
-      status: 'LOCKED',
-      color: 'from-gray-400 to-gray-500',
-      bgColor: 'bg-gray-50',
-      animation: ''
-    }
   ];
 
   return (
@@ -228,7 +330,7 @@ const StudentPage = () => {
                 <div className="flex items-center justify-between -mb-3 -mt-3">
                   <div className="-mt-5">
                     <span className="text-6xl font-bold text-orange-600">
-                      {streakDays}
+                      {streakData ? streakData.current_streak : streakDays}
                     </span>
                     <span className="text-4xl font-bold text-gray-800 ml-2">
                       day Streak!
@@ -254,10 +356,10 @@ const StudentPage = () => {
                 <div className="mt-4 w-full bg-orange-200/50 rounded-full h-2">
                   <div 
                     className="bg-gradient-to-r from-orange-400 to-red-500 h-2 rounded-full animate-progress-fill"
-                    style={{width: `${(streakDays / 7) * 100}%`}}
+                    style={{width: `${((streakData ? streakData.current_streak : streakDays) / 7) * 100}%`}}
                   ></div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">{streakDays}/7 days to Perfect Week badge!</p>
+                <p className="text-xs text-gray-500 mt-1">{streakData ? streakData.current_streak : streakDays}/7 days to Perfect Week badge!</p>
               </div>
             </div>
           </div>
@@ -283,49 +385,61 @@ const StudentPage = () => {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {badges.map((badge, index) => (
-                  <div 
-                    key={index}
-                    className={`card-autism-friendly ${badge.bgColor} p-4 rounded-2xl text-center relative overflow-hidden border-2 ${
-                      badge.status === 'EARNED' 
-                        ? 'border-green-200 shadow-lg' 
-                        : 'border-gray-200 opacity-75'
-                    }`}
-                  >
-                    {/* Status indicator */}
-                    {badge.status === 'EARNED' && (
-                      <div className="absolute top-2 right-2">
-                        <span className="text-green-500 text-lg animate-bounce-in">🌱</span>
-                      </div>
-                    )}
-                    
-                    <div className={`w-12 h-12 bg-gradient-to-r ${badge.color} rounded-xl mx-auto mb-3 flex items-center justify-center text-2xl text-white shadow-lg ${badge.animation}`}>
-                      {badge.icon}
+                {loading ? (
+                  // Loading skeleton
+                  Array.from({ length: 8 }).map((_, index) => (
+                    <div key={index} className="bg-gray-100 p-4 rounded-2xl animate-pulse">
+                      <div className="w-12 h-12 bg-gray-200 rounded-xl mx-auto mb-3"></div>
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-6 bg-gray-200 rounded"></div>
                     </div>
-                    
-                    <h3 className="font-bold text-gray-800 text-sm mb-2">
-                      {badge.title}
-                    </h3>
-                    
-                    <p className="text-xs text-gray-600 mb-2 leading-tight">
-                      {badge.description}
-                    </p>
-                    
-                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                      badge.status === 'EARNED' 
-                        ? 'bg-green-100 text-green-600' 
-                        : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      {badge.status}
-                    </span>
-                    
-                    {badge.status === 'EARNED' && (
-                      <div className="absolute bottom-1 right-1">
-                        <span className="text-yellow-400 text-sm animate-pulse-gentle">✨</span>
+                  ))
+                ) : (
+                  badges.map((badge, index) => (
+                    <div 
+                      key={index}
+                      className={`card-autism-friendly ${badge.bgColor} p-4 rounded-2xl text-center relative overflow-hidden border-2 ${
+                        badge.status === 'EARNED' 
+                          ? 'border-green-200 shadow-lg' 
+                          : 'border-gray-200 opacity-75'
+                      }`}
+                    >
+                      {/* Status indicator */}
+                      {badge.status === 'EARNED' && (
+                        <div className="absolute top-2 right-2">
+                          <span className="text-green-500 text-lg animate-bounce-in">🌱</span>
+                        </div>
+                      )}
+                      
+                      <div className={`w-12 h-12 bg-gradient-to-r ${badge.color} rounded-xl mx-auto mb-3 flex items-center justify-center text-2xl text-white shadow-lg ${badge.animation}`}>
+                        {badge.icon}
                       </div>
-                    )}
-                  </div>
-                ))}
+                      
+                      <h3 className="font-bold text-gray-800 text-sm mb-2">
+                        {badge.title}
+                      </h3>
+                      
+                      <p className="text-xs text-gray-600 mb-2 leading-tight">
+                        {badge.description}
+                      </p>
+                      
+                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                        badge.status === 'EARNED' 
+                          ? 'bg-green-100 text-green-600' 
+                          : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        {badge.status}
+                      </span>
+                      
+                      {badge.status === 'EARNED' && (
+                        <div className="absolute bottom-1 right-1">
+                          <span className="text-yellow-400 text-sm animate-pulse-gentle">✨</span>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
 
               {/* Progress summary */}
@@ -334,19 +448,25 @@ const StudentPage = () => {
                   <div>
                     <h4 className="font-bold text-gray-800">Progress Summary</h4>
                     <p className="text-sm text-gray-600">
-                      You've earned {badges.filter(b => b.status === 'EARNED').length} out of {badges.length} badges!
+                      {loading ? (
+                        "Loading badges..."
+                      ) : (
+                        `You've earned ${badges.filter(b => b.status === 'EARNED').length} out of ${badges.length} badges!`
+                      )}
                     </p>
                   </div>
                   <div className="text-3xl animate-bounce-gentle">
                     🎯
                   </div>
                 </div>
-                <div className="mt-2 w-full bg-blue-200/50 rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full animate-progress-fill"
-                    style={{width: `${(badges.filter(b => b.status === 'EARNED').length / badges.length) * 100}%`}}
-                  ></div>
-                </div>
+                {!loading && (
+                  <div className="mt-2 w-full bg-blue-200/50 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full animate-progress-fill"
+                      style={{width: `${badges.length > 0 ? (badges.filter(b => b.status === 'EARNED').length / badges.length) * 100 : 0}%`}}
+                    ></div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

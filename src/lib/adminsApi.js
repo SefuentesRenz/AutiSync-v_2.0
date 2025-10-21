@@ -2,16 +2,18 @@
 import { supabase } from './supabase';
 
 // Create a new admin
-export async function createAdmin({ user_id, full_name, email, phone_number, address }) {
+export async function createAdmin({ user_id, full_name, email, phone_number, address, department, permissions }) {
   try {
-    console.log('adminsApi: Creating admin with data:', { user_id, full_name, email, phone_number, address });
+    console.log('adminsApi: Creating admin with data:', { user_id, full_name, email, phone_number, address, department, permissions });
     
     const adminData = {
       user_id: user_id, // Direct reference to auth.users.id
       full_name,
       email,
       phone_number,
-      address
+      address,
+      department,
+      permissions: permissions || {} // Default to empty object for jsonb
     };
 
     // Remove null/undefined values
@@ -70,12 +72,21 @@ export async function getAdminByUserId(user_id) {
   return { data, error };
 }
 
-// Get admins by permission level
-export async function getAdminsByPermission(permission) {
+// Get admins by department
+export async function getAdminsByDepartment(department) {
   const { data, error } = await supabase
     .from('admins')
     .select('*')
-    .eq('permission', permission);
+    .eq('department', department);
+  return { data, error };
+}
+
+// Get admins by specific permission (checks within permissions jsonb)
+export async function getAdminsByPermission(permissionKey, permissionValue) {
+  const { data, error } = await supabase
+    .from('admins')
+    .select('*')
+    .eq(`permissions->>${permissionKey}`, permissionValue);
   return { data, error };
 }
 
@@ -97,11 +108,20 @@ export async function updateAdminByUserId(user_id, updates) {
   return { data, error };
 }
 
-// Update admin permission
-export async function updateAdminPermission(id, permission) {
+// Update admin permissions (jsonb field)
+export async function updateAdminPermissions(id, permissions) {
   const { data, error } = await supabase
     .from('admins')
-    .update({ permission })
+    .update({ permissions })
+    .eq('id', id);
+  return { data, error };
+}
+
+// Update admin department
+export async function updateAdminDepartment(id, department) {
+  const { data, error } = await supabase
+    .from('admins')
+    .update({ department })
     .eq('id', id);
   return { data, error };
 }

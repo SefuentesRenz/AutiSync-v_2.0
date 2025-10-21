@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { getStudentProgressStats } from '../lib/progressApi';
-import { getStudentBadges } from '../lib/badgesApi';
+import { getStudentBadges, getAllBadges } from '../lib/badgesApi';
 import { getStreakStats } from '../lib/streaksApi';
+import { getActivitiesWithDetails } from '../lib/activitiesApi';
 import { 
   AcademicCapIcon, 
   UsersIcon, 
@@ -26,6 +27,7 @@ import SystemInformation from './SystemInformation';
 import MotivationTips from './MotivationTips';
 import ParentProfileModal from '../components/ParentProfileModal';
 import LinkChildModal from '../components/LinkChildModal';
+import ChildActivityProgressModal from '../components/ChildActivityProgressModal';
 
 const ParentDashboard = () => {
   const navigate = useNavigate();
@@ -38,10 +40,15 @@ const ParentDashboard = () => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [childEmotions, setChildEmotions] = useState([]);
   const [loadingEmotions, setLoadingEmotions] = useState(false);
+  const [emotionTimeFilter, setEmotionTimeFilter] = useState('24h'); // '24h', '7d', '1m', '3m', 'all'
   const [childProgress, setChildProgress] = useState(null);
   const [childBadges, setChildBadges] = useState([]);
+  const [allBadges, setAllBadges] = useState([]);
   const [childStreak, setChildStreak] = useState(null);
   const [loadingProgress, setLoadingProgress] = useState(false);
+  const [childActivities, setChildActivities] = useState([]);
+  const [loadingActivities, setLoadingActivities] = useState(false);
+  const [showActivityModal, setShowActivityModal] = useState(false);
 
   // Load children data when component mounts
   useEffect(() => {
@@ -52,45 +59,87 @@ const ParentDashboard = () => {
 
   // Load emotions when selected child changes
   useEffect(() => {
+    console.log('ParentDashboard: useEffect triggered - selectedChild:', selectedChild, 'currentView:', currentView);
     if (selectedChild?.user_id && currentView === 'emotions') {
+      console.log('ParentDashboard: Loading emotions for child user_id:', selectedChild.user_id);
       loadChildEmotions(selectedChild.user_id);
     }
     if (selectedChild?.user_id && currentView === 'overview') {
       loadChildProgressData(selectedChild.user_id);
+      console.log('ParentDashboard: About to load activities for child user_id:', selectedChild.user_id);
+      loadChildActivities(selectedChild.user_id);
     }
-  }, [selectedChild, currentView]);
+  }, [selectedChild, currentView, emotionTimeFilter]); // Added emotionTimeFilter dependency
+
+  // Calculate time range based on filter
+  const getTimeRange = (filter) => {
+    const now = new Date();
+    let startTime;
+    
+    switch (filter) {
+      case '24h':
+        startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case '7d':
+        startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '1m':
+        startTime = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case '3m':
+        startTime = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        break;
+      case 'all':
+      default:
+        return null; // No time filter
+    }
+    
+    return startTime.toISOString();
+  };
+
+  // Get display label for time filter
+  const getTimeFilterLabel = (filter) => {
+    switch (filter) {
+      case '24h': return 'last 24 hours';
+      case '7d': return 'last 7 days';
+      case '1m': return 'last month';
+      case '3m': return 'last 3 months';
+      case 'all': return 'all time';
+      default: return filter;
+    }
+  };
 
   const loadChildrenData = async () => {
     try {
       setLoading(true);
       console.log('ParentDashboard: Loading children for parent user_id:', user?.id);
       
-      // Get children linked to this parent - using manual join
-      const { data: relations, error: relationsError } = await supabase
-        .from('parent_child_relations')
-        .select('*')
-        .eq('parent_user_id', user.id);
+      // Get parent record to access children_ids array
+      const { data: parentData, error: parentError } = await supabase
+        .from('parents')
+        .select('children_ids')
+        .eq('user_id', user.id)
+        .single();
 
-      console.log('ParentDashboard: Relations query result:', { relations, relationsError });
+      console.log('ParentDashboard: Parent data result:', { parentData, parentError });
 
-      if (relationsError) {
-        console.error('ParentDashboard: Error loading relations:', relationsError);
+      if (parentError) {
+        console.error('ParentDashboard: Error loading parent:', parentError);
         setChildrenData([]);
         return;
       }
 
-      if (!relations || relations.length === 0) {
-        console.log('ParentDashboard: No relations found');
+      if (!parentData || !parentData.children_ids || parentData.children_ids.length === 0) {
+        console.log('ParentDashboard: No children found in parent record');
         setChildrenData([]);
         return;
       }
 
-      // Get user profiles for each child
-      const childUserIds = relations.map(rel => rel.child_user_id);
+      // Get user profiles for each child using children_ids array
       const { data: childProfiles, error: profilesError } = await supabase
         .from('user_profiles')
         .select('*')
-        .in('user_id', childUserIds);
+        .in('user_id', parentData.children_ids);
 
       console.log('ParentDashboard: Child profiles result:', { childProfiles, profilesError });
       
@@ -101,25 +150,21 @@ const ParentDashboard = () => {
       }
 
       if (childProfiles && childProfiles.length > 0) {
-        // Combine relations with profiles
-        const transformedData = relations.map(relation => {
-          const childProfile = childProfiles.find(profile => profile.user_id === relation.child_user_id);
-          if (!childProfile) return null;
-          
+        // Transform profiles to expected format
+        const transformedData = childProfiles.map(childProfile => {
           return {
             id: childProfile.user_id,
             user_id: childProfile.user_id,
-            full_name: `${childProfile.first_name || ''} ${childProfile.last_name || ''}`.trim() || childProfile.username,
+            full_name: childProfile.full_name || childProfile.username,
             username: childProfile.username,
             age: childProfile.age,
             email: childProfile.email,
             grade: childProfile.grade,
             gender: childProfile.gender,
             profile_picture: childProfile.profile_picture || "/assets/kidprofile1.jpg",
-            relation_id: relation.id,
-            linked_at: relation.linked_at
+            linked_at: new Date().toISOString() // Default since we don't have this in children_ids approach
           };
-        }).filter(Boolean);
+        });
         
         console.log('ParentDashboard: Transformed children data:', transformedData);
         setChildrenData(transformedData);
@@ -142,78 +187,37 @@ const ParentDashboard = () => {
     try {
       setLoadingEmotions(true);
       console.log('ParentDashboard: Loading emotions for child user_id:', childUserId);
-      // Get the child's profile_id from user_profiles
-      const { data: childProfile, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('id')
-        .eq('user_id', childUserId)
-        .single();
+      console.log('ParentDashboard: Using time filter:', emotionTimeFilter);
+      
+      // Get emotions from Expressions table for this child directly using user_id
+      console.log('ParentDashboard: Getting emotions for user_id:', childUserId);
 
-      console.log('ParentDashboard: Child profile lookup result:', { childProfile, profileError });
+      let query = supabase
+        .from('Expressions')
+        .select('*')
+        .eq('user_id', childUserId); // Use the passed childUserId directly
 
-      if (profileError || !childProfile) {
-        console.error('ParentDashboard: Error loading child profile:', profileError);
+      // Apply time filter if not 'all'
+      const timeRange = getTimeRange(emotionTimeFilter);
+      if (timeRange) {
+        query = query.gte('created_at', timeRange);
+        console.log('ParentDashboard: Applied time filter:', timeRange);
+      }
+
+      const { data: emotions, error: emotionsError } = await query
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      console.log('ParentDashboard: Raw emotions query result:', { emotions, emotionsError });
+      console.log('ParentDashboard: Number of emotions found:', emotions?.length || 0);
+
+      if (emotionsError) {
+        console.error('ParentDashboard: Error loading emotions:', emotionsError);
         setChildEmotions([]);
         setLoadingEmotions(false);
         return;
       }
 
-      // Get emotions from Expressions table for this child profile
-      // First find student record that matches this child's profile
-      const { data: studentRecord, error: studentError } = await supabase
-        .from('students')
-        .select('id')
-        .eq('profile_id', childProfile.id)
-        .single();
-
-      console.log('ParentDashboard: Student record lookup:', { studentRecord, studentError });
-
-      if (studentError || !studentRecord) {
-        console.log('ParentDashboard: No student record found, checking Expressions with profile_id...');
-        // Try using profile_id directly in case Expressions table uses profile_id instead of student_id
-        const { data: directEmotions, error: directError } = await supabase
-          .from('Expressions')
-          .select('*')
-          .eq('profile_id', childProfile.id)
-          .order('created_at', { ascending: false })
-          .limit(10);
-
-        if (directError) {
-          console.error('ParentDashboard: Error loading emotions with profile_id:', directError);
-          setChildEmotions([]);
-          return;
-        }
-
-        const transformedEmotions = directEmotions?.map(expr => ({
-          ...expr,
-          emotion_name: expr.emotion?.charAt(0).toUpperCase() + expr.emotion?.slice(1) || 'Unknown',
-          emotion_description: expr.note || '',
-          time: expr.created_at
-        })) || [];
-
-        console.log('ParentDashboard: Direct emotions found:', transformedEmotions);
-        console.log('ParentDashboard: Sample emotion data:', directEmotions?.[0]);
-        setChildEmotions(transformedEmotions);
-        return;
-      }
-
-      // Get emotions using student_id
-      const { data: emotions, error } = await supabase
-        .from('Expressions')
-        .select('*')
-        .eq('student_id', studentRecord.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      console.log('ParentDashboard: Expressions query result:', { emotions, error });
-
-      if (error) {
-        console.error('ParentDashboard: Error loading child emotions:', error);
-        setChildEmotions([]);
-        return;
-      }
-
-      // Transform the data to match expected format
       const transformedEmotions = emotions?.map(expr => ({
         ...expr,
         emotion_name: expr.emotion?.charAt(0).toUpperCase() + expr.emotion?.slice(1) || 'Unknown',
@@ -222,13 +226,85 @@ const ParentDashboard = () => {
       })) || [];
 
       console.log('ParentDashboard: Transformed emotions:', transformedEmotions);
-      console.log('ParentDashboard: Sample emotion data:', emotions?.[0]);
       setChildEmotions(transformedEmotions);
     } catch (error) {
       console.error('ParentDashboard: Error fetching child emotions:', error);
       setChildEmotions([]);
     } finally {
       setLoadingEmotions(false);
+    }
+  };
+
+  const loadChildActivities = async (childUserId) => {
+    try {
+      setLoadingActivities(true);
+      console.log('ParentDashboard: Loading activities for child user_id:', childUserId);
+
+      // Get all activities using the working API function
+      const { data: allActivities, error: activitiesError } = await getActivitiesWithDetails();
+
+      console.log('ParentDashboard: All activities result:', { allActivities, activitiesError });
+      console.log('ParentDashboard: Number of activities found:', allActivities?.length || 0);
+
+      if (activitiesError) {
+        console.error('ParentDashboard: Error loading activities:', activitiesError);
+        setChildActivities([]);
+        setLoadingActivities(false);
+        return;
+      }
+
+      // Get child's progress for all activities
+      const { data: childProgressData, error: progressError } = await supabase
+        .from('user_activity_progress')
+        .select('*')
+        .eq('user_id', childUserId);
+
+      console.log('ParentDashboard: Child progress result:', { childProgressData, progressError });
+      console.log('ParentDashboard: Number of progress records:', childProgressData?.length || 0);
+
+      if (progressError) {
+        console.error('ParentDashboard: Error loading child progress:', progressError);
+        setChildActivities([]);
+        setLoadingActivities(false);
+        return;
+      }
+
+      // Combine activities with child's progress
+      const activitiesWithProgress = allActivities?.map(activity => {
+        const progressRecords = childProgressData?.filter(p => p.activity_id === activity.id) || [];
+        const completedCount = progressRecords.length;
+        const averageScore = completedCount > 0 
+          ? Math.round(progressRecords.reduce((sum, p) => sum + (p.score || 0), 0) / completedCount)
+          : 0;
+        const lastCompleted = progressRecords.length > 0 
+          ? progressRecords.sort((a, b) => new Date(b.date_completed) - new Date(a.date_completed))[0].date_completed
+          : null;
+        const bestScore = progressRecords.length > 0 
+          ? Math.max(...progressRecords.map(p => p.score || 0))
+          : 0;
+
+        return {
+          ...activity,
+          progressData: {
+            completedCount,
+            averageScore,
+            bestScore,
+            lastCompleted,
+            status: completedCount > 0 ? 'completed' : 'not-started'
+          }
+        };
+      }) || [];
+
+      console.log('ParentDashboard: Activities with progress:', activitiesWithProgress);
+      console.log('ParentDashboard: Final activities count:', activitiesWithProgress?.length || 0);
+      console.log('ParentDashboard: Sample activity with progress:', activitiesWithProgress?.[0]);
+      setChildActivities(activitiesWithProgress);
+
+    } catch (error) {
+      console.error('ParentDashboard: Error loading child activities:', error);
+      setChildActivities([]);
+    } finally {
+      setLoadingActivities(false);
     }
   };
 
@@ -248,6 +324,7 @@ const ParentDashboard = () => {
         console.error('ParentDashboard: Error loading child profile for progress:', profileError);
         setChildProgress(null);
         setChildBadges([]);
+        setAllBadges([]);
         setChildStreak(null);
         setLoadingProgress(false);
         return;
@@ -256,8 +333,8 @@ const ParentDashboard = () => {
       const studentProfileId = childProfile.id;
       console.log('ParentDashboard: Profile found - profile.id:', studentProfileId, 'profile.user_id:', childProfile.user_id);
 
-      // Load progress summary (try with profile.id first as it matches your test data)
-      const { data: progressData, error: progressError } = await getStudentProgressStats(studentProfileId);
+      // Load progress summary (use user_id as that's what the progress API expects)
+      const { data: progressData, error: progressError } = await getStudentProgressStats(childProfile.user_id);
       if (progressError) {
         console.error('Error loading progress summary:', progressError);
       } else {
@@ -266,12 +343,56 @@ const ParentDashboard = () => {
       }
 
       // Load badges (uses auth user_id)
-      const { data: badgesData, error: badgesError } = await getStudentBadges(childUserId);
-      if (badgesError) {
-        console.error('Error loading badges:', badgesError);
-        setChildBadges([]); // Set empty array instead of leaving undefined
+      const [allBadgesResult, studentBadgesResult] = await Promise.all([
+        getAllBadges(),
+        getStudentBadges(childUserId)
+      ]);
+
+      // Handle all badges
+      if (allBadgesResult.error) {
+        console.error('Error loading all badges:', allBadgesResult.error);
+        // Fallback badge list if badges table has issues
+        setAllBadges([
+          { id: 'f9aba128-a8e5-4b2c-8b2e-27ad1403faa6', title: 'First Step', description: 'Awarded for completing your first activity.' },
+          { id: '97054c4c-4b60-4bae-b1d9-46c5b7d0c99a', title: 'Perfect Scorer', description: 'Awarded for getting a perfect score in any activity.' },
+          { id: '2f73958d-d18c-4135-96bd-c65ca554a207', title: 'Academic Star', description: 'Complete 5 academic activities.' },
+          { id: 'c0e0441c-0688-4a4c-bd82-fad73c4392c1', title: 'Color Master', description: 'Complete 2 color activities in different difficulty levels.' },
+          { id: '55544bd9-53a5-42ac-bee8-c6b05632dfff', title: 'Match Finder', description: 'Finish a matching type activity.' },
+          { id: '027f2d92-6a2f-4f07-bda5-aaced096eb00', title: 'Shape Explorer', description: 'Complete 2 shape activities.' },
+          { id: 'd1ec22b8-9c28-44a4-9ee6-851b30948140', title: 'Number Ninja', description: 'Complete at least 1 number flashcard activity.' },
+          { id: '899d3e1b-6a3f-4c88-b52c-4960bb6f0201', title: 'Consistency Champ', description: 'Complete 3 activities in different types.' },
+          { id: '9e1e1566-6aec-479b-9f42-456e0c248386', title: 'High Achiever', description: 'Complete 5 activities with 80%+ average score.' },
+          { id: '1d3f149c-6db2-4303-93a0-a75540902e4f', title: 'Daily Life Hero', description: 'Complete 3 social/daily life skill activities.' },
+          { id: 'dc7243ea-43fb-48af-86c0-7f6dcd4430dd', title: 'All-Rounder', description: 'Complete 5 different types of activity.' }
+        ]);
       } else {
-        setChildBadges(badgesData || []);
+        let allBadgesData = allBadgesResult.data || [];
+        if (allBadgesData.length === 0) {
+          // Same fallback if empty
+          allBadgesData = [
+            { id: 'f9aba128-a8e5-4b2c-8b2e-27ad1403faa6', title: 'First Step', description: 'Awarded for completing your first activity.' },
+            { id: '97054c4c-4b60-4bae-b1d9-46c5b7d0c99a', title: 'Perfect Scorer', description: 'Awarded for getting a perfect score in any activity.' },
+            { id: '2f73958d-d18c-4135-96bd-c65ca554a207', title: 'Academic Star', description: 'Complete 5 academic activities.' },
+            { id: 'c0e0441c-0688-4a4c-bd82-fad73c4392c1', title: 'Color Master', description: 'Complete 2 color activities in different difficulty levels.' },
+            { id: '55544bd9-53a5-42ac-bee8-c6b05632dfff', title: 'Match Finder', description: 'Finish a matching type activity.' },
+            { id: '027f2d92-6a2f-4f07-bda5-aaced096eb00', title: 'Shape Explorer', description: 'Complete 2 shape activities.' },
+            { id: 'd1ec22b8-9c28-44a4-9ee6-851b30948140', title: 'Number Ninja', description: 'Complete at least 1 number flashcard activity.' },
+            { id: '899d3e1b-6a3f-4c88-b52c-4960bb6f0201', title: 'Consistency Champ', description: 'Complete 3 activities in different types.' },
+            { id: '9e1e1566-6aec-479b-9f42-456e0c248386', title: 'High Achiever', description: 'Complete 5 activities with 80%+ average score.' },
+            { id: '1d3f149c-6db2-4303-93a0-a75540902e4f', title: 'Daily Life Hero', description: 'Complete 3 social/daily life skill activities.' },
+            { id: 'dc7243ea-43fb-48af-86c0-7f6dcd4430dd', title: 'All-Rounder', description: 'Complete 5 different types of activity.' }
+          ];
+        }
+        setAllBadges(allBadgesData);
+      }
+
+      // Handle student badges
+      if (studentBadgesResult.error) {
+        console.error('Error loading student badges:', studentBadgesResult.error);
+        setChildBadges([]);
+        setAllBadges([]);
+      } else {
+        setChildBadges(studentBadgesResult.data || []);
       }
 
       // Load streak (uses auth user_id)
@@ -287,6 +408,7 @@ const ParentDashboard = () => {
       console.error('ParentDashboard: Error loading child progress data:', error);
       setChildProgress(null);
       setChildBadges([]);
+      setAllBadges([]);
       setChildStreak({ currentStreak: 0, longestStreak: 0 });
     } finally {
       setLoadingProgress(false);
@@ -524,31 +646,95 @@ const ParentDashboard = () => {
                   </div>
                 </div>
 
-                {/* Progress by Category */}
-                {childProgress?.categoryStats && Object.keys(childProgress.categoryStats).length > 0 && (
+                {/* Student Progress */}
+                {childProgress && selectedChild && (
                   <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-                    <h3 className="text-xl font-bold text-gray-800 mb-6">Progress by Category</h3>
+                    <h3 className="text-xl font-bold text-gray-800 mb-6">Student Progress</h3>
                     <div className="space-y-4">
-                      {Object.entries(childProgress.categoryStats).map(([categoryName, stats]) => (
-                        <div key={categoryName} className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
-                              <span className="text-blue-600 font-semibold">{categoryName.charAt(0)}</span>
-                            </div>
-                            <div>
-                              <div className="font-semibold text-gray-800">{categoryName}</div>
-                              <div className="text-sm text-gray-500">{stats.completed}/{stats.total} activities</div>
-                            </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
+                            <span className="text-blue-600 font-semibold">{(selectedChild.full_name || selectedChild.username).charAt(0)}</span>
                           </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-green-600">
-                              {stats.completed > 0 ? Math.round((stats.totalScore / stats.completed) * 100) / 100 : 0}%
-                            </div>
-                            <div className="text-sm text-gray-500">Avg Score</div>
+                          <div>
+                            <div className="font-semibold text-gray-800">{selectedChild.full_name || selectedChild.username}</div>
+                            <div className="text-sm text-gray-500">{childProgress.completedActivities}/{childProgress.totalActivities} activities completed</div>
                           </div>
                         </div>
-                      ))}
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-green-600">
+                            {childProgress.averageScore}%
+                          </div>
+                          <div className="text-sm text-gray-500">Avg Score</div>
+                        </div>
+                      </div>
                     </div>
+                  </div>
+                )}
+
+                {/* Activity Progress Section - Box Placeholder */}
+                {selectedChild && (
+                  <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-bold text-gray-800 flex items-center">
+                        <AcademicCapIcon className="w-6 h-6 mr-3 text-blue-600" />
+                        Activity Progress
+                      </h3>
+                      <button
+                        onClick={() => setShowActivityModal(true)}
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center space-x-2"
+                      >
+                        <AcademicCapIcon className="w-4 h-4" />
+                        <span>View Activity Progress</span>
+                      </button>
+                    </div>
+                    
+                    {loadingActivities ? (
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Loading activity data...</p>
+                      </div>
+                    ) : childActivities.length === 0 ? (
+                      <div className="text-center py-8">
+                        <AcademicCapIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <h4 className="text-lg font-semibold text-gray-600 mb-2">No Activities Available</h4>
+                        <p className="text-gray-500">No learning activities found in the system.</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-green-50 rounded-lg p-4 text-center border border-green-200">
+                          <div className="text-2xl font-bold text-green-800 mb-1">
+                            {childActivities.filter(a => a.progressData.status === 'completed').length}
+                          </div>
+                          <div className="text-sm text-green-600 font-medium">Completed</div>
+                        </div>
+                        <div className="bg-blue-50 rounded-lg p-4 text-center border border-blue-200">
+                          <div className="text-2xl font-bold text-blue-800 mb-1">
+                            {childActivities.filter(a => a.progressData.averageScore > 0).length > 0
+                              ? Math.round(
+                                  childActivities
+                                    .filter(a => a.progressData.averageScore > 0)
+                                    .reduce((sum, a) => sum + a.progressData.averageScore, 0) /
+                                  childActivities.filter(a => a.progressData.averageScore > 0).length
+                                )
+                              : 0}%
+                          </div>
+                          <div className="text-sm text-blue-600 font-medium">Avg Score</div>
+                        </div>
+                        <div className="bg-purple-50 rounded-lg p-4 text-center border border-purple-200">
+                          <div className="text-2xl font-bold text-purple-800 mb-1">
+                            {Math.max(...childActivities.map(a => a.progressData.bestScore), 0)}%
+                          </div>
+                          <div className="text-sm text-purple-600 font-medium">Best Score</div>
+                        </div>
+                        <div className="bg-orange-50 rounded-lg p-4 text-center border border-orange-200">
+                          <div className="text-2xl font-bold text-orange-800 mb-1">
+                            {childActivities.reduce((sum, a) => sum + a.progressData.completedCount, 0)}
+                          </div>
+                          <div className="text-sm text-orange-600 font-medium">Total Attempts</div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </>
@@ -657,7 +843,43 @@ const ParentDashboard = () => {
                 </h2>
                 <p className="text-lg text-gray-600 ml-11">
                   Monitor your child's emotional expressions and notes • Updated in real-time
+                  {emotionTimeFilter !== 'all' && (
+                    <span className="text-blue-600 font-medium">
+                      {' • Showing ' + getTimeFilterLabel(emotionTimeFilter)}
+                    </span>
+                  )}
                 </p>
+              </div>
+
+              {/* Time Filter */}
+              <div className="mb-6 bg-gray-50 rounded-xl p-4 border border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                    <ClockIcon className="h-5 w-5 mr-2 text-blue-600" />
+                    Time Range Filter
+                  </h3>
+                  <div className="flex space-x-2">
+                    {[
+                      { value: '24h', label: '24 Hours' },
+                      { value: '7d', label: '7 Days' },
+                      { value: '1m', label: '1 Month' },
+                      { value: '3m', label: '3 Months' },
+                      { value: 'all', label: 'All Time' }
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => setEmotionTimeFilter(option.value)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          emotionTimeFilter === option.value
+                            ? 'bg-blue-600 text-white shadow-md'
+                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
               
               {!selectedChild ? (
@@ -808,43 +1030,134 @@ const ParentDashboard = () => {
           </div>
         )}
 
-        {/* Badges Section - STATIC DATA (DO NOT CHANGE) */}
+        {/* Badges Section - Dynamic Data */}
         {currentView === 'badges' && (
           <div className="space-y-8">
             <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                <TrophyIcon className="w-6 h-6 mr-3 text-yellow-600" />
-                Achievement Badges
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 border-2 border-yellow-200">
-                  <div className="text-center">
-                    <div className="text-4xl mb-3">🏆</div>
-                    <h3 className="font-bold text-gray-800 mb-2">First Achievement</h3>
-                    <p className="text-sm text-gray-600">Completed first learning activity</p>
-                    <div className="mt-3 text-xs text-yellow-600 font-semibold">EARNED</div>
-                  </div>
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                    <TrophyIcon className="w-6 h-6 mr-3 text-yellow-600" />
+                    {selectedChild ? `${selectedChild.full_name || selectedChild.username}'s Achievement Badges` : 'Achievement Badges'}
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {childBadges.length} out of {allBadges.length} badges earned
+                  </p>
                 </div>
-                
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border-2 border-blue-200">
-                  <div className="text-center">
-                    <div className="text-4xl mb-3">⭐</div>
-                    <h3 className="font-bold text-gray-800 mb-2">Star Student</h3>
-                    <p className="text-sm text-gray-600">Maintained 90% accuracy for a week</p>
-                    <div className="mt-3 text-xs text-blue-600 font-semibold">EARNED</div>
-                  </div>
-                </div>
-                
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-green-200">
-                  <div className="text-center">
-                    <div className="text-4xl mb-3">🔥</div>
-                    <h3 className="font-bold text-gray-800 mb-2">On Fire</h3>
-                    <p className="text-sm text-gray-600">10-day learning streak</p>
-                    <div className="mt-3 text-xs text-green-600 font-semibold">EARNED</div>
+                <div className="text-right">
+                  <div className="text-3xl mb-1">🏆</div>
+                  <div className="text-sm text-gray-600">
+                    {Math.round((childBadges.length / Math.max(allBadges.length, 1)) * 100)}% Complete
                   </div>
                 </div>
               </div>
+              
+              {allBadges.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">🏆</div>
+                  <p className="text-gray-600">Loading badges...</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {allBadges.map((badge) => {
+                    const isEarned = childBadges.some(cb => cb.badge_id === badge.id);
+                    const earnedBadge = childBadges.find(cb => cb.badge_id === badge.id);
+                    
+                    // Map badge properties to UI format
+                    const iconMap = {
+                      'First Step': '⭐',
+                      'Perfect Scorer': '🎯',
+                      'Academic Star': '📖',
+                      'Color Master': '🎨',
+                      'Match Finder': '🧩',
+                      'Shape Explorer': '🔷',
+                      'Number Ninja': '🔢',
+                      'Consistency Champ': '📅',
+                      'High Achiever': '🏅',
+                      'Daily Life Hero': '🏠',
+                      'All-Rounder': '🏆'
+                    };
+
+                    const colorMap = {
+                      'First Step': isEarned ? 'from-yellow-50 to-orange-50 border-yellow-200' : 'from-gray-50 to-gray-100 border-gray-200',
+                      'Perfect Scorer': isEarned ? 'from-green-50 to-emerald-50 border-green-200' : 'from-gray-50 to-gray-100 border-gray-200',
+                      'Academic Star': isEarned ? 'from-blue-50 to-indigo-50 border-blue-200' : 'from-gray-50 to-gray-100 border-gray-200',
+                      'Color Master': isEarned ? 'from-purple-50 to-pink-50 border-purple-200' : 'from-gray-50 to-gray-100 border-gray-200',
+                      'Match Finder': isEarned ? 'from-pink-50 to-rose-50 border-pink-200' : 'from-gray-50 to-gray-100 border-gray-200',
+                      'Shape Explorer': isEarned ? 'from-blue-50 to-cyan-50 border-blue-200' : 'from-gray-50 to-gray-100 border-gray-200',
+                      'Number Ninja': isEarned ? 'from-green-50 to-lime-50 border-green-200' : 'from-gray-50 to-gray-100 border-gray-200',
+                      'Consistency Champ': isEarned ? 'from-indigo-50 to-purple-50 border-indigo-200' : 'from-gray-50 to-gray-100 border-gray-200',
+                      'High Achiever': isEarned ? 'from-orange-50 to-red-50 border-orange-200' : 'from-gray-50 to-gray-100 border-gray-200',
+                      'Daily Life Hero': isEarned ? 'from-teal-50 to-cyan-50 border-teal-200' : 'from-gray-50 to-gray-100 border-gray-200',
+                      'All-Rounder': isEarned ? 'from-yellow-50 to-orange-50 border-yellow-200' : 'from-gray-50 to-gray-100 border-gray-200'
+                    };
+
+                    const statusColor = isEarned ? 'text-green-600' : 'text-gray-500';
+                    const icon = iconMap[badge.title] || '🏆';
+                    const colors = colorMap[badge.title] || (isEarned ? 'from-yellow-50 to-orange-50 border-yellow-200' : 'from-gray-50 to-gray-100 border-gray-200');
+
+                    return (
+                      <div 
+                        key={badge.id}
+                        className={`bg-gradient-to-br ${colors} rounded-2xl p-6 border-2 ${isEarned ? 'shadow-lg transform hover:scale-105 transition-all duration-300' : 'opacity-75'} relative`}
+                      >
+                        {/* Status indicator */}
+                        {isEarned && (
+                          <div className="absolute top-3 right-3">
+                            <span className="text-green-500 text-lg">✅</span>
+                          </div>
+                        )}
+                        
+                        <div className="text-center">
+                          <div className={`text-4xl mb-3 ${isEarned ? 'animate-bounce-gentle' : ''}`}>
+                            {isEarned ? icon : '🔒'}
+                          </div>
+                          <h3 className="font-bold text-gray-800 mb-2 text-sm">
+                            {badge.title}
+                          </h3>
+                          <p className="text-xs text-gray-600 mb-3 leading-tight">
+                            {badge.description}
+                          </p>
+                          <div className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                            isEarned ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
+                          }`}>
+                            {isEarned ? 'EARNED' : 'LOCKED'}
+                          </div>
+                          
+                          {/* Earned date */}
+                          {isEarned && earnedBadge && (
+                            <div className="text-xs text-gray-500 mt-2">
+                              Earned: {new Date(earnedBadge.earned_at).toLocaleDateString()}
+                            </div>
+                          )}
+                          
+                          {/* Sparkle effect for earned badges */}
+                          {isEarned && (
+                            <div className="absolute bottom-2 right-2">
+                              <span className="text-yellow-400 text-sm animate-pulse">✨</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Encouragement message */}
+              {childBadges.length < allBadges.length && allBadges.length > 0 && (
+                <div className="mt-8 p-6 bg-blue-50 rounded-xl border border-blue-200">
+                  <div className="flex items-center">
+                    <span className="text-3xl mr-4">�</span>
+                    <div>
+                      <h4 className="font-bold text-blue-800 text-lg">Keep Going!</h4>
+                      <p className="text-blue-600">
+                        {selectedChild ? `${selectedChild.full_name || selectedChild.username} can unlock` : 'Your child can unlock'} {allBadges.length - childBadges.length} more badges by completing more activities!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -867,6 +1180,14 @@ const ParentDashboard = () => {
       <ParentProfileModal 
         isOpen={showProfileModal}
         onClose={() => setShowProfileModal(false)}
+      />
+
+      <ChildActivityProgressModal
+        isOpen={showActivityModal}
+        onClose={() => setShowActivityModal(false)}
+        child={selectedChild}
+        activities={childActivities}
+        loading={loadingActivities}
       />
     </div>
   );

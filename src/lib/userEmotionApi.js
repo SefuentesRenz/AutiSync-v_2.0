@@ -129,7 +129,7 @@ export async function getUserEmotionsWithDetails(profile_id = null) {
 // Get user emotions with expression details only
 export async function getUserEmotionsWithExpressions(profile_id) {
   const { data, error } = await supabase
-    .from('User_emotion')
+    .from('user_emotion')
     .select(`
       *,
       expressions(
@@ -147,7 +147,7 @@ export async function getUserEmotionsWithExpressions(profile_id) {
 // Get user emotions with user profile details
 export async function getUserEmotionsWithProfiles() {
   const { data, error } = await supabase
-    .from('User_emotion')
+    .from('user_emotion')
     .select(`
       *,
       user_profiles(
@@ -498,37 +498,23 @@ export async function getParentDashboardEmotions(parentAuthId) {
     for (const relation of relations) {
       const studentId = relation.child_user_id;
       
-      // Get student data
+      // Get user profile data (studentId is now user_id)
       const { data: studentData, error: studentError } = await supabase
-        .from('students')
+        .from('user_profiles')
         .select('*')
-        .eq('id', studentId)
+        .eq('user_id', studentId)
         .single();
       
       if (studentError) {
         console.warn(`Failed to fetch student data for ${studentId}:`, studentError);
         continue;
       }
-      
-      // Get user profile data if student has profile_id
-      let userProfile = null;
-      if (studentData.profile_id) {
-        const { data: profileData, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('id', studentData.profile_id)
-          .single();
-        
-        if (!profileError && profileData) {
-          userProfile = profileData;
-        }
-      }
 
       // Get emotions for this student from Expressions table directly
       const { data: emotions, error: emotionError } = await supabase
         .from('Expressions')
         .select('*')
-        .eq('student_id', studentId)
+        .eq('user_id', studentId)
         .order('created_at', { ascending: false })
         .limit(10);
       
@@ -538,16 +524,13 @@ export async function getParentDashboardEmotions(parentAuthId) {
 
       // Create child data object
       const childData = {
-        user_id: userProfile?.user_id || studentId,
-        id: studentData.id,
-        username: userProfile?.username || `Student ${studentId}`,
-        firstname: userProfile?.firstname || null,
-        lastname: userProfile?.lastname || null,
-        full_name: userProfile?.full_name || userProfile?.username || `Student ${studentId}`,
-        email: userProfile?.email || null,
-        age: userProfile?.age || null,
-        grade: userProfile?.grade || null,
-        student_id: studentId,
+        firstname: studentData?.full_name?.split(' ')[0] || null,
+        lastname: studentData?.full_name?.split(' ').slice(1).join(' ') || null,
+        full_name: studentData?.full_name || studentData?.username || `Student ${studentId}`,
+        email: studentData?.email || null,
+        age: studentData?.age || null,
+        grade: studentData?.grade || null,
+        user_id: studentId,
         relationship: relation,
         emotions: emotions || [],
         latestEmotion: emotions && emotions.length > 0 ? emotions[0] : null,

@@ -175,9 +175,9 @@ const EditActivityModal = ({ isOpen, onClose, activity, onSave }) => {
                     required
                   >
                     <option value="">Select difficulty level</option>
-                    <option value="Easy">🟢 Easy</option>
-                    <option value="Medium">🟡 Medium</option>
-                    <option value="Hard">🔴 Hard</option>
+                    <option value="Beginner">🟢 Beginner</option>
+                    <option value="Intermediate">🟡 Intermediate</option>
+                    <option value="Proficient">🔴 Proficient</option>
                   </select>
                 </div>
               </div>

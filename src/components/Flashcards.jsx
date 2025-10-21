@@ -400,9 +400,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     }
   }, [redirectCountdown]);
 
-  // Background music for Medium Identification activity
+  // Background music for Intermediate Identification activity
   useEffect(() => {
-    if (activity === "Identification" && difficulty === "Medium") {
+    if (activity === "Identification" && difficulty === "Intermediate") {
       // Play jungle background music
       if (bgMusicRef.current) {
         bgMusicRef.current.volume = 0.3; // Set volume to 30%
@@ -488,8 +488,41 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     try {
       console.log('📝 Recording activity completion:', { studentId, activityId, score, status });
       
-      // TODO: Add actual database call here (Supabase or your backend)
-      // For now, just return success
+      // Import and call the progress API
+      const { recordActivityProgress } = await import('../lib/progressApi');
+      
+      // Map flashcard activity types to correct activity IDs from database
+      const activityMapping = {
+        'Identification': { Beginner: 95, Intermediate: 96, Proficient: 97 },
+        'Numbers': { Beginner: 98, Intermediate: 99, Proficient: 100 },
+        'Colors': { Beginner: 101, Intermediate: 102, Proficient: 103 },
+        'Academic Puzzles': { Beginner: 104, Intermediate: 105, Proficient: 106 },
+        'Matching Type': { Beginner: 107, Intermediate: 108, Proficient: 109 },
+        'Visual Memory Challenge': { Beginner: 110, Intermediate: 111, Proficient: 112 }
+      };
+      
+      // Get the correct activity ID based on current activity and difficulty
+      let validActivityId = activityId;
+      if (activity && difficulty && activityMapping[activity] && activityMapping[activity][difficulty]) {
+        validActivityId = activityMapping[activity][difficulty];
+      } else {
+        // Fallback to a default activity ID if mapping fails
+        validActivityId = 95; // Default to Beginner Identification
+      }
+      
+      console.log('🎯 Using activity ID:', validActivityId, 'for', activity, difficulty);
+      
+      const result = await recordActivityProgress(studentId, validActivityId, score, status);
+      
+      if (result.error) {
+        console.error('❌ Error recording activity progress:', result.error);
+        return {
+          success: false,
+          errors: [result.error.message || 'Failed to record activity progress']
+        };
+      }
+      
+      console.log('✅ Activity progress recorded successfully:', result.data);
       return {
         success: true,
         errors: []
@@ -521,8 +554,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   // Sample questions data - you can organize this by category, difficulty, and activity
   const questionsData = {
     Academic: {
-                                                                //  EASY - LEVEL OF DIFFICULTY
-      Easy: {       
+                                                                //  BEGINNER - LEVEL OF DIFFICULTY
+      Beginner: {       
         Identification: [
           {
             questionText: "What are they doing?", 
@@ -737,8 +770,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       },
 
 
-                                            // MEDIUM - LEVEL OF DIFFICULTY
-      Medium: {
+                                            // INTERMEDIATE - LEVEL OF DIFFICULTY
+      Intermediate: {
         Identification: [
           {
             questionText: "What is this Animal?", 
@@ -961,8 +994,8 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       },
 
 
-                                            // HARD - LEVEL OF DIFFICULTY  
-      Hard: {
+                                            // PROFICIENT - LEVEL OF DIFFICULTY  
+      Proficient: {
         "Matching Type": [
           {
             questionText: "Associations & Cause-Effect - Match the pairs!",

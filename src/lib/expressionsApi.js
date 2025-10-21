@@ -41,11 +41,11 @@ export async function getExpressionById(id) {
 }
 
 // Get expressions by user profile id
-export async function getExpressionsByUserProfileId(user_profiles_id) {
+export async function getExpressionsByUserProfileId(user_id) {
   const { data, error } = await supabase
     .from('Expressions')
     .select('*')
-    .eq('user_profiles_id', user_profiles_id)
+    .eq('user_id', user_id)
     .order('created_at', { ascending: false });
   return { data, error };
 }
@@ -94,20 +94,18 @@ export async function getExpressionsByDateRange(user_profiles_id, startDate, end
 }
 
 // Get recent expressions for a user profile (last 7 days)
-export async function getRecentExpressionsByUserProfile(user_profiles_id, days = 7) {
+export async function getRecentExpressionsByUserProfile(user_id, days = 7) {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
-  
+
   const { data, error } = await supabase
     .from('Expressions')
     .select('*')
-    .eq('user_profiles_id', user_profiles_id)
+    .eq('user_id', user_id)
     .gte('created_at', startDate.toISOString())
     .order('created_at', { ascending: false });
   return { data, error };
-}
-
-// Get expressions with user profile information
+}// Get expressions with user profile information
 export async function getExpressionsWithUserProfiles() {
   const { data, error } = await supabase
     .from('Expressions')
@@ -120,11 +118,11 @@ export async function getExpressionsWithUserProfiles() {
 }
 
 // Get expression statistics for a user profile
-export async function getExpressionStats(user_profiles_id) {
+export async function getExpressionStats(user_id) {
   const { data, error } = await supabase
     .from('Expressions')
     .select('emotion, severity')
-    .eq('user_profiles_id', user_profiles_id);
+    .eq('user_id', user_id);
   return { data, error };
 }
 
@@ -156,10 +154,10 @@ export async function deleteExpression(id) {
 }
 
 // Delete all expressions for a user profile
-export async function deleteExpressionsByUserProfileId(user_profiles_id) {
+export async function deleteExpressionsByUserProfileId(user_id) {
   const { data, error } = await supabase
     .from('Expressions')
     .delete()
-    .eq('user_profiles_id', user_profiles_id);
+    .eq('user_id', user_id);
   return { data, error };
 }

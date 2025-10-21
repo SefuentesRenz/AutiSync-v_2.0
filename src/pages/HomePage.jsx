@@ -21,12 +21,12 @@ const HomePage = () => {
 
   const [emotionNote, setEmotionNote] = useState("");
   const [expressions, setExpressions] = useState([
-    { emotion: "Happy", image: "/assets/happy.png", level: 2, time: "2 hours ago", userName: "Emma" },
-    { emotion: "Tired", image: "/assets/tired.jpg", level: 5, time: "5 hours ago", userName: "Alex" },
-    { emotion: "Excited",  image: "/assets/excited.png", level: 4, time: "Yesterday", userName: "Sam" },
-    { emotion: "Tired", image: "/assets/tired.jpg", level: 2, time: "1 hour ago", userName: "Jordan" },
-    { emotion: "Sad",  image: "/assets/sad.png", level: 3, time: "2 hours ago", userName: "Riley" },
-    { emotion: "Excited", image: "/assets/excited.png", level: 1, time: "Yesterday", userName: "Casey" },
+    { emotion: "Happy", image: "/assets/happy.png", time: "2 hours ago", userName: "Emma" },
+    { emotion: "Tired", image: "/assets/tired.jpg", time: "5 hours ago", userName: "Alex" },
+    { emotion: "Excited",  image: "/assets/excited.png", time: "Yesterday", userName: "Sam" },
+    { emotion: "Tired", image: "/assets/tired.jpg", time: "1 hour ago", userName: "Jordan" },
+    { emotion: "Sad",  image: "/assets/sad.png", time: "2 hours ago", userName: "Riley" },
+    { emotion: "Excited", image: "/assets/excited.png", time: "Yesterday", userName: "Casey" },
   ]);
 
   const [note, setNote] = useState('');
@@ -198,18 +198,7 @@ const HomePage = () => {
       // Fetch expressions from last 24 hours only for student homepage
       const { data, error } = await supabase
         .from('Expressions')
-        .select(`
-          *,
-          students!inner (
-            id,
-            profile_id,
-            user_profiles!inner (
-              id,
-              username,
-              full_name
-            )
-          )
-        `)
+        .select('*')
         .gte('created_at', twentyFourHoursAgoISO) // Only last 24 hours
         .order('created_at', { ascending: false })
         .limit(50);
@@ -251,9 +240,8 @@ const HomePage = () => {
             return {
               emotion: displayEmotion || 'Unknown',
               image: `/assets/${imageFile || 'neutral.png'}`,
-              level: expr.intensity || 3,
               time: getTimeAgo(new Date(expr.created_at)),
-              userName: 'Student',
+              userName: 'Unknown User', // Default fallback since no profile data
               note: expr.note || null
             };
           });
@@ -263,12 +251,28 @@ const HomePage = () => {
       }
 
       if (data && data.length > 0) {
+        // Get unique user IDs from expressions
+        const userIds = [...new Set(data.map(expr => expr.user_id).filter(Boolean))];
+        
+        // Fetch user profiles separately
+        let userProfiles = [];
+        if (userIds.length > 0) {
+          const { data: profilesData, error: profilesError } = await supabase
+            .from('user_profiles')
+            .select('user_id, full_name, username')
+            .in('user_id', userIds);
+          
+          if (!profilesError && profilesData) {
+            userProfiles = profilesData;
+          }
+        }
+        
         const formattedExpressions = data.map(expr => {
-          const profile = expr.students?.user_profiles;
+          const profile = userProfiles.find(p => p.user_id === expr.user_id);
           const timeAgo = getTimeAgo(new Date(expr.created_at));
           const displayName = profile ? (
-            profile.full_name || profile.username || 'Student'
-          ) : 'Student';
+            profile.full_name || profile.username || 'Unknown User'
+          ) : 'Unknown User';
           
           // Map database emotion to display emotion
           const displayEmotion = expr.emotion === 'angry' ? 'Upset' : 
@@ -291,12 +295,11 @@ const HomePage = () => {
           return {
             emotion: displayEmotion || 'Unknown',
             image: `/assets/${imageFile || 'neutral.png'}`,
-            level: expr.intensity || 3,
             time: timeAgo,
             userName: displayName,
             note: expr.note || null,
             id: expr.id,
-            student_id: expr.student_id
+            user_id: expr.user_id
           };
         });
         
@@ -333,7 +336,6 @@ const HomePage = () => {
     const newExpression = {
       emotion: selectedEmotion,
       image: emotionData?.image,
-      level: 3,
       time: "Just now",
       userName: userName,
     };
@@ -343,48 +345,10 @@ const HomePage = () => {
       console.log('Starting emotion submission...');
       console.log('User profile:', userProfile);
       
-      // Look up student by profile_id
-      const { data: studentData, error: studentError } = await supabase
-        .from('students')
-        .select('id, profile_id')
-        .eq('profile_id', userProfile.id)
-        .single();
+      // Now we use user_profiles directly, no need for student lookup
+      console.log('Using user profile directly for expressions');
 
-      console.log('Student lookup result:', { studentData, studentError });
-
-      if (studentError || !studentData) {
-        console.error('Student lookup failed:', studentError);
-        
-        // Try to create a student record if one doesn't exist
-        console.log('Attempting to create student record...');
-        const { data: newStudent, error: createError } = await supabase
-          .from('students')
-          .insert([{
-            profile_id: userProfile.id,
-            created_at: new Date().toISOString()
-          }])
-          .select()
-          .single();
-          
-        if (createError) {
-          console.error('Failed to create student record:', createError);
-          alert('Could not set up student account. Please contact an administrator.');
-          return;
-        }
-        
-        console.log('Created new student record:', newStudent);
-        
-        // Use the newly created student data
-        const finalStudentData = newStudent;
-      }
-
-      console.log('Using student record:', {
-        id: (studentData || finalStudentData).id,
-        idType: typeof (studentData || finalStudentData).id,
-        profileId: (studentData || finalStudentData).profile_id
-      });
-
-      const currentStudent = studentData || finalStudentData;
+      const currentStudent = userProfile; // userProfile is now our "student"
       
       // Map "Upset" to "angry" for database constraint
       const emotionMapping = {
@@ -398,9 +362,9 @@ const HomePage = () => {
       const mappedEmotion = emotionMapping[selectedEmotion.toLowerCase()] || selectedEmotion.toLowerCase();
       const isNegativeEmotion = (selectedEmotion.toLowerCase() === 'sad' || selectedEmotion.toLowerCase() === 'upset');
       
-      // Prepare expression data for submission
+      // Prepare expression data for submission (using user_id to match user_profiles)
       const expressionData = {
-        student_id: currentStudent.id, // This is now UUID from students table
+        user_id: currentStudent.user_id, // Use user_id to match user_profiles table
         emotion: mappedEmotion,
         intensity: 3,
         note: emotionNote.trim() || null
@@ -431,25 +395,25 @@ const HomePage = () => {
       
       console.log('Expression verification:', { verifyData, verifyError });
 
-      // Also create User_emotion record for tracking (keep existing functionality)
+      // Also create user_emotion record for tracking (keep existing functionality)
       const userEmotionData = {
-        profile_id: userProfile.id,
+        profile_id: userProfile.user_id, // Use user_id from user_profiles
         expressions_id: expressionResult.id,
         intensity: 3,
         created_at: new Date().toISOString()
       };
 
       const { error: userEmotionError } = await supabase
-        .from('User_emotion')
+        .from('user_emotion')
         .insert([userEmotionData]);
 
       if (userEmotionError) {
-        console.warn('Warning: Failed to create User_emotion record:', userEmotionError);
+        console.warn('Warning: Failed to create user_emotion record:', userEmotionError);
       }
 
       // Check if this is a negative emotion that needs an alert
       if (isNegativeEmotion) {
-        await createAlert(userProfile.id, selectedEmotion, 3, expressionResult.id, emotionNote);
+        await createAlert(userProfile.user_id, selectedEmotion, 3, expressionResult.id, emotionNote);
       }
       
       // Don't add to local state immediately - let the refresh handle it
@@ -695,9 +659,6 @@ const HomePage = () => {
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
                             <span className="text-xl font-bold text-gray-800">{expr.emotion}</span>
-                            <div className={`px-3 py-1 ${getLevelColor(expr.level)} rounded-full text-white text-sm font-semibold flex items-center space-x-1`}>
-                              <span>Level {expr.level}</span>
-                            </div>
                           </div>
                           
                           <p className="text-gray-700 mb-2">{expr.description}</p>
@@ -776,7 +737,7 @@ const HomePage = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Easy Level */}
+              {/* Beginner Level */}
               <div className=" bg-gradient-to-br from-green-50 to-emerald-50 p-8 rounded-3xl text-center border-3 border-white/50 hover:border-green-300 hover:shadow-xl transition-all duration-300 group">
                 <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                   <span className="text-white text-4xl">✓</span>
@@ -787,7 +748,7 @@ const HomePage = () => {
                 </p>
               </div>
 
-              {/* Medium Level */}
+              {/* Intermediate Level */}
               <div className="card-autism-friendly bg-gradient-to-br from-yellow-50 to-amber-50 p-8 rounded-3xl text-center  border-3 border-white/50 hover:border-yellow-300 hover:shadow-xl transition-all duration-300 group">
                 <div className="w-24 h-24 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                   <span className="text-white text-4xl">⭐</span>
@@ -798,7 +759,7 @@ const HomePage = () => {
                 </p>
               </div>
 
-              {/* Hard Level */}
+              {/* Proficient Level */}
               <div className="card-autism-friendly bg-gradient-to-br from-red-50 to-rose-50 p-8 rounded-3xl text-center  border-3 border-white/50 hover:border-red-300 hover:shadow-xl transition-all duration-300 group">
                 <div className="w-24 h-24 bg-gradient-to-r from-red-500 to-rose-600 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
                   <span className="text-white text-4xl">!</span>

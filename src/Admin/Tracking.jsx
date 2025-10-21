@@ -2,8 +2,9 @@
 import { CheckCircleIcon, AcademicCapIcon, UsersIcon, StarIcon, FireIcon } from '@heroicons/react/24/solid';
 import { useNavigate } from 'react-router-dom';
 import { getAllStudentsProgress } from '../lib/progressApi';
-import { getActivities } from '../lib/activitiesApi';
-import { getStudents } from '../lib/studentsApi';
+import { getActivitiesWithDetails } from '../lib/activitiesApi';
+import { getUserProfiles } from '../lib/userProfilesApi';
+import { getAllBadges, getStudentBadges } from '../lib/badgesApi';
 
 const Tracking = () => {
   const [selectedTimeRange, setSelectedTimeRange] = useState('30');
@@ -12,27 +13,34 @@ const Tracking = () => {
   const [progressData, setProgressData] = useState(null);
   const [activities, setActivities] = useState([]);
   const [students, setStudents] = useState([]);
+  const [allBadges, setAllBadges] = useState([]);
+  const [studentBadgesData, setStudentBadgesData] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [progressResult, activitiesResult, studentsResult] = await Promise.all([
+        const [progressResult, activitiesResult, studentsResult, badgesResult] = await Promise.all([
           getAllStudentsProgress(),
-          getActivities(),
-          getStudents()
+          getActivitiesWithDetails(), // Now gets activities with difficulty details
+          getUserProfiles(), // Now gets all user_profiles instead of students
+          getAllBadges()
         ]);
 
         if (progressResult.error) {
           console.error('Error fetching progress:', progressResult.error);
         } else {
           console.log('📊 Admin Dashboard - Progress data received:', progressResult.data);
+          console.log('📊 Admin Dashboard - Students in progress data:', progressResult.data?.students);
+          console.log('📊 Admin Dashboard - Total students:', progressResult.data?.totalStudents);
           setProgressData(progressResult.data);
         }
 
         if (activitiesResult.error) {
           console.error('Error fetching activities:', activitiesResult.error);
         } else {
+          console.log('📊 Admin Dashboard - Activities received:', activitiesResult.data);
+          console.log('📊 Admin Dashboard - Number of activities:', activitiesResult.data?.length);
           setActivities(activitiesResult.data || []);
         }
 
@@ -40,6 +48,43 @@ const Tracking = () => {
           console.error('Error fetching students:', studentsResult.error);
         } else {
           setStudents(studentsResult.data || []);
+        }
+
+        if (badgesResult.error) {
+          console.error('Error fetching badges:', badgesResult.error);
+        } else {
+          console.log('🏆 Admin Dashboard - Badges received:', badgesResult.data);
+          let allBadgesData = badgesResult.data || [];
+          
+          // If no badges from badges table, create a comprehensive list from known badges
+          if (allBadgesData.length === 0) {
+            console.log('🏆 No badges from badges table, creating comprehensive badge list...');
+            allBadgesData = [
+              { id: 'f9aba128-a8e5-4b2c-8b2e-27ad1403faa6', title: 'First Step', description: 'Awarded for completing your first activity.' },
+              { id: '97054c4c-4b60-4bae-b1d9-46c5b7d0c99a', title: 'Perfect Scorer', description: 'Awarded for getting a perfect score in any activity.' },
+              { id: '2f73958d-d18c-4135-96bd-c65ca554a207', title: 'Academic Star', description: 'Complete 5 academic activities.' },
+              { id: 'c0e0441c-0688-4a4c-bd82-fad73c4392c1', title: 'Color Master', description: 'Complete 2 color activities in different difficulty levels.' },
+              { id: '55544bd9-53a5-42ac-bee8-c6b05632dfff', title: 'Match Finder', description: 'Finish a matching type activity.' },
+              { id: '027f2d92-6a2f-4f07-bda5-aaced096eb00', title: 'Shape Explorer', description: 'Complete 2 shape activities.' },
+              { id: 'd1ec22b8-9c28-44a4-9ee6-851b30948140', title: 'Number Ninja', description: 'Complete at least 1 number flashcard activity.' },
+              { id: '899d3e1b-6a3f-4c88-b52c-4960bb6f0201', title: 'Consistency Champ', description: 'Complete 3 activities in different types.' },
+              { id: '9e1e1566-6aec-479b-9f42-456e0c248386', title: 'High Achiever', description: 'Complete 5 activities with 80%+ average score.' },
+              { id: '1d3f149c-6db2-4303-93a0-a75540902e4f', title: 'Daily Life Hero', description: 'Complete 3 social/daily life skill activities.' },
+              { id: 'dc7243ea-43fb-48af-86c0-7f6dcd4430dd', title: 'All-Rounder', description: 'Complete 5 different types of activity.' }
+            ];
+          }
+          
+          setAllBadges(allBadgesData);
+          
+          // Fetch student badges for all students using user_id
+          const studentBadges = {};
+          for (const student of studentsResult.data || []) {
+            // Use user_id from the student profile to match student_badges table
+            const { data: badges } = await getStudentBadges(student.user_id);
+            studentBadges[student.user_id] = badges || [];
+          }
+          setStudentBadgesData(studentBadges);
+          console.log('🏆 Student badges data:', studentBadges);
         }
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -181,60 +226,145 @@ const Tracking = () => {
 
   // Calculate category progress from real data
   const calculateCategoryProgress = () => {
-    if (!progressData?.students || !activities.length) return [];
+    if (!progressData?.students) {
+      console.log('📊 No progress data available');
+      return [];
+    }
+    
+    console.log('📊 Progress data:', progressData);
+    console.log('📊 Activities data:', activities);
     
     const categoryStats = {};
     
-    // Initialize categories
-    activities.forEach(activity => {
-      const category = activity.category || 'Other';
-      if (!categoryStats[category]) {
-        categoryStats[category] = {
-          total: 0,
-          completed: 0,
-          sessions: 0,
-          totalScore: 0,
-          scoreCount: 0
-        };
+    // Initialize with the main categories we want to track
+    const mainCategories = {
+      'Academic Skills': {
+        icon: '📚',
+        color: 'bg-blue-500',
+        keywords: ['academic', 'math', 'reading', 'writing', 'science', 'learning']
+      },
+      'Social/Daily Life Skills': {
+        icon: '🏠',
+        color: 'bg-green-500',
+        keywords: ['social', 'daily', 'life', 'communication', 'interaction', 'skill']
       }
-      categoryStats[category].total++;
+    };
+    
+    // Initialize category stats
+    Object.keys(mainCategories).forEach(categoryName => {
+      categoryStats[categoryName] = {
+        total: 0,
+        completed: 0,
+        totalScore: 0,
+        scoreCount: 0
+      };
     });
-
-    // Calculate completion stats
+    
+    // Count total activities for each category
+    activities.forEach(activity => {
+      const activityTitle = (activity.title || '').toLowerCase();
+      const activityCategory = (activity.Categories?.category_name || activity.category || '').toLowerCase();
+      
+      console.log(`📊 Categorizing activity: "${activity.title}" (ID: ${activity.id})`);
+      console.log(`📊 Activity category field: "${activityCategory}"`);
+      
+      // Determine which main category this activity belongs to
+      let assignedCategory = null;
+      
+      for (const [categoryName, categoryInfo] of Object.entries(mainCategories)) {
+        if (categoryInfo.keywords.some(keyword => 
+          activityTitle.includes(keyword) || activityCategory.includes(keyword)
+        )) {
+          assignedCategory = categoryName;
+          break;
+        }
+      }
+      
+      // Default to Academic Skills if no specific match
+      if (!assignedCategory) {
+        assignedCategory = 'Academic Skills';
+      }
+      
+      console.log(`📊 Activity "${activity.title}" assigned to "${assignedCategory}"`);
+      categoryStats[assignedCategory].total++;
+    });
+    
+    // Calculate completion and scores from progress data
     progressData.students.forEach(student => {
+      console.log('📊 Processing student for accuracy rates:', student);
       if (student.activities) {
-        student.activities.forEach(activity => {
-          const category = activity.categoryId || 'Other';
-          if (categoryStats[category]) {
-            categoryStats[category].sessions++;
-            if (activity.score !== null) {
-              categoryStats[category].totalScore += activity.score;
-              categoryStats[category].scoreCount++;
+        console.log('📊 Student activities for accuracy:', student.activities);
+        student.activities.forEach(progressRecord => {
+          console.log('📊 Progress record for accuracy:', progressRecord);
+          // Find the activity this progress belongs to - use activityId not activity_id
+          const activity = activities.find(act => act.id === progressRecord.activityId);
+          if (!activity) {
+            console.log(`📊 Activity not found for ID: ${progressRecord.activityId}`);
+            return;
+          }
+          
+          console.log(`📊 Found activity: ${activity.title}`);
+          
+          const activityTitle = (activity.title || '').toLowerCase();
+          const activityCategory = (activity.Categories?.category_name || activity.category || '').toLowerCase();
+          
+          // Determine category assignment (same logic as above)
+          let assignedCategory = null;
+          
+          for (const [categoryName, categoryInfo] of Object.entries(mainCategories)) {
+            if (categoryInfo.keywords.some(keyword => 
+              activityTitle.includes(keyword) || activityCategory.includes(keyword)
+            )) {
+              assignedCategory = categoryName;
+              break;
             }
+          }
+          
+          if (!assignedCategory) {
+            assignedCategory = 'Academic Skills';
+          }
+          
+          console.log(`📊 Activity "${activity.title}" assigned to "${assignedCategory}"`);
+          
+          // Count completion and score - only count completed activities
+          if (progressRecord.completionStatus === 'completed') {
+            categoryStats[assignedCategory].completed++;
+            if (progressRecord.score !== null && progressRecord.score !== undefined) {
+              categoryStats[assignedCategory].totalScore += progressRecord.score;
+              categoryStats[assignedCategory].scoreCount++;
+            }
+            console.log(`📊 Counted completion for ${assignedCategory}: now ${categoryStats[assignedCategory].completed} completed`);
           }
         });
       }
     });
-
-    return Object.entries(categoryStats).map(([name, stats]) => ({
-      category: name,
-      accuracy: stats.scoreCount > 0 ? Math.round(stats.totalScore / stats.scoreCount) : 0,
-      completed: `${stats.sessions}/${stats.total * students.length}`,
-      icon: name.toLowerCase().includes('color') ? '🎨' : 
-            name.toLowerCase().includes('shape') ? '🔷' :
-            name.toLowerCase().includes('number') ? '🔢' :
-            name.toLowerCase().includes('letter') ? '📝' :
-            name.toLowerCase().includes('pattern') ? '🧩' :
-            name.toLowerCase().includes('daily') ? '🏠' : '📚',
-      color: `bg-${['purple', 'blue', 'green', 'indigo', 'pink', 'orange'][Math.floor(Math.random() * 6)]}-500`
-    }));
+    
+    // Convert to display format
+    return Object.entries(categoryStats).map(([categoryName, stats]) => {
+      const categoryInfo = mainCategories[categoryName];
+      console.log(`📊 Category: ${categoryName}, Total: ${stats.total}, Completed: ${stats.completed}, Avg Score: ${stats.scoreCount > 0 ? Math.round(stats.totalScore / stats.scoreCount) : 0}`);
+      
+      return {
+        category: categoryName,
+        accuracy: stats.scoreCount > 0 ? Math.round(stats.totalScore / stats.scoreCount) : 0,
+        completed: `${stats.completed}/${stats.total}`,
+        totalActivities: stats.total,
+        completedActivities: stats.completed,
+        icon: categoryInfo.icon,
+        color: categoryInfo.color
+      };
+    });
   };
-
-  const accuracyRates = loading ? [] : calculateCategoryProgress();
 
   // Calculate difficulty progression from real data
   const calculateDifficultyProgression = () => {
-    if (!progressData || !activities.length) return [];
+    if (!progressData?.students) {
+      console.log('📊 No progress data available for difficulty progression');
+      return [];
+    }
+    
+    console.log('📊 Calculating difficulty progression with data:', progressData);
+    console.log('📊 Activities for difficulty calculation:', activities);
     
     const difficultyStats = {
       'Beginner': { total: 0, completed: 0 },
@@ -242,35 +372,235 @@ const Tracking = () => {
       'Proficient': { total: 0, completed: 0 }
     };
 
+    // Count total activities by difficulty level
     activities.forEach(activity => {
-      const difficulty = activity.difficulty || 'Beginner';
-      if (difficultyStats[difficulty]) {
-        difficultyStats[difficulty].total++;
+      // Get difficulty from activity object with proper fallbacks
+      let difficulty = null;
+      
+      // Try different possible sources for difficulty
+      if (activity.Difficulties?.name) {
+        difficulty = activity.Difficulties.name;
+      } else if (activity.difficulty) {
+        difficulty = activity.difficulty;
+      } else if (activity.difficulty_level) {
+        difficulty = activity.difficulty_level;
+      } else if (activity.difficulty_name) {
+        difficulty = activity.difficulty_name;
       }
+      
+      // Normalize difficulty names
+      if (difficulty) {
+        difficulty = difficulty.charAt(0).toUpperCase() + difficulty.slice(1).toLowerCase();
+      }
+      
+      // Ensure it's a valid difficulty, default to Beginner
+      if (!difficultyStats[difficulty]) {
+        difficulty = 'Beginner';
+      }
+      
+      difficultyStats[difficulty].total++;
+      console.log(`📊 Activity "${activity.title}" assigned to ${difficulty} difficulty (from: ${activity.Difficulties?.name || activity.difficulty || 'default'})`);
     });
 
+    // Count completed activities by difficulty level - avoid double counting
+    const completedActivitiesByDifficulty = new Set();
+    
     progressData.students.forEach(student => {
       if (student.activities) {
-        student.activities.forEach(activity => {
-            const difficulty = activity.difficultyId || 'Beginner';
-          if (difficultyStats[difficulty]) {
-            difficultyStats[difficulty].completed++;
+        student.activities.forEach(progressRecord => {
+          // Only count completed activities once per difficulty
+          if (progressRecord.completionStatus === 'completed') {
+            // Find the activity this progress belongs to
+            const activity = activities.find(act => act.id === progressRecord.activityId);
+            if (!activity) {
+              console.log(`📊 Activity not found for progress record:`, progressRecord);
+              return;
+            }
+            
+            // Get difficulty from the activity with proper fallbacks
+            let difficulty = null;
+            
+            // Try different possible sources for difficulty
+            if (activity.Difficulties?.name) {
+              difficulty = activity.Difficulties.name;
+            } else if (activity.difficulty) {
+              difficulty = activity.difficulty;
+            } else if (activity.difficulty_level) {
+              difficulty = activity.difficulty_level;
+            } else if (activity.difficulty_name) {
+              difficulty = activity.difficulty_name;
+            }
+            
+            // Normalize difficulty names
+            if (difficulty) {
+              difficulty = difficulty.charAt(0).toUpperCase() + difficulty.slice(1).toLowerCase();
+            }
+            
+            // Ensure it's a valid difficulty, default to Beginner
+            if (!difficultyStats[difficulty]) {
+              difficulty = 'Beginner';
+            }
+            
+            // Add to completed set to avoid double counting
+            const activityKey = `${difficulty}-${progressRecord.activityId}`;
+            if (!completedActivitiesByDifficulty.has(activityKey)) {
+              completedActivitiesByDifficulty.add(activityKey);
+              difficultyStats[difficulty].completed++;
+              console.log(`📊 Completed activity "${activity.title}" in ${difficulty} difficulty`);
+            }
           }
         });
       }
     });
 
-    return Object.entries(difficultyStats).map(([level, stats]) => ({
-      level,
-      progress: stats.total > 0 ? Math.round((stats.completed / (stats.total * students.length)) * 100) : 0,
-      completed: `${stats.completed}/${stats.total * students.length}`,
-      icon: level === 'Beginner' ? '🌱' : level === 'Intermediate' ? '🔥' : '💪',
-      color: level === 'Beginner' ? 'bg-green-500' : level === 'Intermediate' ? 'bg-orange-500' : 'bg-red-500',
-      bgColor: level === 'Beginner' ? 'bg-green-50' : level === 'Intermediate' ? 'bg-orange-50' : 'bg-red-50'
-    }));
+    // Convert to display format
+    return Object.entries(difficultyStats).map(([level, stats]) => {
+      const progressPercentage = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+      
+      console.log(`📊 Difficulty ${level}: ${stats.completed}/${stats.total} completed (${progressPercentage}%)`);
+      
+      return {
+        level,
+        progress: progressPercentage,
+        completed: `${stats.completed}/${stats.total}`,
+        totalActivities: stats.total,
+        completedActivities: stats.completed,
+        icon: level === 'Beginner' ? '🌱' : level === 'Intermediate' ? '🔥' : '💪',
+        color: level === 'Beginner' ? 'bg-green-500' : level === 'Intermediate' ? 'bg-orange-500' : 'bg-red-500',
+        bgColor: level === 'Beginner' ? 'bg-green-50' : level === 'Intermediate' ? 'bg-orange-50' : 'bg-red-50'
+      };
+    });
+  };
+
+  const calculateLearningCategories = () => {
+    if (!progressData?.students) {
+      console.log('📊 No progress data available for learning categories');
+      return [];
+    }
+    
+    console.log('📊 Calculating learning categories with data:', progressData);
+    console.log('📊 Available activities for categories:', activities);
+    
+    const categoryStats = {};
+    
+    // Initialize with the main categories we want to track
+    const mainCategories = {
+      'Academic Skills': {
+        icon: '📚',
+        color: 'bg-blue-500',
+        keywords: ['academic', 'math', 'reading', 'writing', 'science', 'learning', 'education']
+      },
+      'Daily Life Skills': {
+        icon: '🏠',
+        color: 'bg-orange-500',
+        keywords: ['daily', 'life', 'social', 'communication', 'interaction', 'skill', 'routine']
+      }
+    };
+    
+    // Initialize category stats
+    Object.keys(mainCategories).forEach(categoryName => {
+      categoryStats[categoryName] = {
+        total: 0,
+        completed: 0
+      };
+    });
+    
+    // Count total activities for each category
+    activities.forEach(activity => {
+      const activityTitle = (activity.title || '').toLowerCase();
+      const activityCategory = (activity.Categories?.category_name || activity.category || '').toLowerCase();
+      
+      // Determine which main category this activity belongs to
+      let assignedCategory = null;
+      
+      for (const [categoryName, categoryInfo] of Object.entries(mainCategories)) {
+        if (categoryInfo.keywords.some(keyword => 
+          activityTitle.includes(keyword) || activityCategory.includes(keyword)
+        )) {
+          assignedCategory = categoryName;
+          break;
+        }
+      }
+      
+      // Default to Academic Skills if no specific match
+      if (!assignedCategory) {
+        assignedCategory = 'Academic Skills';
+      }
+      
+      categoryStats[assignedCategory].total++;
+      console.log(`📊 Activity "${activity.title}" assigned to ${assignedCategory} category`);
+    });
+    
+    // Calculate completion from progress data - count unique activities completed per category
+    const completedActivitiesByCategory = new Set();
+    
+    progressData.students.forEach(student => {
+      console.log('📊 Processing student:', student);
+      if (student.activities) {
+        console.log('📊 Student activities:', student.activities);
+        student.activities.forEach(progressRecord => {
+          console.log('📊 Processing progress record:', progressRecord);
+          // Only count completed activities once per category
+          if (progressRecord.completionStatus === 'completed') {
+            // Find the activity this progress belongs to
+            const activity = activities.find(act => act.id === progressRecord.activityId);
+            if (!activity) {
+              console.log(`📊 Activity not found for progress record:`, progressRecord);
+              return;
+            }
+            
+            const activityTitle = (activity.title || '').toLowerCase();
+            const activityCategory = (activity.Categories?.category_name || activity.category || '').toLowerCase();
+            
+            // Determine category assignment (same logic as above)
+            let assignedCategory = null;
+            
+            for (const [categoryName, categoryInfo] of Object.entries(mainCategories)) {
+              if (categoryInfo.keywords.some(keyword => 
+                activityTitle.includes(keyword) || activityCategory.includes(keyword)
+              )) {
+                assignedCategory = categoryName;
+                break;
+              }
+            }
+            
+            if (!assignedCategory) {
+              assignedCategory = 'Academic Skills';
+            }
+            
+            // Add to completed set to avoid double counting
+            const activityKey = `${assignedCategory}-${progressRecord.activityId}`;
+            if (!completedActivitiesByCategory.has(activityKey)) {
+              completedActivitiesByCategory.add(activityKey);
+              categoryStats[assignedCategory].completed++;
+              console.log(`📊 Completed activity "${activity.title}" in ${assignedCategory} category`);
+            }
+          }
+        });
+      }
+    });
+    
+    // Convert to display format
+    return Object.entries(categoryStats).map(([categoryName, stats]) => {
+      const categoryInfo = mainCategories[categoryName];
+      const progressPercentage = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+      
+      console.log(`📊 Category ${categoryName}: ${stats.completed}/${stats.total} completed (${progressPercentage}%)`);
+      
+      return {
+        name: categoryName,
+        percent: progressPercentage,
+        count: `${stats.completed}/${stats.total}`,
+        totalActivities: stats.total,
+        completedActivities: stats.completed,
+        icon: categoryInfo.icon,
+        color: categoryInfo.color
+      };
+    });
   };
 
   const difficultyProgression = loading ? [] : calculateDifficultyProgression();
+  const categories = loading ? [] : calculateLearningCategories();
 
   // Get recent activities from real data
   const getRecentActivities = () => {
@@ -300,11 +630,6 @@ const Tracking = () => {
   };
 
   const recentActivitiesData = loading ? [] : getRecentActivities();
-
-  const categories = [
-    { name: 'Academic Skills', percent: 73, count: '15/20', icon: '📚', color: 'bg-blue-500' },
-    { name: 'Daily Life Skills', percent: 77, count: '5/5', icon: '🏠', color: 'bg-orange-500' }
-  ];
 
   const navigate = useNavigate();
   const milestones = [
@@ -338,89 +663,162 @@ const Tracking = () => {
     },
   ];
 
-  const badges = [
-    {
-      icon: '⭐',
-      title: 'First Steps',
-      description: 'Completed your first activity',
-      status: 'EARNED',
-      color: 'from-yellow-400 to-yellow-600',
-      bgColor: 'bg-yellow-50',
-      animation: 'animate-bounce-gentle'
-    },
-    {
-      icon: '📖',
-      title: 'Academic Star',
-      description: 'Completed 5 academic activities',
-      status: 'EARNED',
-      color: 'from-blue-400 to-blue-600',
-      bgColor: 'bg-blue-50',
-      animation: 'animate-pulse-gentle'
-    },
-    {
-      icon: '🎨',
-      title: 'Color Master',
-      description: 'Awarded for completing 5 color-related activities',
-      status: 'EARNED',
-      color: 'from-purple-400 to-purple-600',
-      bgColor: 'bg-purple-50',
-      animation: 'animate-bounce-gentle'
-    },
-    {
-      icon: '🔷',
-      title: 'Shape Explorer',
-      description: 'Awarded after finishing 5 shape activities',
-      status: 'EARNED',
-      color: 'from-blue-400 to-indigo-600',
-      bgColor: 'bg-blue-50',
-      animation: 'animate-float'
-    },
-    {
-      icon: '🔢',
-      title: 'Number Ninja',
-      description: 'Earned by correctly answering 20 number-related questions',
-      status: 'EARNED',
-      color: 'from-green-400 to-green-600',
-      bgColor: 'bg-green-50',
-      animation: 'animate-wiggle'
-    },
-    {
-      icon: '📅',
-      title: 'Consistency Champ',
-      description: 'Given for completing activities 3 days in a row',
-      status: 'LOCKED',
-      color: 'from-gray-400 to-gray-500',
-      bgColor: 'bg-gray-50',
-      animation: ''
-    },
-    {
-      icon: '🤝',
-      title: 'Helper Badge',
-      description: 'For activities done collaboratively with a parent/teacher',
-      status: 'EARNED',
-      color: 'from-orange-400 to-orange-600',
-      bgColor: 'bg-orange-50',
-      animation: 'animate-pulse-gentle'
-    },
-    {
-      icon: '🏠',
-      title: 'Daily Life Hero',
-      description: 'Awarded for finishing 5 "Daily Life Skills" activities',
-      status: 'EARNED',
-      color: 'from-teal-400 to-teal-600',
-      bgColor: 'bg-teal-50',
-      animation: 'animate-float-delayed'
-    },
-    {
-      icon: '🏆',
-      title: 'All-Rounder',
-      description: 'Earned when a student completes at least one activity in every category',
-      status: 'LOCKED',
-      color: 'from-gray-400 to-gray-500',
-      bgColor: 'bg-gray-50',
-      animation: ''
+  // Calculate dynamic badges based on real progress data and student badges
+  const calculateDynamicBadges = () => {
+    if (!allBadges || allBadges.length === 0) {
+      console.log('🏆 No badges available');
+      return [];
     }
-  ];
+
+    console.log('🏆 Calculating dynamic badges with data:', {
+      allBadges: allBadges.length,
+      progressData,
+      studentBadgesData
+    });
+
+    // Calculate system-wide badge statistics
+    let totalActivities = 0;
+    let totalStudents = progressData?.students?.length || 0;
+    let academicActivities = 0;
+    let colorActivities = 0;
+    let shapeActivities = 0;
+    let numberActivities = 0;
+    let dailyLifeActivities = 0;
+    let categoriesCompleted = new Set();
+    let studentsWithMultipleDays = 0;
+    let highScorers = 0;
+    let perfectScorers = 0;
+    let matchingActivities = 0;
+
+    // Count earned badges across all students
+    const earnedBadgesByType = {};
+    Object.values(studentBadgesData).forEach(studentBadges => {
+      studentBadges.forEach(badge => {
+        earnedBadgesByType[badge.badge_name] = (earnedBadgesByType[badge.badge_name] || 0) + 1;
+      });
+    });
+
+    if (progressData?.students) {
+      progressData.students.forEach(student => {
+        if (student.progress && student.progress.length > 0) {
+          totalActivities += student.progress.length;
+          
+          student.progress.forEach(activity => {
+            // Count activities by category and type
+            const category = activity.category?.toLowerCase() || '';
+            const title = activity.activityTitle?.toLowerCase() || '';
+            categoriesCompleted.add(category);
+            
+            if (category.includes('academic') || category.includes('math') || category.includes('reading')) {
+              academicActivities++;
+            }
+            if (category.includes('color') || title.includes('color')) {
+              colorActivities++;
+            }
+            if (category.includes('shape') || title.includes('shape')) {
+              shapeActivities++;
+            }
+            if (category.includes('number') || title.includes('number')) {
+              numberActivities++;
+            }
+            if (category.includes('daily') || category.includes('life') || category.includes('social')) {
+              dailyLifeActivities++;
+            }
+            if (title.includes('match') || category.includes('match')) {
+              matchingActivities++;
+            }
+            
+            // Count high scorers and perfect scorers
+            if (activity.score >= 80) {
+              highScorers++;
+            }
+            if (activity.score >= 100) {
+              perfectScorers++;
+            }
+          });
+
+          // Check for multi-day activity (simplified)
+          if (student.progress.length > 1) {
+            studentsWithMultipleDays++;
+          }
+        }
+      });
+    }
+
+      // Map badges to display format with actual student earned status
+    const badgesDisplay = allBadges.map(badge => {
+      // Count how many students have earned this badge
+      let studentsWithThisBadge = 0;
+      let totalStudents = students.length;
+      
+      Object.values(studentBadgesData).forEach(studentBadges => {
+        if (studentBadges.some(sb => sb.badge_id === badge.id)) {
+          studentsWithThisBadge++;
+        }
+      });
+
+      // Badge is considered "earned" if at least one student has it
+      const status = studentsWithThisBadge > 0 ? 'EARNED' : 'LOCKED';
+      const description = `${studentsWithThisBadge}/${totalStudents} students earned this badge`;
+
+      // Map badge to display format with appropriate icons and colors
+      let icon = '🏆';
+      let color = status === 'EARNED' ? 'from-yellow-400 to-yellow-600' : 'from-gray-400 to-gray-500';
+      let bgColor = status === 'EARNED' ? 'bg-yellow-50' : 'bg-gray-50';
+      let animation = status === 'EARNED' ? 'animate-bounce-gentle' : '';
+
+      // Assign specific icons based on badge type
+      if (badge.title.includes('First Step')) {
+        icon = '⭐';
+        if (status === 'EARNED') { color = 'from-yellow-400 to-yellow-600'; bgColor = 'bg-yellow-50'; }
+      } else if (badge.title.includes('Perfect Scorer')) {
+        icon = '🎯';
+        if (status === 'EARNED') { color = 'from-green-400 to-green-600'; bgColor = 'bg-green-50'; }
+      } else if (badge.title.includes('Academic Star')) {
+        icon = '📖';
+        if (status === 'EARNED') { color = 'from-blue-400 to-blue-600'; bgColor = 'bg-blue-50'; }
+      } else if (badge.title.includes('Color Master')) {
+        icon = '🎨';
+        if (status === 'EARNED') { color = 'from-purple-400 to-purple-600'; bgColor = 'bg-purple-50'; }
+      } else if (badge.title.includes('Match Finder')) {
+        icon = '🧩';
+        if (status === 'EARNED') { color = 'from-pink-400 to-pink-600'; bgColor = 'bg-pink-50'; }
+      } else if (badge.title.includes('Shape Explorer')) {
+        icon = '🔷';
+        if (status === 'EARNED') { color = 'from-blue-400 to-indigo-600'; bgColor = 'bg-blue-50'; }
+      } else if (badge.title.includes('Number Ninja')) {
+        icon = '🔢';
+        if (status === 'EARNED') { color = 'from-green-400 to-green-600'; bgColor = 'bg-green-50'; }
+      } else if (badge.title.includes('Consistency Champ')) {
+        icon = '📅';
+        if (status === 'EARNED') { color = 'from-indigo-400 to-indigo-600'; bgColor = 'bg-indigo-50'; }
+      } else if (badge.title.includes('High Achiever')) {
+        icon = '🏅';
+        if (status === 'EARNED') { color = 'from-orange-400 to-orange-600'; bgColor = 'bg-orange-50'; }
+      } else if (badge.title.includes('Daily Life Hero')) {
+        icon = '🏠';
+        if (status === 'EARNED') { color = 'from-teal-400 to-teal-600'; bgColor = 'bg-teal-50'; }
+      } else if (badge.title.includes('All-Rounder')) {
+        icon = '🏆';
+        if (status === 'EARNED') { color = 'from-gradient-400 to-gradient-600'; bgColor = 'bg-gradient-to-br from-yellow-50 to-orange-50'; }
+      }
+
+      return {
+        icon,
+        title: badge.title,
+        description,
+        status,
+        color,
+        bgColor,
+        animation
+      };
+    });
+
+    console.log('🏆 Calculated badges display:', badgesDisplay);
+    return badgesDisplay;
+  };
+
+  const badges = loading ? [] : calculateDynamicBadges();
 
   const AdminProfile = (e) => {
     e.preventDefault();
@@ -524,42 +922,8 @@ const Tracking = () => {
           )}
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
-          {/* Accuracy Rates by Category */}
-          <div className="bg-red rounded-2xl p-6 shadow-lg border border-gray-100">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-800">Accuracy Rates by Category</h3>
-              <div className="bg-purple-100 p-2 rounded-lg">
-                <span className="text-2xl">🎯</span>
-              </div>
-            </div>
-            <div className="space-y-4">
-              {accuracyRates.map((item, idx) => (
-                <div key={idx} className="bg-gray-50 rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-2xl">{item.icon}</span>
-                      <div>
-                        <span className="font-semibold text-gray-700">{item.category}</span>
-                        <p className="text-sm text-gray-500">{item.completed} completed</p>
-                      </div>
-                    </div>
-                    <span className="text-lg font-bold text-gray-800">{item.accuracy}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div
-                      className={`${item.color} h-3 rounded-full transition-all duration-500`}
-                      style={{ width: `${item.accuracy}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        
-
-          {/* Recent Activities */}
+        {/* Recent Activities - Full Width */}
+        <div className="mb-8">
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-800">Recent Activities</h3>
@@ -567,11 +931,11 @@ const Tracking = () => {
                 <span className="text-2xl">📊</span>
               </div>
             </div>
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {loading ? (
-                <div className="text-center py-4 text-gray-600">Loading recent activities...</div>
+                <div className="col-span-full text-center py-4 text-gray-600">Loading recent activities...</div>
               ) : recentActivitiesData.length === 0 ? (
-                <div className="text-center py-4 text-gray-600">No recent activities found</div>
+                <div className="col-span-full text-center py-4 text-gray-600">No recent activities found</div>
               ) : (
                 recentActivitiesData.map((activity, i) => (
                 <div
@@ -677,14 +1041,29 @@ const Tracking = () => {
 
           {/* Badges */}
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-            <h3 className="text-xl font-bold text-gray-800 mb-6">Achievements & Badges</h3>
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">Achievements & Badges</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  {Object.values(studentBadgesData).reduce((total, badges) => total + (badges ? badges.length : 0), 0)} total badges earned by all students
+                </p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">
+                  {badges.filter(b => b.status === 'EARNED').length} / {badges.length} Badge Types Awarded
+                </span>
+                <div className="bg-yellow-100 p-2 rounded-lg">
+                  <span className="text-2xl">🏆</span>
+                </div>
+              </div>
+            </div>
             <div className="grid lg:grid-cols-5 gap-4">
               {badges.map((badge, index) => (
                 <div 
                   key={index}
                   className={`card-autism-friendly ${badge.bgColor} p-4 rounded-2xl text-center relative overflow-hidden border-2 ${
                     badge.status === 'EARNED' 
-                      ? 'border-green-200 shadow-lg' 
+                      ? 'border-green-200 shadow-lg transform hover:scale-105 transition-all duration-300' 
                       : 'border-gray-200 opacity-75'
                   }`}
                 >
@@ -703,11 +1082,11 @@ const Tracking = () => {
                     {badge.title}
                   </h3>
                   
-                  <p className="text-xs text-gray-600 mb-2 leading-tight">
+                  <p className="text-xs text-gray-600 mb-3 leading-tight">
                     {badge.description}
                   </p>
                   
-                  <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                  <span className={`text-xs font-bold px-3 py-1 rounded-full ${
                     badge.status === 'EARNED' 
                       ? 'bg-green-100 text-green-600' 
                       : 'bg-gray-100 text-gray-500'

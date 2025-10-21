@@ -39,7 +39,7 @@ const SystemInformation = () => {
           name: "Letters",
           icon: "📝",
           description: "Alphabet learning and letter recognition",
-          difficulties: ["Easy", "Medium", "Hard"],
+          difficulties: ["Beginner", "Intermediate", "Proficient"],
           sampleActivities: ["Letter Recognition", "Letter Sounds", "Letter Writing"]
         }
       ]
@@ -53,28 +53,28 @@ const SystemInformation = () => {
           name: "Personal Care",
           icon: "🧼",
           description: "Self-care activities and hygiene routines",
-          difficulties: ["Easy", "Medium", "Hard"],
+          difficulties: ["Beginner", "Intermediate", "Proficient"],
           sampleActivities: ["Brushing Teeth", "Washing Hands", "Getting Dressed"]
         },
         {
           name: "Social Skills",
           icon: "👥",
           description: "Interaction and communication with others",
-          difficulties: ["Easy", "Medium", "Hard"],
+          difficulties: ["Beginner", "Intermediate", "Proficient"],
           sampleActivities: ["Greetings", "Sharing", "Following Instructions"]
         },
         {
           name: "Safety",
           icon: "🛡️",
           description: "Understanding safety rules and emergency procedures",
-          difficulties: ["Easy", "Medium", "Hard"],
+          difficulties: ["Beginner", "Intermediate", "Proficient"],
           sampleActivities: ["Traffic Safety", "Home Safety", "Stranger Awareness"]
         },
         {
           name: "Communication",
           icon: "💬",
           description: "Expressing needs, feelings, and thoughts effectively",
-          difficulties: ["Easy", "Medium", "Hard"],
+          difficulties: ["Beginner", "Intermediate", "Proficient"],
           sampleActivities: ["Emotion Expression", "Asking for Help", "Making Requests"]
         }
       ]
@@ -83,7 +83,7 @@ const SystemInformation = () => {
 
   const difficultyLevels = [
     {
-      level: "Easy",
+      level: "Beginner",
       icon: "🌱",
       color: "from-green-400 to-green-600",
       bgColor: "from-green-50 to-green-100",
@@ -97,7 +97,7 @@ const SystemInformation = () => {
       ]
     },
     {
-      level: "Medium",
+      level: "Intermediate",
       icon: "🔥",
       color: "from-orange-400 to-orange-600", 
       bgColor: "from-orange-50 to-orange-100",
@@ -111,7 +111,7 @@ const SystemInformation = () => {
       ]
     },
     {
-      level: "Hard",
+      level: "Proficient",
       icon: "💎",
       color: "from-red-400 to-red-600",
       bgColor: "from-red-50 to-red-100",
@@ -350,7 +350,7 @@ const SystemInformation = () => {
               </li>
               <li className="flex items-start">
                 <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-3 mt-0.5">3</span>
-                Start with Easy difficulty and progress gradually
+                Start with Beginner difficulty and progress gradually
               </li>
               <li className="flex items-start">
                 <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-3 mt-0.5">4</span>

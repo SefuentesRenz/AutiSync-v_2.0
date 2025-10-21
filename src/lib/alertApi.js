@@ -37,15 +37,12 @@ export async function createAlertWithNotification({
   if (!error && alert && shouldNotifyAdmin(emotion_name, intensity)) {
     // Get student name from user_profile for notification
     const { data: student } = await supabase
-      .from('students')
-      .select(`
-        *,
-        user_profiles(full_name)
-      `)
-      .eq('id', student_id)
+      .from('user_profiles')
+      .select('full_name')
+      .eq('user_id', student_id)
       .single();
     
-    const studentName = student?.user_profiles?.full_name || 'Student';
+    const studentName = student?.full_name || 'Student';
     
     await notifyAdminOfNegativeEmotion({
       ...alert[0],

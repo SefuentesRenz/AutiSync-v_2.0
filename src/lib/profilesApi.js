@@ -1,56 +1,45 @@
 // src/lib/profilesApi.js
+// DEPRECATED: This file uses a generic 'profiles' table that doesn't exist in the schema.
+// Use the specific APIs instead:
+// - userProfilesApi.js for student profiles
+// - adminsApi.js for admin profiles  
+// - parentsApi.js for parent profiles
+
 import { supabase } from './supabase';
 
-// Create a new profile
+// DEPRECATED: Use createUserProfile from userProfilesApi.js for students
 export async function createProfile({ name, email, role }) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .insert([{ name, email, role }]);
-  return { data, error };
+  console.warn('DEPRECATED: createProfile() - Use specific APIs for user_profiles, admins, or parents');
+  // This function is deprecated - use the correct table-specific APIs
+  return { data: null, error: { message: 'Use specific APIs for user_profiles, admins, or parents' } };
 }
 
-// Get all profiles
+// DEPRECATED: Use specific table APIs
 export async function getProfiles() {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*');
-  return { data, error };
+  console.warn('DEPRECATED: getProfiles() - Use specific APIs for user_profiles, admins, or parents');
+  return { data: null, error: { message: 'Use specific APIs for user_profiles, admins, or parents' } };
 }
 
-// Get a profile by id
+// DEPRECATED: Use specific table APIs
 export async function getProfileById(id) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', id)
-    .single();
-  return { data, error };
+  console.warn('DEPRECATED: getProfileById() - Use specific APIs for user_profiles, admins, or parents');
+  return { data: null, error: { message: 'Use specific APIs for user_profiles, admins, or parents' } };
 }
 
-// Get a profile by email
+// DEPRECATED: Use specific table APIs
 export async function getProfileByEmail(email) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('email', email)
-    .single();
-  return { data, error };
+  console.warn('DEPRECATED: getProfileByEmail() - Use specific APIs for user_profiles, admins, or parents');
+  return { data: null, error: { message: 'Use specific APIs for user_profiles, admins, or parents' } };
 }
 
-// Update a profile by id
+// DEPRECATED: Use specific table APIs
 export async function updateProfile(id, updates) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .update(updates)
-    .eq('id', id);
-  return { data, error };
+  console.warn('DEPRECATED: updateProfile() - Use specific APIs for user_profiles, admins, or parents');
+  return { data: null, error: { message: 'Use specific APIs for user_profiles, admins, or parents' } };
 }
 
-// Delete a profile by id
+// DEPRECATED: Use specific table APIs
 export async function deleteProfile(id) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .delete()
-    .eq('id', id);
-  return { data, error };
+  console.warn('DEPRECATED: deleteProfile() - Use specific APIs for user_profiles, admins, or parents');
+  return { data: null, error: { message: 'Use specific APIs for user_profiles, admins, or parents' } };
 }

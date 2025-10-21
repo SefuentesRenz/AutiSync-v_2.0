@@ -55,7 +55,7 @@ const DifficultySelector = ({ onSelectDifficulty, onJoinFriend, selectedCategory
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
       <button 
         className="bg-white/80 backdrop-blur-xl border-2 border-green-200 hover:border-green-400 rounded-3xl shadow-xl hover:shadow-2xl p-8 flex flex-col items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-green-300 cursor-pointer " 
-        {...getButtonSoundHandlers(() => onSelectDifficulty("Easy"))}
+        {...getButtonSoundHandlers(() => onSelectDifficulty("Beginner"))}
       >
         <div className="text-7xl mb-4">😊</div>
 
@@ -66,7 +66,7 @@ const DifficultySelector = ({ onSelectDifficulty, onJoinFriend, selectedCategory
       
       <button 
         className="bg-white/80 backdrop-blur-xl border-2 border-orange-200 hover:border-orange-400 rounded-3xl shadow-xl hover:shadow-2xl p-8 flex flex-col items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-orange-300 cursor-pointer " 
-        {...getButtonSoundHandlers(() => onSelectDifficulty("Medium"))}
+        {...getButtonSoundHandlers(() => onSelectDifficulty("Intermediate"))}
       >
         <div className="text-7xl mb-4">🤔</div>
 
@@ -77,7 +77,7 @@ const DifficultySelector = ({ onSelectDifficulty, onJoinFriend, selectedCategory
       
       <button 
         className="bg-white/80 backdrop-blur-xl border-2 border-red-200 hover:border-red-400 rounded-3xl shadow-xl hover:shadow-2xl p-8 flex flex-col items-center justify-center transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-red-300 cursor-pointer " 
-        {...getButtonSoundHandlers(() => onSelectDifficulty("Hard"))}
+        {...getButtonSoundHandlers(() => onSelectDifficulty("Proficient"))}
       >
         <div className="text-7xl mb-4">💪</div>
 

@@ -41,25 +41,34 @@ export async function createUserProfile({
 
     console.log('Creating profile with cleaned data:', profileData);
 
-    // First, verify the auth user exists before attempting insert
-    try {
-      const { data: userExists } = await supabase
-        .rpc('check_auth_user_exists', { user_uuid: user_id });
-      
-      if (!userExists) {
-        console.warn('Auth user does not exist yet, will retry...');
-      } else {
-        console.log('Auth user verified to exist in database');
-      }
-    } catch (rpcError) {
-      console.warn('Could not verify auth user (function may not exist):', rpcError.message);
-    }
+    // Add initial delay to allow auth user to be fully committed
+    console.log('Waiting for auth user to be fully committed...');
+    await new Promise(resolve => setTimeout(resolve, 2000)); // Initial 2-second wait
 
     // Retry mechanism for foreign key constraint violations (timing issues)
     let retryCount = 0;
-    const maxRetries = 3;
+    const maxRetries = 5; // Increased from 3 to 5
     
     while (retryCount < maxRetries) {
+      // Try to verify auth user exists before attempting insert
+      try {
+        const { data: authUser, error: authError } = await supabase.auth.getUser();
+        if (authError || !authUser?.user || authUser.user.id !== user_id) {
+          console.warn(`Auth user verification failed on attempt ${retryCount + 1}`);
+          throw new Error('Auth user not ready');
+        }
+        console.log(`Auth user verified on attempt ${retryCount + 1}`);
+      } catch (authVerifyError) {
+        console.warn(`Auth verification failed on attempt ${retryCount + 1}:`, authVerifyError.message);
+        if (retryCount < maxRetries - 1) {
+          const delay = 2000 * (retryCount + 1); // 2s, 4s, 6s, 8s
+          console.log(`Waiting ${delay}ms before retry...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          retryCount++;
+          continue;
+        }
+      }
+      
       const { data, error } = await supabase
         .from('user_profiles')
         .insert([profileData])
@@ -78,7 +87,7 @@ export async function createUserProfile({
         
         if (retryCount < maxRetries) {
           // Wait longer with each retry (exponential backoff)
-          const delay = 1500 * retryCount; // 1.5s, 3s, 4.5s
+          const delay = 2500 * retryCount; // 2.5s, 5s, 7.5s, 10s
           console.log(`Waiting ${delay}ms before retry...`);
           await new Promise(resolve => setTimeout(resolve, delay));
         } else {
@@ -87,7 +96,7 @@ export async function createUserProfile({
           return { 
             data: null, 
             error: { 
-              message: `Account creation failed after multiple attempts. Please try again in a few moments, or contact support if the issue persists.`,
+              message: `Account creation failed after multiple attempts. The authentication system may need more time. Please wait a moment and try logging in, or refresh the page and try again.`,
               code: 'FK_CONSTRAINT_VIOLATION_RETRY_FAILED',
               originalError: error
             } 
@@ -148,7 +157,7 @@ export async function getUserProfilesByParentEmail(parents_email) {
   const { data, error } = await supabase
     .from('user_profiles')
     .select('*')
-    .eq('parent_email', parents_email); // Use correct column name
+    .eq('parents_email', parents_email); // Use correct column name
   return { data, error };
 }
 

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { createParent, getParentByUserId } from '../lib/parentsApi';
-import { getStudents } from '../lib/studentsApi';
 import { linkParentToChild } from '../lib/parentChildApi';
 
 const LinkChildModal = ({ isOpen, onClose, onChildLinked }) => {
@@ -75,7 +74,7 @@ const LinkChildModal = ({ isOpen, onClose, onChildLinked }) => {
       console.log('Debug: Checking all students in database...');
       const { data: allStudents, error: debugError } = await supabase
         .from('user_profiles')
-        .select('email, username, user_id, first_name, last_name')
+        .select('email, username, user_id, full_name, id')
         .limit(10);
         
       if (!debugError && allStudents) {
@@ -193,15 +192,13 @@ const LinkChildModal = ({ isOpen, onClose, onChildLinked }) => {
       console.log('Child linked successfully:', relationData);
 
       // Show success message
-      setSuccess(`Successfully linked ${studentProfile.first_name || studentProfile.username}!`);
+      setSuccess(`Successfully linked ${studentProfile.full_name || studentProfile.username}!`);
       
       // Success - call the callback
       if (onChildLinked) {
         const callbackData = {
           id: studentProfile.id,
-          name: (studentProfile.first_name && studentProfile.last_name) 
-            ? `${studentProfile.first_name} ${studentProfile.last_name}` 
-            : studentProfile.username,
+          name: studentProfile.full_name || studentProfile.username,
           email: studentProfile.email,
           username: studentProfile.username,
           user_id: studentProfile.user_id,

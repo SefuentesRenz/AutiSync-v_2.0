@@ -4,10 +4,14 @@ import { supabase } from './supabase';
 // Get all available badges
 export async function getAllBadges() {
   try {
+    console.log('🏆 Fetching all badges from database...');
     const { data, error } = await supabase
       .from('badges')
       .select('*')
       .order('created_at', { ascending: true });
+
+    console.log('🏆 getAllBadges query result:', { data, error });
+    console.log('🏆 Number of badges fetched:', data?.length || 0);
 
     if (error) {
       console.error('Error fetching badges:', error);
@@ -25,18 +29,9 @@ export async function getAllBadges() {
 export async function getStudentBadges(studentId) {
   try {
     const { data, error } = await supabase
-      .from('user_badges')
-      .select(`
-        *,
-        badges (
-          id,
-          title,
-          description,
-          icon_url,
-          criteria
-        )
-      `)
-      .eq('user_id', studentId)
+      .from('student_badges')
+      .select('*')
+      .eq('student_id', studentId)
       .order('earned_at', { ascending: false });
 
     if (error) {
@@ -52,40 +47,50 @@ export async function getStudentBadges(studentId) {
 }
 
 // Award a badge to a student
-export async function awardBadge(studentId, badgeId) {
+export async function awardBadge(studentId, badgeId, activityContext = {}) {
   try {
-    console.log('Awarding badge:', { studentId, badgeId });
+    console.log('Awarding badge:', { studentId, badgeId, activityContext });
 
     // Check if student already has this badge
     const { data: existingBadge, error: checkError } = await supabase
-      .from('user_badges')
+      .from('student_badges')
       .select('*')
-      .eq('user_id', studentId)
-      .eq('badge_id', badgeId)
+      .eq('student_id', studentId)
+      .eq('badge_id', badgeId);
+
+    if (existingBadge && existingBadge.length > 0) {
+      console.log('Student already has this badge');
+      return { data: existingBadge[0], error: null };
+    }
+
+    // Get badge details for the award
+    const { data: badgeData, error: badgeError } = await supabase
+      .from('badges')
+      .select('*')
+      .eq('id', badgeId)
       .single();
 
-    if (existingBadge) {
-      console.log('Student already has this badge');
-      return { data: existingBadge, error: null };
+    if (badgeError) {
+      console.error('Error fetching badge details:', badgeError);
+      return { data: null, error: badgeError };
     }
 
     // Award the badge
     const { data, error } = await supabase
-      .from('user_badges')
+      .from('student_badges')
       .insert([{
-        user_id: studentId,
+        student_id: studentId,
         badge_id: badgeId,
-        earned_at: new Date().toISOString()
+        earned_at: new Date().toISOString(),
+        badge_name: badgeData.title,
+        badge_icon: badgeData.icon_url,
+        badge_rarity: 'Common',
+        activity_name: activityContext.activityName || '',
+        activity_category: activityContext.category || '',
+        activity_difficulty: activityContext.difficulty || '',
+        session_score: activityContext.score?.toString() || ''
       }])
-      .select(`
-        *,
-        badges (
-          id,
-          title,
-          description,
-          icon_url
-        )
-      `);
+      .select('*');
 
     if (error) {
       console.error('Error awarding badge:', error);
@@ -103,7 +108,7 @@ export async function awardBadge(studentId, badgeId) {
 // Check if student should receive badges based on their progress
 export async function checkAndAwardBadges(studentId) {
   try {
-    console.log('Checking badges for student:', studentId);
+    console.log('🏆 Checking badges for student:', studentId);
 
     // Get all badges and their criteria
     const { data: allBadges, error: badgesError } = await getAllBadges();
@@ -119,24 +124,27 @@ export async function checkAndAwardBadges(studentId) {
       return { data: [], error: studentBadgesError };
     }
 
-    const earnedBadgeIds = studentBadges.map(ub => ub.badge_id);
+    const earnedBadgeIds = studentBadges.map(sb => sb.badge_id);
 
     // Get student's progress data
     const { data: progress, error: progressError } = await supabase
-  .from('user_activity_progress')
+      .from('user_activity_progress')
       .select(`
         *,
         activities (
+          title,
           category,
           difficulty
         )
       `)
-      .eq('student_id', studentId);
+      .eq('user_id', studentId);
 
     if (progressError) {
       console.error('Error fetching progress:', progressError);
       return { data: [], error: progressError };
     }
+
+    console.log('🏆 Student progress data:', progress);
 
     const newlyEarnedBadges = [];
 
@@ -148,34 +156,101 @@ export async function checkAndAwardBadges(studentId) {
 
       const criteria = badge.criteria;
       let shouldAward = false;
+      let activityContext = {};
 
-      // Example badge criteria checks
-      if (criteria.type === 'activities_completed') {
-        const completedCount = progress.filter(p => p.completion_status === 'completed').length;
-        shouldAward = completedCount >= criteria.count;
-      } else if (criteria.type === 'category_mastery') {
-        const categoryProgress = progress.filter(p => 
-          p.activities?.category === criteria.category && 
-          p.completion_status === 'completed'
+      console.log(`🏆 Checking badge: ${badge.title}`, criteria);
+
+      // Badge criteria checks based on your badge definitions
+      if (criteria.activity === 'any' && criteria.count === 1) {
+        // First Step badge
+        shouldAward = progress.length > 0;
+      } else if (criteria.score === 100 && criteria.activity === 'any') {
+        // Perfect Scorer badge
+        const perfectScores = progress.filter(p => p.score >= 100);
+        shouldAward = perfectScores.length > 0;
+        if (shouldAward && perfectScores.length > 0) {
+          const perfectActivity = perfectScores[0];
+          activityContext = {
+            activityName: perfectActivity.activities?.title,
+            category: perfectActivity.activities?.category,
+            difficulty: perfectActivity.activities?.difficulty,
+            score: perfectActivity.score
+          };
+        }
+      } else if (criteria.activity === 'academic' && criteria.count === 5) {
+        // Academic Star badge
+        const academicActivities = progress.filter(p => 
+          p.activities?.category?.toLowerCase().includes('academic') ||
+          p.activities?.title?.toLowerCase().includes('academic')
         );
-        shouldAward = categoryProgress.length >= criteria.count;
-      } else if (criteria.type === 'high_score') {
-        const highScores = progress.filter(p => p.score >= criteria.score);
-        shouldAward = highScores.length >= criteria.count;
-      } else if (criteria.type === 'perfect_score') {
-        const perfectScores = progress.filter(p => p.score === 100);
-        shouldAward = perfectScores.length >= criteria.count;
+        shouldAward = academicActivities.length >= 5;
+      } else if (criteria.activity === 'color' && criteria.count === 2) {
+        // Color Master badge
+        const colorActivities = progress.filter(p => 
+          p.activities?.category?.toLowerCase().includes('color') ||
+          p.activities?.title?.toLowerCase().includes('color')
+        );
+        // Check for different difficulties
+        const difficulties = new Set(colorActivities.map(a => a.activities?.difficulty));
+        shouldAward = colorActivities.length >= 2 && difficulties.size >= 2;
+      } else if (criteria.activity === 'matching' && criteria.count === 1) {
+        // Match Finder badge
+        const matchingActivities = progress.filter(p => 
+          p.activities?.title?.toLowerCase().includes('match') ||
+          p.activities?.category?.toLowerCase().includes('match')
+        );
+        shouldAward = matchingActivities.length >= 1;
+      } else if (criteria.activity === 'shape' && criteria.count === 2) {
+        // Shape Explorer badge
+        const shapeActivities = progress.filter(p => 
+          p.activities?.category?.toLowerCase().includes('shape') ||
+          p.activities?.title?.toLowerCase().includes('shape')
+        );
+        shouldAward = shapeActivities.length >= 2;
+      } else if (criteria.activity === 'number_flashcard' && criteria.count === 1) {
+        // Number Ninja badge
+        const numberFlashcardActivities = progress.filter(p => 
+          (p.activities?.title?.toLowerCase().includes('number') && 
+           p.activities?.title?.toLowerCase().includes('flashcard')) ||
+          p.activities?.category?.toLowerCase().includes('number')
+        );
+        shouldAward = numberFlashcardActivities.length >= 1;
+      } else if (criteria.unique_types === 3) {
+        // Consistency Champ badge
+        const uniqueCategories = new Set(progress.map(p => p.activities?.category).filter(Boolean));
+        shouldAward = uniqueCategories.size >= 3;
+      } else if (criteria.min_score === 80 && criteria.count === 5) {
+        // High Achiever badge
+        const highScoreActivities = progress.filter(p => p.score >= 80);
+        shouldAward = highScoreActivities.length >= 5;
+      } else if (criteria.activity === 'social_daily_life' && criteria.count === 3) {
+        // Daily Life Hero badge
+        const dailyLifeActivities = progress.filter(p => 
+          p.activities?.category?.toLowerCase().includes('social') ||
+          p.activities?.category?.toLowerCase().includes('daily') ||
+          p.activities?.category?.toLowerCase().includes('life')
+        );
+        shouldAward = dailyLifeActivities.length >= 3;
+      } else if (criteria.unique_types === 5) {
+        // All-Rounder badge
+        const uniqueCategories = new Set(progress.map(p => p.activities?.category).filter(Boolean));
+        shouldAward = uniqueCategories.size >= 5;
       }
 
+      console.log(`🏆 Badge ${badge.title}: shouldAward = ${shouldAward}`);
+
       if (shouldAward) {
-        const { data: awardedBadge, error: awardError } = await awardBadge(studentId, badge.id);
+        const { data: awardedBadge, error: awardError } = await awardBadge(studentId, badge.id, activityContext);
         if (awardedBadge && !awardError) {
           newlyEarnedBadges.push(awardedBadge);
+          console.log(`🏆 Awarded badge: ${badge.title}`);
+        } else if (awardError) {
+          console.error(`🏆 Error awarding badge ${badge.title}:`, awardError);
         }
       }
     }
 
-    console.log('Newly earned badges:', newlyEarnedBadges);
+    console.log('🏆 Newly earned badges:', newlyEarnedBadges);
     return { data: newlyEarnedBadges, error: null };
   } catch (error) {
     console.error('Unexpected error checking badges:', error);

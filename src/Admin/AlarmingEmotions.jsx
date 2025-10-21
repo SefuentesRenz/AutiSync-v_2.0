@@ -11,33 +11,76 @@ const AlarmingEmotions = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('alerts'); // 'alerts' or 'history'
+  const [timeFilter, setTimeFilter] = useState('24h'); // '24h', '7d', '1m', '3m', 'all'
 
   const AdminProfile = (e) => {
     e.preventDefault();
     navigate("/adminprofile");
   };
 
+  // Calculate time range based on filter
+  const getTimeRange = (filter) => {
+    const now = new Date();
+    let startTime;
+    
+    switch (filter) {
+      case '24h':
+        startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case '7d':
+        startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '1m':
+        startTime = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case '3m':
+        startTime = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        break;
+      case 'all':
+      default:
+        return null; // No time filter
+    }
+    
+    return startTime.toISOString();
+  };
+
+  // Get display label for time filter
+  const getTimeFilterLabel = (filter) => {
+    switch (filter) {
+      case '24h': return 'last 24 hours';
+      case '7d': return 'last 7 days';
+      case '1m': return 'last month';
+      case '3m': return 'last 3 months';
+      case 'all': return 'all time';
+      default: return 'last 24 hours';
+    }
+  };
+
   // Fetch alerts and notifications from backend
   useEffect(() => {
     fetchAlertsAndNotifications();
     fetchAllEmotions();
-  }, []);
+  }, [timeFilter]); // Add timeFilter as dependency
 
   const fetchAlertsAndNotifications = async () => {
     setLoading(true);
     try {
-      // Calculate 24 hours ago timestamp
-      const twentyFourHoursAgo = new Date();
-      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
-      const twentyFourHoursAgoISO = twentyFourHoursAgo.toISOString();
+      // Get time range based on filter
+      const timeRangeStart = getTimeRange(timeFilter);
       
-      // Fetch negative emotions (angry/sad) from last 24 hours - removed intensity filter since students don't set levels
-      const { data: highPriorityData, error: highPriorityError } = await supabase
+      // Build query for negative emotions (angry/sad)
+      let query = supabase
         .from('Expressions')
         .select('*')
         .in('emotion', ['angry', 'sad'])
-        .gte('created_at', twentyFourHoursAgoISO)
         .order('created_at', { ascending: false });
+      
+      // Apply time filter if not 'all'
+      if (timeRangeStart) {
+        query = query.gte('created_at', timeRangeStart);
+      }
+      
+      const { data: highPriorityData, error: highPriorityError } = await query;
 
       if (highPriorityError) {
         console.error('Error fetching high priority emotions:', highPriorityError);
@@ -48,21 +91,14 @@ const AlarmingEmotions = () => {
         // Get student names for priority alerts
         let alertsWithNames = [];
         if (highPriorityData && highPriorityData.length > 0) {
-          const studentIds = [...new Set(highPriorityData.map(exp => exp.student_id).filter(Boolean))];
+          const userIds = [...new Set(highPriorityData.map(exp => exp.user_id).filter(Boolean))];
           
           let studentsData = [];
-          if (studentIds.length > 0) {
+          if (userIds.length > 0) {
             const { data: students, error: studentsError } = await supabase
-              .from('students')
-              .select(`
-                id,
-                profile_id,
-                user_profiles!students_profile_id_fkey (
-                  full_name,
-                  username
-                )
-              `)
-              .in('id', studentIds);
+              .from('user_profiles')
+              .select('user_id, full_name, username')
+              .in('user_id', userIds);
 
             if (!studentsError && students) {
               studentsData = students;
@@ -71,7 +107,7 @@ const AlarmingEmotions = () => {
           
           // Process high priority emotions as alerts with student names
           alertsWithNames = highPriorityData.map(expression => {
-            const student = studentsData.find(s => s.id === expression.student_id);
+            const student = studentsData.find(s => s.user_id === expression.user_id);
             const studentName = student?.user_profiles?.full_name || 
                                student?.user_profiles?.username || 
                                student?.full_name || 
@@ -124,72 +160,61 @@ const AlarmingEmotions = () => {
   // Function to fetch ALL student emotions (positive and negative)
   const fetchAllEmotions = async () => {
     try {
-      // Calculate 24 hours ago timestamp
-      const twentyFourHoursAgo = new Date();
-      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
-      const twentyFourHoursAgoISO = twentyFourHoursAgo.toISOString();
+      // Get time range based on filter
+      const timeRangeStart = getTimeRange(timeFilter);
       
-      // Fetch expressions from last 24 hours only
-      const { data: expressionsData, error: expressionsError } = await supabase
+      // Build query for all expressions
+      let query = supabase
         .from('Expressions')
         .select('*')
-        .gte('created_at', twentyFourHoursAgoISO)
         .order('created_at', { ascending: false })
         .limit(50);
+      
+      // Apply time filter if not 'all'
+      if (timeRangeStart) {
+        query = query.gte('created_at', timeRangeStart);
+      }
+      
+      const { data: expressionsData, error: expressionsError } = await query;
 
       if (expressionsError) {
         console.error('Error fetching expressions:', expressionsError);
         return;
       }
 
-      console.log('Expressions data (last 24h):', expressionsData);
+      console.log(`Expressions data (${timeFilter}):`, expressionsData);
 
       if (!expressionsData || expressionsData.length === 0) {
         setAllEmotions([]);
         return;
       }
 
-      // Get unique student IDs
-      const studentIds = [...new Set(expressionsData.map(exp => exp.student_id).filter(Boolean))];
+      // Get unique user IDs (now user_id contains user_id directly)
+      const userIds = [...new Set(expressionsData.map(exp => exp.user_id).filter(Boolean))];
       
-      // Fetch student information separately
+      // Fetch user profile information directly
       let studentsData = [];
-      if (studentIds.length > 0) {
-        const { data: students, error: studentsError } = await supabase
-          .from('students')
-          .select(`
-            id,
-            profile_id,
-            user_profiles!students_profile_id_fkey (
-              full_name,
-              username
-            )
-          `)
-          .in('id', studentIds);
-
-        if (studentsError) {
-          console.error('Error fetching students:', studentsError);
-          // Try alternative approach
-          const { data: profiles, error: profilesError } = await supabase
-            .from('user_profiles')
-            .select('id, full_name, username');
+      if (userIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('user_profiles')
+          .select('user_id, full_name, username')
+          .in('user_id', userIds);
           
-          if (!profilesError && profiles) {
-            studentsData = profiles;
-          }
+        if (!profilesError && profiles) {
+          studentsData = profiles;
         } else {
-          studentsData = students || [];
+          console.error('Error fetching user profiles:', profilesError);
         }
       }
 
-      console.log('Students data:', studentsData);
+      console.log('User profiles data:', studentsData);
 
       // Process emotions data with student names
       const processedEmotions = expressionsData.map(expression => {
         // Find student info
-        const student = studentsData.find(s => s.id === expression.student_id);
-        const studentName = student?.user_profiles?.full_name || 
-                           student?.user_profiles?.username || 
+        const student = studentsData.find(s => s.user_id === expression.user_id);
+        const studentName = student?.full_name || 
+                           student?.username || 
                            student?.full_name || 
                            student?.username || 
                            'Unknown Student';
@@ -368,7 +393,15 @@ const AlarmingEmotions = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold text-gray-900 mb-2">📊 Student Emotions Dashboard</h1>
-              <p className="text-lg text-gray-600">Monitor student emotions from the last 24 hours • Live updates every day</p>
+              <p className="text-lg text-gray-600">
+                Monitor student emotions • 
+                {timeFilter === '24h' && ' Showing last 24 hours'}
+                {timeFilter === '7d' && ' Showing last 7 days'}
+                {timeFilter === '1m' && ' Showing last month'}
+                {timeFilter === '3m' && ' Showing last 3 months'}
+                {timeFilter === 'all' && ' Showing all time data'}
+                {' • Live updates'}
+              </p>
             </div>
             <div className="flex space-x-4">
               <button
@@ -413,6 +446,37 @@ const AlarmingEmotions = () => {
                 📈 All Emotions History
               </button>
             </nav>
+          </div>
+          
+          {/* Time Filter */}
+          <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                <ClockIcon className="h-5 w-5 mr-2 text-blue-600" />
+                Time Range Filter
+              </h3>
+              <div className="flex space-x-2">
+                {[
+                  { value: '24h', label: '24 Hours' },
+                  { value: '7d', label: '7 Days' },
+                  { value: '1m', label: '1 Month' },
+                  { value: '3m', label: '3 Months' },
+                  { value: 'all', label: 'All Time' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setTimeFilter(option.value)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      timeFilter === option.value
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 

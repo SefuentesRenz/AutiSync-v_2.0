@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { createUserProfile } from '../lib/userProfilesApi';
-import { createStudent } from '../lib/studentsApi';
 import { createParent } from '../lib/parentsApi';
 import { createAdmin } from '../lib/adminsApi';
 
@@ -121,9 +120,9 @@ function SignupPage() {
 
       console.log('Using user ID for profile creation:', userId);
 
-      // Wait a moment for the auth user to be fully committed to the database
+      // Wait longer for the auth user to be fully committed to the database
       console.log('Waiting for auth user to be fully committed...');
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 3000)); // Increased to 3 seconds
 
       // Check if the user needs email confirmation
       if (authData.user && !authData.user.email_confirmed_at) {
@@ -153,7 +152,13 @@ function SignupPage() {
         
         if (profileError) {
           console.error('Error creating user profile:', profileError);
-          setError(`Failed to create student profile: ${profileError.message}`);
+          
+          // Check if it's a foreign key constraint error (timing issue)
+          if (profileError.code === 'FK_CONSTRAINT_VIOLATION_RETRY_FAILED') {
+            setError(`Account created but profile setup is taking longer than expected. Please wait a moment and try logging in with your credentials, or refresh this page and try again.`);
+          } else {
+            setError(`Failed to create student profile: ${profileError.message}`);
+          }
           setLoading(false);
           return;
         }
@@ -169,14 +174,7 @@ function SignupPage() {
 
         console.log('Using profile ID:', profileId);
 
-        console.log('Creating student record for profile ID:', profileId);
-        const { error: studentError } = await createStudent({ profile_id: profileId });
-        if (studentError) {
-          console.error('Error creating student record:', studentError);
-          setError(`Failed to create student record: ${studentError.message}`);
-          setLoading(false);
-          return;
-        }
+        // No need to create a separate student record since user_profiles now serves as both
 
       } else if (userType === 'parent') {
         // For parents: Create parent record directly (no user_profile)
@@ -204,7 +202,15 @@ function SignupPage() {
           full_name: formData.fullName,
           email: formData.email,
           phone_number: formData.phoneNumber,
-          address: formData.address
+          address: formData.address,
+          department: formData.department || 'General', // Default department
+          permissions: {
+            can_view_students: true,
+            can_edit_students: false,
+            can_delete_students: false,
+            can_view_reports: true,
+            can_manage_activities: false
+          } // Default permissions
         };
 
         console.log('Creating admin record with data:', adminData);

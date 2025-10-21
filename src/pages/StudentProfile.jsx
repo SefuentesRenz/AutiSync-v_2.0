@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { getStudentProgress } from '../lib/progressApi';
+import { useBadges } from '../hooks/useBadges';
+import { getAllBadges } from '../lib/badgesApi';
 
 const StudentProfile = () => {
   const { user, signOut } = useAuth();
@@ -27,9 +30,13 @@ const StudentProfile = () => {
   const [loggingOut, setLoggingOut] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [allBadges, setAllBadges] = useState([]);
+
+  // Use badges hook for current user
+  const { badges: studentBadges, loading: badgesLoading, checkBadges } = useBadges(user?.id);
 
   // Mock tracking data for visual appeal
-  const [studentTrackingData] = useState({
+  const [studentTrackingData, setStudentTrackingData] = useState({
     accuracyRates: [
       { category: 'Colors', accuracy: 85, completed: '2/3', icon: '🎨', color: 'bg-purple-500' },
       { category: 'Shapes', accuracy: 78, completed: '3/3', icon: '🔷', color: 'bg-blue-500' },
@@ -37,19 +44,33 @@ const StudentProfile = () => {
       { category: 'Letters', accuracy: 74, completed: '3/3', icon: '🔤', color: 'bg-indigo-500' },
       { category: 'Patterns', accuracy: 69, completed: '1/3', icon: '🧩', color: 'bg-pink-500' }
     ],
-    completionRate: 80
+    completionRate: 0
   });
 
   useEffect(() => {
     if (user) {
       console.log('User authenticated, loading profile...');
       loadProfile();
+      loadAllBadges();
     } else {
       console.log('No user found, redirecting...');
       setError('Please log in to view your profile');
       setLoading(false);
     }
   }, [user]);
+
+  const loadAllBadges = async () => {
+    try {
+      const { data: badges, error } = await getAllBadges();
+      if (error) {
+        console.error('Error loading badges:', error);
+      } else {
+        setAllBadges(badges || []);
+      }
+    } catch (err) {
+      console.error('Error loading badges:', err);
+    }
+  };
 
   const loadProfile = async () => {
     try {
@@ -125,6 +146,9 @@ const StudentProfile = () => {
           activities_done: existingProfile.activities_done || 0,
           accuracy_rate: existingProfile.accuracy_rate || 83
         });
+        
+        // Calculate real stats after loading profile
+        await calculateStudentStats();
       } else {
         console.log('No profile found, creating one...');
         await createProfile();
@@ -139,6 +163,69 @@ const StudentProfile = () => {
       setError('Failed to load profile: ' + (err.message || 'Unknown error'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const calculateStudentStats = async () => {
+    try {
+      console.log('Calculating student stats for user:', user.id);
+      
+      // Get user's activity progress
+      const { data: progressData, error } = await getStudentProgress(user.id);
+      console.log('Progress data:', progressData);
+      console.log('Progress error:', error);
+
+      if (!error && progressData && progressData.length > 0) {
+        // Calculate activities done
+        const activitiesDone = progressData.length;
+        
+        // Calculate average accuracy rate
+        const scoresWithValues = progressData.filter(p => p.score && p.score > 0);
+        const averageAccuracy = scoresWithValues.length > 0 
+          ? Math.round(scoresWithValues.reduce((sum, p) => sum + p.score, 0) / scoresWithValues.length)
+          : 0;
+
+        // Calculate completion rate (for now, let's assume all fetched activities are completed)
+        const completionRate = activitiesDone > 0 ? 100 : 0;
+
+        // For achievements and day streak, we'll use simple calculations for now
+        // Achievements could be based on milestones (every 5 activities, high scores, etc.)
+        const achievements = studentBadges ? studentBadges.length : Math.floor(activitiesDone / 5); // Use real badge count if available
+        
+        // Day streak - for now, we'll use a simple calculation
+        // In a real app, this would track consecutive days of activity
+        const dayStreak = activitiesDone > 0 ? Math.min(activitiesDone * 2, 30) : 0;
+
+        console.log('Calculated stats:', {
+          activitiesDone,
+          averageAccuracy,
+          completionRate,
+          achievements,
+          dayStreak
+        });
+
+        // Update userInfo with real stats
+        setUserInfo(prevInfo => ({
+          ...prevInfo,
+          activities_done: activitiesDone,
+          accuracy_rate: averageAccuracy,
+          achievements: achievements,
+          day_streak: dayStreak
+        }));
+
+        // Update completion rate in tracking data
+        setStudentTrackingData(prevData => ({
+          ...prevData,
+          completionRate: completionRate
+        }));
+
+      } else {
+        console.log('No progress data found for user');
+        // Keep default values (zeros)
+      }
+    } catch (error) {
+      console.error('Error calculating student stats:', error);
+      // Keep default values on error
     }
   };
 
@@ -160,6 +247,10 @@ const StudentProfile = () => {
       activities_done: 0,
       accuracy_rate: 83
     });
+    
+    // Calculate real stats after creating basic profile
+    await calculateStudentStats();
+    
     setSuccessMessage('Profile loaded from signup data!');
     setTimeout(() => setSuccessMessage(''), 3000);
   };
@@ -270,6 +361,10 @@ const StudentProfile = () => {
                 activities_done: 0,
                 accuracy_rate: 83
               });
+              
+              // Calculate real stats after creating profile
+              await calculateStudentStats();
+              
               setSuccessMessage('Profile created successfully!');
               setTimeout(() => setSuccessMessage(''), 3000);
               return;
@@ -298,6 +393,10 @@ const StudentProfile = () => {
         activities_done: 0,
         accuracy_rate: 83
       });
+      
+      // Calculate real stats after creating profile
+      await calculateStudentStats();
+      
       setSuccessMessage('Profile created successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
 
@@ -785,27 +884,7 @@ const StudentProfile = () => {
           </div>
         </div>
 
-        {/* Learning Progress */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/20">
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center mb-6">
-            <span className="text-3xl mr-3">📊</span>
-            Learning Progress
-          </h2>
-          
-          <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {studentTrackingData.accuracyRates.map((category, index) => (
-              <div 
-                key={index} 
-                className={`${category.color} rounded-2xl p-4 text-white text-center shadow-lg transform hover:scale-105 transition-all duration-200`}
-              >
-                <div className="text-2xl mb-2">{category.icon}</div>
-                <div className="text-lg font-bold">{category.accuracy}%</div>
-                <div className="text-xs opacity-90">{category.category}</div>
-                <div className="text-xs mt-1">{category.completed}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+
       </main>
     </div>
   );
