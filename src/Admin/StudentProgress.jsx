@@ -299,7 +299,7 @@ const StudentProgress = () => {
   const generateBadges = (student) => {
     const badges = [
       {
-        icon: 'Γ¡É',
+        icon: '🎯',
         title: 'First Steps',
         description: 'Completed your first activity',
         status: 'EARNED',
@@ -308,7 +308,7 @@ const StudentProgress = () => {
         animation: 'animate-bounce-gentle'
       },
       {
-        icon: '≡ƒÄô',
+        icon: '⭐',
         title: 'Academic Star',
         description: 'Completed 10 academic activities',
         status: student.completedActivities >= 10 ? 'EARNED' : 'LOCKED',
@@ -317,7 +317,7 @@ const StudentProgress = () => {
         animation: student.completedActivities >= 10 ? 'animate-pulse-gentle' : ''
       },
       {
-        icon: '≡ƒÄ¿',
+        icon: '🎨',
         title: 'Color Master',
         description: 'Perfect score on 5 color activities',
         status: student.averageScore >= 90 ? 'EARNED' : 'LOCKED',
@@ -326,7 +326,7 @@ const StudentProgress = () => {
         animation: student.averageScore >= 90 ? 'animate-bounce-gentle' : ''
       },
       {
-        icon: '≡ƒöó',
+        icon: '🔢',
         title: 'Number Ninja',
         description: 'Excellent performance in numbers',
         status: student.averageScore >= 85 ? 'EARNED' : 'LOCKED',
@@ -335,7 +335,7 @@ const StudentProgress = () => {
         animation: student.averageScore >= 85 ? 'animate-wiggle' : ''
       },
       {
-        icon: '≡ƒöÑ',
+        icon: '🔥',
         title: 'Streak Master',
         description: 'Learning for 7 days straight',
         status: student.status === 'Active' ? 'EARNED' : 'LOCKED',
@@ -344,7 +344,7 @@ const StudentProgress = () => {
         animation: student.status === 'Active' ? 'animate-pulse-gentle' : ''
       },
       {
-        icon: '≡ƒñ¥',
+        icon: '🤝',
         title: 'Helper Badge',
         description: 'Completed activities with help',
         status: 'EARNED',
@@ -353,7 +353,7 @@ const StudentProgress = () => {
         animation: 'animate-float'
       },
       {
-        icon: '≡ƒÆÄ',
+        icon: '🏃',
         title: 'Challenge Seeker',
         description: 'Attempt 5 hard level activities',
         status: student.completedActivities >= 25 ? 'EARNED' : 'LOCKED',
@@ -362,7 +362,7 @@ const StudentProgress = () => {
         animation: student.completedActivities >= 25 ? 'animate-float-delayed' : ''
       },
       {
-        icon: '≡ƒÅå',
+        icon: '🏆',
         title: 'All-Rounder',
         description: 'Complete activity in every category',
         status: student.completedActivities >= 20 && student.averageScore >= 85 ? 'EARNED' : 'LOCKED',
@@ -413,8 +413,8 @@ const StudentProgress = () => {
   }) || [];
 
   const categories = [
-    { name: 'Academic Skills', percent: Math.min(100, fallbackStudent.averageScore + 5), count: `${Math.floor(fallbackStudent.completedActivities * 0.7)}/${Math.floor(fallbackStudent.completedActivities * 0.8)}`, icon: '≡ƒôÜ', color: 'bg-blue-500' },
-    { name: 'Daily Life Skills', percent: Math.min(100, fallbackStudent.averageScore + 10), count: `${Math.floor(fallbackStudent.completedActivities * 0.3)}/${Math.floor(fallbackStudent.completedActivities * 0.4)}`, icon: '≡ƒÅá', color: 'bg-orange-500' }
+    { name: 'Academic Skills', percent: Math.min(100, fallbackStudent.averageScore + 5), count: `${Math.floor(fallbackStudent.completedActivities * 0.7)}/${Math.floor(fallbackStudent.completedActivities * 0.8)}`, icon: '📚', color: 'bg-blue-500' },
+    { name: 'Daily Life Skills', percent: Math.min(100, fallbackStudent.averageScore + 10), count: `${Math.floor(fallbackStudent.completedActivities * 0.3)}/${Math.floor(fallbackStudent.completedActivities * 0.4)}`, icon: '🌟', color: 'bg-orange-500' }
   ];
 
   return (
@@ -497,7 +497,7 @@ const StudentProgress = () => {
                 </p>
                 <p className="text-sm text-gray-500">Email: {student?.email || 'N/A'}</p>
                 <p className="text-sm text-gray-500">
-                  Status: <span className="font-semibold text-green-600">{student?.status || 'Active'}</span> ΓÇó 
+                  Status: <span className="font-semibold text-green-600">{student?.status || 'Active'}</span> • 
                   Joined: {student?.joinDate || 'N/A'}
                 </p>
               </div>
@@ -664,7 +664,7 @@ const StudentProgress = () => {
                   {/* Status indicator */}
                   {badge.status === 'EARNED' && (
                     <div className="absolute top-2 right-2">
-                      <span className="text-green-500 text-lg animate-bounce-in">Γ£ô</span>
+                      <span className="text-green-500 text-lg animate-bounce-in">✅</span>
                     </div>
                   )}
                   
@@ -690,7 +690,7 @@ const StudentProgress = () => {
                   
                   {badge.status === 'EARNED' && (
                     <div className="absolute bottom-1 right-1">
-                      <span className="text-yellow-400 text-sm animate-pulse-gentle">Γ£¿</span>
+                      <span className="text-yellow-400 text-sm animate-pulse-gentle">✨</span>
                     </div>
                   )}
                 </div>

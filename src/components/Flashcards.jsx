@@ -925,7 +925,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             puzzleType: "sequence",
             questionText: "Sequence Puzzle",
             instruction: "What comes next?",
-            sequence: ["🟦", "🔺", "⚪", "?"],
+            sequence: ["🟦", "🔺", "⚪", "...?"],
             options: ["🔺", "🟦", "⚪"],
             correctAnswer: "🟦",
             hint: "Look at the pattern - it repeats!"
@@ -939,12 +939,13 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
             hint: "Fruits are things you can eat!"
           },
           {
-            puzzleType: "logic",
+            puzzleType: "sequence",
             questionText: "Pattern Puzzle",
             instruction: "What come's next?",
-            options: ["⚪", "⭐", "🔺","⚪"],
+            sequence: ["⚪", "⭐", "🔺", "⚪", "...?"],  
+            options: ["⚪", "⭐", "🔺"],
             correctAnswer: "⭐",
-            hint: ""
+            hint: "Look at the pattern - it repeats!"
           },
         ],
         "Visual Memory Challenge": [
@@ -1059,7 +1060,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
 
         Identification: [
           {
-            questionText: "What is the national Animal of the Philippines??", 
+            questionText: "What is the national Animal of the Philippines?", 
             videoSrc: "/assets/flashcards/Identification-Hard/Carabao.mp4",
             answerChoices: ["Carabao", "Cow", "Horse", "Goat"],
             correctAnswer: "Carabao"   
@@ -3362,7 +3363,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     
     // Show completion with detailed feedback (dynamic)
     if (finalScore === totalItems) {
-      setMatchingFeedbackMessage(`🎉 PERFECT SCORE! All ${totalItems} answers correct! Excellent work! 🎊`);
+      setMatchingFeedbackMessage(`🎉 PERFECT SCORE! All ${totalItems} answers correct! Good Job! 🎊`);
       setMatchingFeedbackType("correct");
     } else if (finalScore >= Math.ceil(totalItems * 0.7)) {
       setMatchingFeedbackMessage(`🎯 Great job! ${finalScore}/${totalItems} correct. ${totalItems - finalScore} to review.`);
@@ -3376,9 +3377,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     // Start countdown for auto-redirect
     setRedirectCountdown(5);
     
-    // Auto-redirect to activities page after 5 seconds
+    // Auto-redirect to flashcards page after 5 seconds
     setTimeout(() => {
-      navigate(-1); // Go back to activities/flashcards page
+      navigate('/flashcardspage'); // Redirect to flashcards page
     }, 5000);
   };
 
@@ -5338,7 +5339,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 <div className="absolute top-2 right-2 text-6xl animate-bounce-gentle">🧠</div>
                 <div className="absolute -bottom-2 -left-2 text-5xl animate-float">💭</div>
                 <div className="absolute top-2 left-2 text-4xl animate-pulse-gentle">✨</div>
-                <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-2">
+                <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-2">
                   🧠 Visual Memory Challenge 🧠
                 </h2>
                 {/* <p className="text-lg text-gray-600">
@@ -5351,7 +5352,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 {memoryGamePhase === 'memorize' && currentTargetCard && (
                   <div className="space-y-2">
                     
-                    <h3 className="text-2xl font-bold text-purple-600">Memorize the Cards!👀</h3>
+                    {/* <h3 className="text-2xl font-bold text-purple-600">Memorize the Cards!👀</h3> */}
                     <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-3 border-3 border-yellow-300 inline-block my-3">
                       <p className="text-lg font-semibold text-gray-700 mb-2">Remember this card:</p>
                       <div className="text-6xl">{currentTargetCard.image}</div>
@@ -5365,7 +5366,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 )}
                 {memoryGamePhase === 'shuffle' && currentTargetCard && (
                   <div className="space-y-2">
-                    <div className="text-5xl animate-spin-slow">🔄</div>
+                    <span className="text-5xl animate-spin-slow">🔄</span>
                     <h3 className="text-2xl font-bold text-blue-600">Watch the Shuffle!</h3>
                     <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-3 border-3 border-yellow-300 inline-block ">
                       <p className="text-lg font-semibold text-gray-700 mb-1">Find this card:</p>
@@ -6187,7 +6188,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                     <button
                       key={index}
                       onClick={() => handlePuzzleAnswer(option)}
-                      className="bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 border-3 border-blue-300 hover:border-blue-500 rounded-2xl p-6 text-3xl font-bold text-indigo-800 transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                      className="bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 border-3 border-blue-300 hover:border-blue-500 rounded-2xl p-6 text-5xl font-bold text-indigo-800 transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300"
                     >
                       {option}
                     </button>
@@ -6360,7 +6361,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                         <button
                           key={index}
                           onClick={() => handlePuzzleAnswer(option)}
-                          className="bg-gradient-to-r from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 border-3 border-green-300 hover:border-green-500 rounded-2xl p-6 text-6xl font-semibold transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-green-300"
+                          className="bg-gradient-to-r from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 border-3 border-green-300 hover:border-green-500 rounded-2xl p-6 text-5xl font-semibold transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-green-300"
                         >
                           {option}
                         </button>
@@ -6437,7 +6438,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                         <button
                           key={index}
                           onClick={() => handlePuzzleAnswer(option)}
-                          className="bg-gradient-to-r from-blue-100 to-cyan-100 hover:from-blue-200 hover:to-cyan-200 border-3 border-blue-300 hover:border-blue-500 rounded-2xl p-6 text-xl font-semibold transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                          className="bg-gradient-to-r from-blue-100 to-cyan-100 hover:from-blue-200 hover:to-cyan-200 border-3 border-blue-300 hover:border-blue-500 rounded-2xl p-6 text-5xl font-semibold transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300"
                         >
                           {option}
                         </button>

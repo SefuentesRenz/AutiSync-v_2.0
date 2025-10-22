@@ -291,7 +291,7 @@ function SignupPage() {
           {/* User type selection */}
           <div className="mb-6">
             <label className="block text-sm font-bold text-gray-700 mb-3 text-center">
-              <span className="text-lg mr-2">🎯</span>
+              <span className="text-sm mr-2">🎯</span>
               What type of account would you like to create?
             </label>
             <div className="flex justify-center gap-2">
@@ -304,7 +304,7 @@ function SignupPage() {
                 }`}
                 onClick={() => setUserType('student')}
               >
-                <span className="text-xl">👦</span>
+                <span className="text-sm">👦</span>
                 <span>Student</span>
               </button>
               <button
@@ -316,7 +316,7 @@ function SignupPage() {
                 }`}
                 onClick={() => setUserType('admin')}
               >
-                <span className="text-xl">🧑‍🏫</span>
+                <span className="text-sm">🧑‍🏫</span>
                 <span>Teacher/Admin</span>
               </button>
               <button
@@ -328,7 +328,7 @@ function SignupPage() {
                 }`}
                 onClick={() => setUserType('parent')}
               >
-                <span className="text-xl">👨‍👩‍👧‍👦</span>
+                <span className="text-sm">👨‍👩‍👧‍👦</span>
                 <span>Parent</span>
               </button>
             </div>
@@ -337,7 +337,7 @@ function SignupPage() {
           {/* Name Field */}
           <div>
             <label htmlFor="fullName" className="flex items-center text-sm font-bold text-gray-700 mb-2">
-              <span className="text-lg mr-2">👤</span>
+              <span className="text-sm mr-2">👤</span>
               Full Name
             </label>
             <input
@@ -346,7 +346,7 @@ function SignupPage() {
               name="fullName"
               value={formData.fullName}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg placeholder-gray-400 transition-all duration-300"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm placeholder-gray-400 transition-all duration-300"
               placeholder="Enter your full name"
               required
             />
@@ -355,7 +355,7 @@ function SignupPage() {
           {/* Profile Picture Upload */}
           <div>
             <label className="flex items-center text-sm font-bold text-gray-700 mb-2">
-              <span className="text-lg mr-2">📸</span>
+              <span className="text-sm mr-2">📸</span>
               Profile Picture (Optional)
             </label>
             <div className="flex items-center space-x-4">
@@ -385,7 +385,7 @@ function SignupPage() {
                   htmlFor="profilePicture"
                   className="inline-flex items-center px-4 py-2 border-2 border-blue-300 text-blue-700 bg-blue-50 rounded-xl hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-200 cursor-pointer text-sm font-medium"
                 >
-                  <span className="text-lg mr-2">📷</span>
+                  <span className="text-sm mr-2">📷</span>
                   Choose Photo
                 </label>
                 <p className="text-xs text-gray-500 mt-1">You can skip this and add a photo later</p>
@@ -397,7 +397,7 @@ function SignupPage() {
           {userType === 'student' && (
             <div>
               <label htmlFor="username" className="flex items-center text-sm font-bold text-gray-700 mb-2">
-                <span className="text-lg mr-2">🎮</span>
+                <span className="text-sm mr-2">🎮</span>
                 Username
               </label>
               <input
@@ -406,7 +406,7 @@ function SignupPage() {
                 name="username"
                 value={formData.username}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg placeholder-gray-400 transition-all duration-300"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm placeholder-gray-400 transition-all duration-300"
                 placeholder="Choose a fun username!"
                 required={userType === 'student'}
                 minLength="3"
@@ -419,7 +419,7 @@ function SignupPage() {
           {/* Email Field */}
           <div>
             <label htmlFor="email" className="flex items-center text-sm font-bold text-gray-700 mb-2">
-              <span className="text-lg mr-2">📧</span>
+              <span className="text-sm mr-2">📧</span>
               Email Address
             </label>
             <input
@@ -428,7 +428,7 @@ function SignupPage() {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg placeholder-gray-400 transition-all duration-300"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm placeholder-gray-400 transition-all duration-300"
               placeholder="you@example.com"
               required
             />
@@ -437,7 +437,7 @@ function SignupPage() {
           {/* Address Field - For both students and admins */}
           <div>
             <label htmlFor="address" className="flex items-center text-sm font-bold text-gray-700 mb-2">
-              <span className="text-lg mr-2">🏠</span>
+              <span className="text-sm mr-2">🏠</span>
               Address
             </label>
             <input
@@ -446,7 +446,7 @@ function SignupPage() {
               name="address"
               value={formData.address}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg placeholder-gray-400 transition-all duration-300"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm placeholder-gray-400 transition-all duration-300"
               placeholder="Enter your address"
               required
             />
@@ -456,7 +456,7 @@ function SignupPage() {
           {userType === 'student' && (
             <div>
               <label htmlFor="age" className="flex items-center text-sm font-bold text-gray-700 mb-2">
-                <span className="text-lg mr-2">🎂</span>
+                <span className="text-sm mr-2">🎂</span>
                 Age
               </label>
               <input
@@ -465,7 +465,7 @@ function SignupPage() {
                 name="age"
                 value={formData.age}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg placeholder-gray-400 transition-all duration-300"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm placeholder-gray-400 transition-all duration-300"
                 placeholder="How old are you?"
                 min="5"
                 max="25"
@@ -474,45 +474,11 @@ function SignupPage() {
             </div>
           )}
 
-          {/* Grade Level Field - Only show for students */}
-          {userType === 'student' && (
-            <div>
-              <label htmlFor="grade" className="flex items-center text-sm font-bold text-gray-700 mb-2">
-                <span className="text-lg mr-2">📚</span>
-                Grade Level
-              </label>
-              <select
-                id="grade"
-                name="grade"
-                value={formData.grade}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg transition-all duration-300"
-                required={userType === 'student'}
-              >
-                <option value="">Select your grade level</option>
-                <option value="K">Kindergarten</option>
-                <option value="1">Grade 1</option>
-                <option value="2">Grade 2</option>
-                <option value="3">Grade 3</option>
-                <option value="4">Grade 4</option>
-                <option value="5">Grade 5</option>
-                <option value="6">Grade 6</option>
-                <option value="7">Grade 7</option>
-                <option value="8">Grade 8</option>
-                <option value="9">Grade 9</option>
-                <option value="10">Grade 10</option>
-                <option value="11">Grade 11</option>
-                <option value="12">Grade 12</option>
-              </select>
-              <p className="text-xs text-gray-500 mt-1">Choose the grade level you're currently in</p>
-            </div>
-          )}
-
           {/* Birthdate Field - Only show for students */}
           {userType === 'student' && (
             <div>
               <label htmlFor="birthdate" className="flex items-center text-sm font-bold text-gray-700 mb-2">
-                <span className="text-lg mr-2">🎂</span>
+                <span className="text-sm mr-2">🎂</span>
                 Birthdate
               </label>
               <input
@@ -521,7 +487,7 @@ function SignupPage() {
                 name="birthdate"
                 value={formData.birthdate}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg placeholder-gray-400 transition-all duration-300"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm placeholder-gray-400 transition-all duration-300"
                 required={userType === 'student'}
               />
               <p className="text-xs text-gray-500 mt-1">Please enter your date of birth</p>
@@ -531,7 +497,7 @@ function SignupPage() {
           {/* Gender Field - For both students and admins */}
           <div>
             <label htmlFor="gender" className="flex items-center text-sm font-bold text-gray-700 mb-2">
-              <span className="text-lg mr-2">⚧️</span>
+              <span className="text-sm mr-2">⚧️</span>
               Gender
             </label>
             <select
@@ -539,7 +505,7 @@ function SignupPage() {
               name="gender"
               value={formData.gender}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg transition-all duration-300"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm transition-all duration-300"
               required
             >
               <option value="">Select your gender</option>
@@ -554,7 +520,7 @@ function SignupPage() {
           {(userType === 'admin' || userType === 'parent') && (
             <div>
               <label htmlFor="phoneNumber" className="flex items-center text-sm font-bold text-gray-700 mb-2">
-                <span className="text-lg mr-2">📞</span>
+                <span className="text-sm mr-2">📞</span>
                 Phone Number
               </label>
               <input
@@ -563,7 +529,7 @@ function SignupPage() {
                 name="phoneNumber"
                 value={formData.phoneNumber}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg placeholder-gray-400 transition-all duration-300"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm placeholder-gray-400 transition-all duration-300"
                 placeholder="+63 912 345 6789"
                 required={userType === 'admin' || userType === 'parent'}
               />
@@ -573,7 +539,7 @@ function SignupPage() {
           {/* Password Field */}
           <div>
             <label htmlFor="password" className="flex items-center text-sm font-bold text-gray-700 mb-2">
-              <span className="text-lg mr-2">🔒</span>
+              <span className="text-sm mr-2">🔒</span>
               Password
             </label>
             <div className="relative">
@@ -583,7 +549,7 @@ function SignupPage() {
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg transition-all duration-300"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm transition-all duration-300"
                 placeholder="Create a strong password"
                 required
               />
@@ -592,7 +558,7 @@ function SignupPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors duration-200 cursor-pointer"
               >
-                <span className="text-lg">{showPassword ? "🙈" : "👀"}</span>
+                <span className="text-sm">{showPassword ? "🙈" : "👀"}</span>
               </button>
             </div>
           </div>
@@ -600,7 +566,7 @@ function SignupPage() {
           {/* Confirm Password Field - Show for all user types */}
           <div>
             <label htmlFor="confirmPassword" className="flex items-center text-sm font-bold text-gray-700 mb-2">
-              <span className="text-lg mr-2">🔒</span>
+              <span className="text-sm mr-2">🔒</span>
               Confirm Password
             </label>
             <div className="relative">
@@ -610,7 +576,7 @@ function SignupPage() {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg transition-all duration-300"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm transition-all duration-300"
                 placeholder="Confirm your password"
                 required
               />
@@ -619,7 +585,7 @@ function SignupPage() {
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors duration-200 cursor-pointer"
               >
-                <span className="text-lg">{showConfirmPassword ? "🙈" : "👀"}</span>
+                <span className="text-sm">{showConfirmPassword ? "🙈" : "👀"}</span>
               </button>
             </div>
           </div>
@@ -628,7 +594,7 @@ function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="btn-autism-friendly w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white py-4 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="btn-autism-friendly w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white py-4 rounded-xl text-sm font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             {loading ? (
               <>
@@ -676,7 +642,7 @@ function SignupPage() {
       {/* Encouraging message */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg border border-white/20 animate-float">
         <p className="text-sm font-semibold text-gray-700 flex items-center">
-          <span className="text-lg mr-2 animate-pulse-gentle">🌟</span>
+          <span className="text-sm mr-2 animate-pulse-gentle">🌟</span>
           Welcome to your amazing learning journey! 🎈
         </p>
       </div>
