@@ -104,11 +104,12 @@ export async function recordActivityProgress(studentId, activityId, score, compl
       return { data: null, error: result.error };
     }
 
-    console.log('✅ Activity progress recorded successfully!', result.data);
+      console.log('✅ Activity progress recorded successfully!', result.data);
     
     // Check for badges after successful progress recording
     try {
       console.log('🏆 Checking for badges after activity completion...');
+      console.log('🏆 Activity data that was just recorded:', result.data);
       const { data: newBadges, error: badgeError } = await checkAndAwardBadges(studentId);
       if (badgeError) {
         console.error('❌ Error checking badges:', badgeError);
@@ -117,13 +118,13 @@ export async function recordActivityProgress(studentId, activityId, score, compl
         console.log('🏆 New badges earned:', newBadges);
         // You could add the badges to the result if needed
         result.newBadges = newBadges;
+      } else {
+        console.log('🏆 No new badges earned this time');
       }
     } catch (badgeCheckError) {
       console.error('❌ Unexpected error checking badges:', badgeCheckError);
       // Don't fail the main operation if badge checking fails
-    }
-    
-    return result;
+    }    return result;
   } catch (error) {
     console.error('Unexpected error recording progress:', error);
     return { data: null, error: { message: error.message } };

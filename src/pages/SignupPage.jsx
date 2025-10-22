@@ -14,7 +14,6 @@ function SignupPage() {
     password: '',
     confirmPassword: '',
     age: '',
-    grade: '',
     birthdate: '',
     address: '',
     gender: '',
@@ -93,8 +92,7 @@ function SignupPage() {
             gender: formData.gender,
             age: formData.age,
             birthdate: formData.birthdate,
-            address: formData.address,
-            grade: formData.grade
+            address: formData.address
           }
         }
       });
@@ -143,7 +141,6 @@ function SignupPage() {
           age: parseInt(formData.age) || null,
           birthdate: formData.birthdate || null,
           address: formData.address,
-          grade: formData.grade,
           school: null // Can be added later
         };
 
@@ -473,6 +470,7 @@ function SignupPage() {
               />
             </div>
           )}
+
 
           {/* Birthdate Field - Only show for students */}
           {userType === 'student' && (

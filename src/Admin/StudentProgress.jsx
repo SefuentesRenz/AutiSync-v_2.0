@@ -481,25 +481,15 @@ const StudentProgress = () => {
           <>
         {/* Page Header with Student Info */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-          <div className="mb-4 md:mb-0">
+          <div className=" md:mb-0">
             <div className="flex items-center space-x-4 mb-2">
               <img
                 src="/assets/kidprofile1.jpg"
                 alt={student?.name || 'Student'}
-                className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
+                className="w-16 h-16  rounded-full object-cover border-4 border-white shadow-lg"
               />
               <div>
-                <h1 className="text-4xl font-bold text-gray-800">{student?.name || 'Unknown Student'}</h1>
-                <p className="text-lg text-gray-600">
-                  {student?.grade || 'Grade N/A'} · 
-                  Age {student?.age || 'N/A'} · 
-                  Individual Progress
-                </p>
-                <p className="text-sm text-gray-500">Email: {student?.email || 'N/A'}</p>
-                <p className="text-sm text-gray-500">
-                  Status: <span className="font-semibold text-green-600">{student?.status || 'Active'}</span> • 
-                  Joined: {student?.joinDate || 'N/A'}
-                </p>
+                <h1 className="text-4xl mt-4 font-bold text-gray-800">{student?.name || 'Unknown Student'}</h1>
               </div>
             </div>
           </div>

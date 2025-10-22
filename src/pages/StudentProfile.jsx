@@ -4,7 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { getStudentProgress } from '../lib/progressApi';
 import { useBadges } from '../hooks/useBadges';
-import { getAllBadges } from '../lib/badgesApi';
+import { getAllBadges, getStudentBadges, checkAndAwardBadges } from '../lib/badgesApi';
+import { getStreakStats } from '../lib/streaksApi';
 
 const StudentProfile = () => {
   const { user, signOut } = useAuth();
@@ -31,6 +32,9 @@ const StudentProfile = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [allBadges, setAllBadges] = useState([]);
+  const [realStudentBadges, setRealStudentBadges] = useState([]);
+  const [streakData, setStreakData] = useState(null);
+  const [awardingBadges, setAwardingBadges] = useState(false);
 
   // Use badges hook for current user
   const { badges: studentBadges, loading: badgesLoading, checkBadges } = useBadges(user?.id);
@@ -166,9 +170,54 @@ const StudentProfile = () => {
     }
   };
 
+  // Fetch real streak data from streaks API
+  const fetchStreakData = async () => {
+    try {
+      console.log('Fetching streak data for user:', user.id);
+      const { data: streakStats, error } = await getStreakStats(user.id);
+
+      if (error) {
+        console.error('Error fetching streak stats:', error);
+      } else if (streakStats) {
+        console.log('🔥 Streak stats loaded for profile:', streakStats);
+        setStreakData({
+          current_streak: streakStats.currentStreak,
+          longest_streak: streakStats.longestStreak,
+          last_active_date: streakStats.lastActiveDate,
+          is_active_today: streakStats.isActiveToday
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching streak data:', error);
+    }
+  };
+
+  // Fetch real badge data
+  const fetchBadgeData = async () => {
+    try {
+      console.log('Fetching badge data for user:', user.id);
+      const studentBadgesResult = await getStudentBadges(user.id);
+      
+      if (studentBadgesResult.error) {
+        console.error('Error fetching student badges:', studentBadgesResult.error);
+      } else {
+        console.log('📊 Student badges loaded for profile:', studentBadgesResult.data);
+        setRealStudentBadges(studentBadgesResult.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching badge data:', error);
+    }
+  };
+
   const calculateStudentStats = async () => {
     try {
       console.log('Calculating student stats for user:', user.id);
+      
+      // Fetch real streak and badge data first
+      await Promise.all([
+        fetchStreakData(),
+        fetchBadgeData()
+      ]);
       
       // Get user's activity progress
       const { data: progressData, error } = await getStudentProgress(user.id);
@@ -188,29 +237,17 @@ const StudentProfile = () => {
         // Calculate completion rate (for now, let's assume all fetched activities are completed)
         const completionRate = activitiesDone > 0 ? 100 : 0;
 
-        // For achievements and day streak, we'll use simple calculations for now
-        // Achievements could be based on milestones (every 5 activities, high scores, etc.)
-        const achievements = studentBadges ? studentBadges.length : Math.floor(activitiesDone / 5); // Use real badge count if available
-        
-        // Day streak - for now, we'll use a simple calculation
-        // In a real app, this would track consecutive days of activity
-        const dayStreak = activitiesDone > 0 ? Math.min(activitiesDone * 2, 30) : 0;
-
         console.log('Calculated stats:', {
           activitiesDone,
           averageAccuracy,
-          completionRate,
-          achievements,
-          dayStreak
+          completionRate
         });
 
-        // Update userInfo with real stats
+        // Update userInfo with real stats (achievements and day_streak will be updated separately)
         setUserInfo(prevInfo => ({
           ...prevInfo,
           activities_done: activitiesDone,
-          accuracy_rate: averageAccuracy,
-          achievements: achievements,
-          day_streak: dayStreak
+          accuracy_rate: averageAccuracy
         }));
 
         // Update completion rate in tracking data
@@ -406,6 +443,38 @@ const StudentProfile = () => {
     }
   };
 
+  const handleRetroactiveBadgeAward = async () => {
+    if (!user) return;
+    
+    setAwardingBadges(true);
+    try {
+      console.log('🏆 Retroactively checking badges for user:', user.id);
+      const { data: newBadges, error } = await checkAndAwardBadges(user.id);
+      
+      if (error) {
+        console.error('❌ Error awarding badges:', error);
+        setError('Failed to check badges: ' + error.message);
+      } else if (newBadges && newBadges.length > 0) {
+        console.log('✅ Awarded new badges:', newBadges);
+        setSuccessMessage(`🎉 Awarded ${newBadges.length} new badge${newBadges.length > 1 ? 's' : ''}!`);
+        
+        // Refresh badge data
+        await fetchBadgeData();
+        
+        setTimeout(() => setSuccessMessage(''), 5000);
+      } else {
+        console.log('ℹ️ No new badges to award');
+        setSuccessMessage('All eligible badges have already been awarded!');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      }
+    } catch (err) {
+      console.error('❌ Unexpected error checking badges:', err);
+      setError('Failed to check badges: ' + err.message);
+    } finally {
+      setAwardingBadges(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!user) return;
     
@@ -565,8 +634,8 @@ const StudentProfile = () => {
   };
 
   const stats = [
-    { icon: "🏆", label: "Achievements", value: userInfo.achievements, color: "from-yellow-400 to-orange-500" },
-    { icon: "🔥", label: "Day Streak", value: userInfo.day_streak, color: "from-red-400 to-pink-500" },
+    { icon: "🏆", label: "Achievements", value: realStudentBadges.length, color: "from-yellow-400 to-orange-500" },
+    { icon: "🔥", label: "Day Streak", value: streakData ? streakData.current_streak : 0, color: "from-red-400 to-pink-500" },
     { icon: "🎯", label: "Activities Done", value: userInfo.activities_done, color: "from-blue-400 to-indigo-500" },
     { icon: "⭐", label: "Accuracy Rate", value: `${userInfo.accuracy_rate}%`, color: "from-purple-400 to-blue-500" },
     { icon: "📊", label: "Completion Rate", value: `${studentTrackingData.completionRate}%`, color: "from-green-400 to-teal-500" }
@@ -629,6 +698,14 @@ const StudentProfile = () => {
                 className="bg-gradient-to-r from-green-500 to-teal-500 text-white px-6 py-2 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
               >
                 Back to Learning Hub
+              </button>
+              
+              <button
+                onClick={handleRetroactiveBadgeAward}
+                disabled={awardingBadges}
+                className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-6 py-2 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {awardingBadges ? "Checking Badges..." : "🏆 Check Badges"}
               </button>
               
               <button

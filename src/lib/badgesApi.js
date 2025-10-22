@@ -1,6 +1,98 @@
 // src/lib/badgesApi.js
 import { supabase } from './supabase';
 
+// Initialize badges if they don't exist
+export async function initializeBadges() {
+  try {
+    console.log('🏆 Initializing badges...');
+    
+    const defaultBadges = [
+      {
+        title: 'First Step',
+        description: 'Complete your first activity',
+        icon_url: '🌟',
+        criteria: JSON.stringify({ activity: 'any', count: 1 })
+      },
+      {
+        title: 'Perfect Scorer',
+        description: 'Score 100% on any activity',
+        icon_url: '💯',
+        criteria: JSON.stringify({ score: 100, activity: 'any' })
+      },
+      {
+        title: 'Academic Star',
+        description: 'Complete 5 academic activities',
+        icon_url: '⭐',
+        criteria: JSON.stringify({ activity: 'academic', count: 5 })
+      },
+      {
+        title: 'Color Master',
+        description: 'Complete color activities at 2 different difficulty levels',
+        icon_url: '🎨',
+        criteria: JSON.stringify({ activity: 'color', count: 2 })
+      },
+      {
+        title: 'Match Finder',
+        description: 'Complete a matching type activity',
+        icon_url: '🔗',
+        criteria: JSON.stringify({ activity: 'matching', count: 1 })
+      },
+      {
+        title: 'Shape Explorer',
+        description: 'Complete 2 shape-related activities',
+        icon_url: '🔷',
+        criteria: JSON.stringify({ activity: 'shape', count: 2 })
+      },
+      {
+        title: 'Number Ninja',
+        description: 'Complete a number flashcard activity',
+        icon_url: '🔢',
+        criteria: JSON.stringify({ activity: 'number_flashcard', count: 1 })
+      },
+      {
+        title: 'Consistency Champ',
+        description: 'Complete activities from 3 different categories',
+        icon_url: '🏅',
+        criteria: JSON.stringify({ unique_types: 3 })
+      },
+      {
+        title: 'High Achiever',
+        description: 'Score 80% or higher on 5 activities',
+        icon_url: '🏆',
+        criteria: JSON.stringify({ min_score: 80, count: 5 })
+      },
+      {
+        title: 'Daily Life Hero',
+        description: 'Complete 3 social/daily life activities',
+        icon_url: '🦸',
+        criteria: JSON.stringify({ activity: 'social_daily_life', count: 3 })
+      },
+      {
+        title: 'All-Rounder',
+        description: 'Complete activities from 5 different categories',
+        icon_url: '🌈',
+        criteria: JSON.stringify({ unique_types: 5 })
+      }
+    ];
+
+    const { data, error } = await supabase
+      .from('badges')
+      .insert(defaultBadges)
+      .select();
+
+    if (error) {
+      console.error('Error initializing badges:', error);
+      return { data: [], error };
+    }
+
+    console.log('🏆 Badges initialized successfully:', data?.length || 0);
+    return { data: data || [], error: null };
+  } catch (error) {
+    console.error('Unexpected error initializing badges:', error);
+    return { data: [], error: { message: error.message } };
+  }
+}
+
 // Get all available badges
 export async function getAllBadges() {
   try {
@@ -16,6 +108,12 @@ export async function getAllBadges() {
     if (error) {
       console.error('Error fetching badges:', error);
       return { data: [], error };
+    }
+
+    // If no badges found, initialize them
+    if (!data || data.length === 0) {
+      console.log('🏆 No badges found, initializing...');
+      return await initializeBadges();
     }
 
     return { data: data || [], error: null };
@@ -154,7 +252,15 @@ export async function checkAndAwardBadges(studentId) {
         continue; // Already has this badge
       }
 
-      const criteria = badge.criteria;
+      // Parse criteria (might be JSON string or object)
+      let criteria;
+      try {
+        criteria = typeof badge.criteria === 'string' ? JSON.parse(badge.criteria) : badge.criteria;
+      } catch (e) {
+        console.warn(`🏆 Invalid criteria for badge ${badge.title}:`, badge.criteria);
+        continue;
+      }
+
       let shouldAward = false;
       let activityContext = {};
 
@@ -163,6 +269,8 @@ export async function checkAndAwardBadges(studentId) {
       // Badge criteria checks based on your badge definitions
       if (criteria.activity === 'any' && criteria.count === 1) {
         // First Step badge
+        console.log('🔍 Checking First Step badge...');
+        console.log('🔍 Total progress entries:', progress.length);
         shouldAward = progress.length > 0;
       } else if (criteria.score === 100 && criteria.activity === 'any') {
         // Perfect Scorer badge
@@ -195,10 +303,25 @@ export async function checkAndAwardBadges(studentId) {
         shouldAward = colorActivities.length >= 2 && difficulties.size >= 2;
       } else if (criteria.activity === 'matching' && criteria.count === 1) {
         // Match Finder badge
+        console.log('🔍 Checking Match Finder badge...');
+        console.log('🔍 All progress activities:', progress.map(p => ({ 
+          title: p.activities?.title, 
+          category: p.activities?.category,
+          activityId: p.activity_id 
+        })));
+        
         const matchingActivities = progress.filter(p => 
           p.activities?.title?.toLowerCase().includes('match') ||
-          p.activities?.category?.toLowerCase().includes('match')
+          p.activities?.category?.toLowerCase().includes('match') ||
+          [107, 108, 109].includes(p.activity_id) // Also check for matching type activity IDs
         );
+        
+        console.log('🔍 Found matching activities:', matchingActivities.map(p => ({ 
+          title: p.activities?.title, 
+          category: p.activities?.category,
+          activityId: p.activity_id 
+        })));
+        
         shouldAward = matchingActivities.length >= 1;
       } else if (criteria.activity === 'shape' && criteria.count === 2) {
         // Shape Explorer badge

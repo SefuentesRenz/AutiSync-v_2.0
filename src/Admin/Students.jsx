@@ -269,11 +269,11 @@ const Students = () => {
         color: 'bg-purple-100'
       },
       {
-        name: 'Social Skills',
+        name: 'Academic Skills',
         accuracy: 81,
         total: 4,
         change: '+7%',
-        icon: '👨',
+        icon: '�',
         color: 'bg-yellow-100'
       }
     ],
@@ -343,49 +343,49 @@ const Students = () => {
     ],
     badges: [
       {
-        name: 'First Steps',
-        description: 'Complete first activity',
-        icon: '👶',
+        name: 'First Step',
+        description: 'Complete your first activity',
+        icon: '⭐',
         status: 'EARNED',
         bgColor: 'bg-yellow-100'
       },
       {
-        name: 'Number Master',
-        description: 'Excel at counting',
-        icon: '🔢',
+        name: 'Perfect Scorer',
+        description: 'Score 100% on any activity',
+        icon: '🎯',
+        status: 'EARNED',
+        bgColor: 'bg-green-100'
+      },
+      {
+        name: 'Academic Star',
+        description: 'Complete 5 academic activities',
+        icon: '📖',
         status: 'EARNED',
         bgColor: 'bg-blue-100'
       },
       {
-        name: 'Color Expert',
-        description: 'Master color recognition',
+        name: 'Color Master',
+        description: 'Complete color activities at 2 different difficulty levels',
         icon: '🎨',
-        status: 'EARNED',
+        status: 'IN_PROGRESS',
+        progress: 60,
         bgColor: 'bg-purple-100'
       },
       {
-        name: 'Speed Learner',
-        description: 'Complete 5 activities in one day',
-        icon: '⚡',
-        status: 'IN_PROGRESS',
-        progress: 60,
-        bgColor: 'bg-orange-100'
-      },
-      {
-        name: 'Reading Star',
-        description: 'Complete 10 reading activities',
-        icon: '⭐',
+        name: 'Match Finder',
+        description: 'Complete a matching type activity',
+        icon: '🧩',
         status: 'LOCKED',
         progress: 30,
-        bgColor: 'bg-green-100'
+        bgColor: 'bg-pink-100'
       },
       {
-        name: 'Consistency King',
-        description: 'Login 7 days in a row',
-        icon: '👑',
+        name: 'High Achiever',
+        description: 'Score 80% or higher on 5 activities',
+        icon: '🏅',
         status: 'LOCKED',
         progress: 15,
-        bgColor: 'bg-red-100'
+        bgColor: 'bg-orange-100'
       }
     ]
   };
@@ -758,7 +758,7 @@ const Students = () => {
                 {selectedStudent?.name}'s Progress
               </h1>
               <p className="text-lg text-gray-600">
-                Detailed analytics for {selectedStudent?.name} ΓÇó Age {selectedStudent?.age}
+                Detailed analytics for {selectedStudent?.name} • Age {selectedStudent?.age}
               </p>
             </div>
             
@@ -829,7 +829,7 @@ const Students = () => {
                       </div>
                       <div>
                         <p className="font-semibold text-gray-800">{activity.activity}</p>
-                        <p className="text-sm text-gray-500">{activity.category} ΓÇó {activity.time}</p>
+                        <p className="text-sm text-gray-500">{activity.category} • {activity.time}</p>
                       </div>
                     </div>
                     <div className="text-right">
