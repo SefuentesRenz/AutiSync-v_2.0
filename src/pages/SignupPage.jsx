@@ -14,7 +14,6 @@ function SignupPage() {
     password: '',
     confirmPassword: '',
     age: '',
-    grade: '',
     birthdate: '',
     address: '',
     gender: '',
@@ -93,8 +92,7 @@ function SignupPage() {
             gender: formData.gender,
             age: formData.age,
             birthdate: formData.birthdate,
-            address: formData.address,
-            grade: formData.grade
+            address: formData.address
           }
         }
       });
@@ -143,7 +141,6 @@ function SignupPage() {
           age: parseInt(formData.age) || null,
           birthdate: formData.birthdate || null,
           address: formData.address,
-          grade: formData.grade,
           school: null // Can be added later
         };
 
@@ -474,39 +471,7 @@ function SignupPage() {
             </div>
           )}
 
-          {/* Grade Level Field - Only show for students */}
-          {userType === 'student' && (
-            <div>
-              <label htmlFor="grade" className="flex items-center text-sm font-bold text-gray-700 mb-2">
-                <span className="text-lg mr-2">📚</span>
-                Grade Level
-              </label>
-              <select
-                id="grade"
-                name="grade"
-                value={formData.grade}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg transition-all duration-300"
-                required={userType === 'student'}
-              >
-                <option value="">Select your grade level</option>
-                <option value="K">Kindergarten</option>
-                <option value="1">Grade 1</option>
-                <option value="2">Grade 2</option>
-                <option value="3">Grade 3</option>
-                <option value="4">Grade 4</option>
-                <option value="5">Grade 5</option>
-                <option value="6">Grade 6</option>
-                <option value="7">Grade 7</option>
-                <option value="8">Grade 8</option>
-                <option value="9">Grade 9</option>
-                <option value="10">Grade 10</option>
-                <option value="11">Grade 11</option>
-                <option value="12">Grade 12</option>
-              </select>
-              <p className="text-xs text-gray-500 mt-1">Choose the grade level you're currently in</p>
-            </div>
-          )}
+
 
           {/* Birthdate Field - Only show for students */}
           {userType === 'student' && (

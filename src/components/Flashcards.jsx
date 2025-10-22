@@ -487,6 +487,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
   const handleActivityCompletion = async (studentId, activityId, score, status) => {
     try {
       console.log('📝 Recording activity completion:', { studentId, activityId, score, status });
+      console.log('📝 Current activity context:', { activity, difficulty, category });
       
       // Import and call the progress API
       const { recordActivityProgress } = await import('../lib/progressApi');
@@ -505,12 +506,20 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       let validActivityId = activityId;
       if (activity && difficulty && activityMapping[activity] && activityMapping[activity][difficulty]) {
         validActivityId = activityMapping[activity][difficulty];
+        console.log('✅ Found matching activity ID in mapping:', validActivityId);
       } else {
         // Fallback to a default activity ID if mapping fails
         validActivityId = 95; // Default to Beginner Identification
+        console.warn('⚠️ No matching activity ID found, using fallback:', validActivityId);
+        console.warn('⚠️ Activity mapping check:', { 
+          activity, 
+          difficulty, 
+          hasActivity: !!activityMapping[activity], 
+          hasDifficulty: activityMapping[activity] ? !!activityMapping[activity][difficulty] : false 
+        });
       }
       
-      console.log('🎯 Using activity ID:', validActivityId, 'for', activity, difficulty);
+      console.log('🎯 Final activity ID to record:', validActivityId, 'for', activity, difficulty);
       
       const result = await recordActivityProgress(studentId, validActivityId, score, status);
       
@@ -3346,7 +3355,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     setDragStart(null);
   };
 
-  const handleCheckAnswers = () => {
+  const handleCheckAnswers = async () => {
     const correct = dragConnections.filter(conn => conn.isCorrect);
     const incorrect = dragConnections.filter(conn => !conn.isCorrect);
     
@@ -3357,8 +3366,19 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     // Calculate score (dynamic based on current question)
     const totalItems = currentQuestion?.leftItems?.length || 0;
     const finalScore = correct.length;
+    const finalScorePercentage = Math.round((finalScore / totalItems) * 100);
     setMatchingScore(finalScore);
     setScore(prev => prev + finalScore);
+    
+    // Record activity completion to database
+    if (user?.id) {
+      const status = finalScore === totalItems ? 'completed' : 'in_progress';
+      console.log('🎮 MATCHING: Recording activity completion for user:', user.id);
+      console.log('🎮 MATCHING: Activity details:', { activity, difficulty, finalScore, totalItems, finalScorePercentage, status });
+      await handleActivityCompletion(user.id, null, finalScorePercentage, status);
+    } else {
+      console.error('🎮 MATCHING: No user ID found, cannot record activity!');
+    }
     
     // Show completion with detailed feedback (dynamic)
     if (finalScore === totalItems) {
@@ -5804,7 +5824,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
                 </div> */}
 
                 {/* Completion Message */}
-                {(isMatchingComplete || (isAnswersChecked && correctConnections.length === 10)) && (
+                {(isMatchingComplete || (isAnswersChecked && correctConnections.length === (currentQuestion?.leftItems?.length || 0))) && (
                   <div className="mt-6 bg-gradient-to-r from-green-100 to-blue-100 rounded-2xl p-6 border-3 border-green-400 text-center animate-fade-in">
                     <div className="text-6xl mb-4 animate-bounce-gentle">🎉</div>
                     <h3 className="text-2xl font-bold text-green-800 mb-2">Excellent Work!</h3>

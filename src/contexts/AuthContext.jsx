@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { updateStreakOnLogin } from '../lib/streaksApi';
 
 const AuthContext = createContext({});
 
@@ -28,7 +29,19 @@ export const AuthProvider = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setUser(session?.user ?? null);
+        const newUser = session?.user ?? null;
+        setUser(newUser);
+        
+        // Update streak when user signs in
+        if (event === 'SIGNED_IN' && newUser?.id) {
+          console.log('🔥 User signed in, updating streak for:', newUser.id);
+          try {
+            await updateStreakOnLogin(newUser.id);
+          } catch (error) {
+            console.error('🔥 Error updating streak on login:', error);
+          }
+        }
+        
         setLoading(false);
       }
     );

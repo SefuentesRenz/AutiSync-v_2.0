@@ -18,7 +18,8 @@ export async function getStudentStreak(studentId) {
           user_id: studentId,
           current_streak: 0,
           longest_streak: 0,
-          last_active_date: null
+          last_active_date: null,
+          last_login: new Date().toISOString()
         }])
         .select()
         .single();
@@ -33,10 +34,48 @@ export async function getStudentStreak(studentId) {
   }
 }
 
-// Update streak when student is active
-export async function updateStreak(studentId) {
+// Check if it's a new day since last login (24-hour period)
+function isNewDay(lastLoginTimestamp) {
+  if (!lastLoginTimestamp) return true;
+  
+  const lastLogin = new Date(lastLoginTimestamp);
+  const now = new Date();
+  
+  // Check if at least 24 hours have passed
+  const hoursDiff = (now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60);
+  return hoursDiff >= 24;
+}
+
+// Check if it's consecutive day (within 48 hours but after 24 hours)
+function isConsecutiveDay(lastLoginTimestamp) {
+  if (!lastLoginTimestamp) return false;
+  
+  const lastLogin = new Date(lastLoginTimestamp);
+  const now = new Date();
+  
+  const hoursDiff = (now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60);
+  
+  // Consecutive if between 24 and 48 hours
+  return hoursDiff >= 24 && hoursDiff <= 48;
+}
+
+// Check if streak should be broken (more than 48 hours)
+function shouldBreakStreak(lastLoginTimestamp) {
+  if (!lastLoginTimestamp) return false;
+  
+  const lastLogin = new Date(lastLoginTimestamp);
+  const now = new Date();
+  
+  const hoursDiff = (now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60);
+  
+  // Break streak if more than 48 hours
+  return hoursDiff > 48;
+}
+
+// Update streak when student logs in
+export async function updateStreakOnLogin(studentId) {
   try {
-    console.log('Updating streak for student:', studentId);
+    console.log('🔥 Updating streak on login for student:', studentId);
 
     const { data: currentStreak, error: getError } = await getStudentStreak(studentId);
     if (getError) {
@@ -44,31 +83,44 @@ export async function updateStreak(studentId) {
       return { data: null, error: getError };
     }
 
-    const today = new Date().toISOString().split('T')[0]; // Get YYYY-MM-DD format
-    const lastActiveDate = currentStreak.last_active_date;
+    const now = new Date();
+    const lastLogin = currentStreak.last_login;
+    const today = now.toISOString().split('T')[0]; // Get YYYY-MM-DD format
 
     let newCurrentStreak = currentStreak.current_streak;
     let newLongestStreak = currentStreak.longest_streak;
+    let shouldUpdate = false;
 
-    if (lastActiveDate) {
-      const lastActive = new Date(lastActiveDate);
-      const todayDate = new Date(today);
-      const diffTime = todayDate.getTime() - lastActive.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    console.log('🔥 Current streak data:', {
+      currentStreak: currentStreak.current_streak,
+      lastLogin,
+      lastActiveDate: currentStreak.last_active_date
+    });
 
-      if (diffDays === 1) {
-        // Consecutive day - increment streak
-        newCurrentStreak += 1;
-      } else if (diffDays === 0) {
-        // Same day - no change to streak
-        newCurrentStreak = currentStreak.current_streak;
-      } else {
-        // Gap in days - reset streak to 1
-        newCurrentStreak = 1;
-      }
-    } else {
-      // First time active
+    if (!lastLogin) {
+      // First time login
+      console.log('🔥 First time login - starting streak');
       newCurrentStreak = 1;
+      shouldUpdate = true;
+    } else if (isConsecutiveDay(lastLogin)) {
+      // Consecutive day login (24-48 hours)
+      console.log('🔥 Consecutive day login - incrementing streak');
+      newCurrentStreak += 1;
+      shouldUpdate = true;
+    } else if (shouldBreakStreak(lastLogin)) {
+      // More than 48 hours - reset streak
+      console.log('🔥 Breaking streak - more than 48 hours since last login');
+      newCurrentStreak = 1;
+      shouldUpdate = true;
+    } else if (isNewDay(lastLogin)) {
+      // New day but not consecutive (more than 48 hours) - already handled above
+      console.log('🔥 New day but not consecutive - resetting to 1');
+      newCurrentStreak = 1;
+      shouldUpdate = true;
+    } else {
+      // Same 24-hour period - no update needed
+      console.log('🔥 Same 24-hour period - no streak update needed');
+      shouldUpdate = false;
     }
 
     // Update longest streak if current streak is higher
@@ -76,30 +128,56 @@ export async function updateStreak(studentId) {
       newLongestStreak = newCurrentStreak;
     }
 
-    // Update the streak record
-    const { data, error } = await supabase
-      .from('streaks')
-      .update({
-        current_streak: newCurrentStreak,
-        longest_streak: newLongestStreak,
-        last_active_date: today,
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', studentId)
-      .select()
-      .single();
+    // Only update if there's a change
+    if (shouldUpdate) {
+      const { data, error } = await supabase
+        .from('streaks')
+        .update({
+          current_streak: newCurrentStreak,
+          longest_streak: newLongestStreak,
+          last_active_date: today,
+          last_login: now.toISOString(),
+          updated_at: now.toISOString()
+        })
+        .eq('user_id', studentId)
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Error updating streak:', error);
-      return { data: null, error };
+      if (error) {
+        console.error('Error updating streak:', error);
+        return { data: null, error };
+      }
+
+      console.log('🔥 Streak updated successfully:', {
+        newCurrentStreak,
+        newLongestStreak,
+        lastLogin: now.toISOString()
+      });
+      return { data, error: null };
+    } else {
+      // Just update last_login timestamp
+      const { data, error } = await supabase
+        .from('streaks')
+        .update({
+          last_login: now.toISOString(),
+          updated_at: now.toISOString()
+        })
+        .eq('user_id', studentId)
+        .select()
+        .single();
+
+      console.log('🔥 Updated login timestamp only');
+      return { data: currentStreak, error: null };
     }
-
-    console.log('Streak updated successfully:', data);
-    return { data, error: null };
   } catch (error) {
     console.error('Unexpected error updating streak:', error);
     return { data: null, error: { message: error.message } };
   }
+}
+
+// Legacy function for backward compatibility
+export async function updateStreak(studentId) {
+  return updateStreakOnLogin(studentId);
 }
 
 // Get streak statistics for dashboard

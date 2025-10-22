@@ -1,7 +1,8 @@
 ﻿import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getAllBadges, getStudentBadges } from '../lib/badgesApi';
+import { getAllBadges, getStudentBadges, checkAndAwardBadges } from '../lib/badgesApi';
+import { getStreakStats, updateStreakOnLogin } from '../lib/streaksApi';
 import { supabase } from '../lib/supabase';
 
 const StudentPage = () => {
@@ -45,33 +46,40 @@ const StudentPage = () => {
     fetchUserProfile();
   }, [user?.id]);
 
-  // Fetch streak data from streaks table
+  // Fetch streak data and update streak on page visit
   useEffect(() => {
-    const fetchStreakData = async () => {
+    const fetchAndUpdateStreakData = async () => {
       if (!user?.id) return;
       
       try {
-        const { data: streak, error } = await supabase
-          .from('streaks')
-          .select('current_streak, longest_streak, last_active_date')
-          .eq('user_id', user.id)
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching streak data:', error);
-        } else if (streak) {
-          console.log('🔥 Streak data loaded:', streak);
-          console.log('🔥 Current streak from database:', streak.current_streak);
-          setStreakData(streak);
+        // First update the streak (in case they just logged in or visited after 24h)
+        console.log('🔥 Updating streak on page visit...');
+        await updateStreakOnLogin(user.id);
+        
+        // Then fetch the updated streak stats
+        const { data: streakStats, error } = await getStreakStats(user.id);
+        
+        if (error) {
+          console.error('Error fetching streak stats:', error);
+        } else if (streakStats) {
+          console.log('🔥 Streak stats loaded:', streakStats);
+          console.log('🔥 Current streak from API:', streakStats.currentStreak);
+          setStreakData({
+            current_streak: streakStats.currentStreak,
+            longest_streak: streakStats.longestStreak,
+            last_active_date: streakStats.lastActiveDate,
+            is_active_today: streakStats.isActiveToday
+          });
+          
+          // Update the streak days display
+          setStreakDays(streakStats.currentStreak);
         }
       } catch (error) {
-        console.error('Error fetching streak data:', error);
+        console.error('Error fetching/updating streak data:', error);
       }
     };
 
-    fetchStreakData();
+    fetchAndUpdateStreakData();
   }, [user?.id]);
 
   // Fetch badges data
@@ -198,6 +206,95 @@ const StudentPage = () => {
         });
 
         setBadges(mappedBadges);
+        
+        // Automatically check for new badges when the page loads
+        try {
+          console.log('🏆 Auto-checking for new badges on page load...');
+          const { data: newBadges, error: badgeError } = await checkAndAwardBadges(user.id);
+          if (badgeError) {
+            console.error('❌ Error auto-checking badges:', badgeError);
+          } else if (newBadges && newBadges.length > 0) {
+            console.log('🎉 Auto-awarded new badges:', newBadges);
+            // Refresh badges after awarding new ones
+            const refreshedStudentBadges = await getStudentBadges(user.id);
+            if (refreshedStudentBadges.data) {
+              const refreshedEarnedBadgeIds = refreshedStudentBadges.data.map(eb => eb.badge_id);
+              const refreshedMappedBadges = allBadges.map(badge => {
+                const isEarned = refreshedEarnedBadgeIds.includes(badge.id);
+                
+                const iconMap = {
+                  'First Step': '⭐',
+                  'Perfect Scorer': '💯',
+                  'Academic Star': '📖',
+                  'Color Master': '🎨',
+                  'Match Finder': '🧩',
+                  'Shape Explorer': '🔷',
+                  'Number Ninja': '🔢',
+                  'Consistency Champ': '📅',
+                  'High Achiever': '🏆',
+                  'Daily Life Hero': '🏠',
+                  'All-Rounder': '🌟'
+                };
+
+                const colorMap = {
+                  'First Step': 'from-yellow-400 to-yellow-600',
+                  'Perfect Scorer': 'from-green-400 to-green-600',
+                  'Academic Star': 'from-blue-400 to-blue-600',
+                  'Color Master': 'from-purple-400 to-purple-600',
+                  'Match Finder': 'from-pink-400 to-pink-600',
+                  'Shape Explorer': 'from-blue-400 to-indigo-600',
+                  'Number Ninja': 'from-green-400 to-green-600',
+                  'Consistency Champ': 'from-orange-400 to-orange-600',
+                  'High Achiever': 'from-red-400 to-red-600',
+                  'Daily Life Hero': 'from-teal-400 to-teal-600',
+                  'All-Rounder': 'from-gradient-to-r from-purple-400 to-pink-600'
+                };
+
+                const bgColorMap = {
+                  'First Step': 'bg-yellow-50',
+                  'Perfect Scorer': 'bg-green-50',
+                  'Academic Star': 'bg-blue-50',
+                  'Color Master': 'bg-purple-50',
+                  'Match Finder': 'bg-pink-50',
+                  'Shape Explorer': 'bg-blue-50',
+                  'Number Ninja': 'bg-green-50',
+                  'Consistency Champ': 'bg-orange-50',
+                  'High Achiever': 'bg-red-50',
+                  'Daily Life Hero': 'bg-teal-50',
+                  'All-Rounder': 'bg-purple-50'
+                };
+
+                const animationMap = {
+                  'First Step': 'animate-bounce-gentle',
+                  'Perfect Scorer': 'animate-pulse-gentle',
+                  'Academic Star': 'animate-pulse-gentle',
+                  'Color Master': 'animate-bounce-gentle',
+                  'Match Finder': 'animate-wiggle',
+                  'Shape Explorer': 'animate-float',
+                  'Number Ninja': 'animate-wiggle',
+                  'Consistency Champ': 'animate-pulse-gentle',
+                  'High Achiever': 'animate-bounce-gentle',
+                  'Daily Life Hero': 'animate-float-delayed',
+                  'All-Rounder': 'animate-float'
+                };
+
+                return {
+                  icon: iconMap[badge.title] || '🏆',
+                  title: badge.title,
+                  description: badge.description,
+                  status: isEarned ? 'EARNED' : 'LOCKED',
+                  color: isEarned ? (colorMap[badge.title] || 'from-blue-400 to-blue-600') : 'from-gray-400 to-gray-500',
+                  bgColor: isEarned ? (bgColorMap[badge.title] || 'bg-blue-50') : 'bg-gray-50',
+                  animation: isEarned ? (animationMap[badge.title] || 'animate-pulse-gentle') : ''
+                };
+              });
+              setBadges(refreshedMappedBadges);
+            }
+          }
+        } catch (badgeCheckError) {
+          console.error('❌ Error auto-checking badges:', badgeCheckError);
+        }
+        
       } catch (error) {
         console.error('Error fetching badges data:', error);
       } finally {
@@ -333,7 +430,7 @@ const StudentPage = () => {
                       {streakData ? streakData.current_streak : streakDays}
                     </span>
                     <span className="text-4xl font-bold text-gray-800 ml-2">
-                      day Streak!
+                      {(streakData ? streakData.current_streak : streakDays) === 1 ? 'day' : 'days'} Streak!
                     </span>
                   </div>
                   <div className="flex items-center justify-center animate-bounce-gentle">
@@ -351,6 +448,14 @@ const StudentPage = () => {
                 <p className="text-gray-600 font-medium -mt-5">
                   You're doing Great, Keep Going! 🌟
                 </p>
+                
+                {/* Streak debug info */}
+                {streakData && (
+                  <div className="mt-2 text-xs text-gray-500">
+                    Last active: {streakData.last_active_date || 'Never'} | 
+                    Active today: {streakData.is_active_today ? 'Yes' : 'No'}
+                  </div>
+                )}
                 
                 {/* Progress bar */}
                 <div className="mt-4 w-full bg-orange-200/50 rounded-full h-2">

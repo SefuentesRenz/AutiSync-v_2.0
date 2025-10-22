@@ -950,7 +950,7 @@ const Tracking = () => {
                       <div>
                         <p className="font-semibold text-gray-800">{activity.title}</p>
                         <p className="text-sm text-gray-500">
-                          {activity.user} ΓÇó {activity.category} ΓÇó {activity.time}
+                          {activity.user} • {activity.time}
                         </p>
                       </div>
                     </div>
