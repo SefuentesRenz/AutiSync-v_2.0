@@ -1,7 +1,7 @@
 // src/lib/activityCompletionHandler.js
 import { recordActivityProgress } from './progressApi';
 import { checkAndAwardBadges } from './badgesApi';
-import { updateStreak } from './streaksApi';
+import { updateStreak, testStreakSystem } from './streaksApi';
 
 // Main function to handle activity completion
 export async function handleActivityCompletion(studentId, activityId, score, completionStatus = 'completed') {
@@ -34,15 +34,21 @@ export async function handleActivityCompletion(studentId, activityId, score, com
 
     // 2. Update streak (only if activity was completed successfully)
     if (completionStatus === 'completed') {
-      console.log('Updating streak...');
+      console.log('🔥 Updating streak for student:', studentId);
+      
+      // First test the streak system
+      console.log('🧪 Running streak system test...');
+      const testResult = await testStreakSystem(studentId);
+      console.log('🧪 Test result:', testResult);
+      
       const { data: streakData, error: streakError } = await updateStreak(studentId);
       
       if (streakError) {
-        console.error('Error updating streak:', streakError);
+        console.error('❌ Error updating streak:', streakError);
         results.errors.push('Failed to update streak: ' + streakError.message);
       } else {
         results.streak = streakData;
-        console.log('Streak updated successfully');
+        console.log('✅ Streak updated successfully:', streakData);
       }
 
       // 3. Check and award badges

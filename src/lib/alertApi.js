@@ -2,11 +2,10 @@
 import { supabase } from './supabase';
 import { createEmotionAlertNotification } from './notificationsApi.js';
 
-// Create a new alert
+// Create a new alert (intensity parameter removed)
 export async function createAlert({
   expression_id,
   student_id,
-  intensity,
   status = 'active'
 }) {
   const { data, error } = await supabase
@@ -14,7 +13,6 @@ export async function createAlert({
     .insert([{
       expression_id,
       student_id,
-      intensity,
       status
     }]);
   return { data, error };
@@ -25,16 +23,15 @@ export async function createAlertWithNotification({
   expression_id,
   student_id,
   emotion_name,
-  intensity,
   status = 'active'
 }) {
   // Create the alert
   const { data: alert, error } = await createAlert({
-    expression_id, student_id, intensity, status
+    expression_id, student_id, status
   });
   
-  // Check if notification is needed for negative emotions with intensity 3-5
-  if (!error && alert && shouldNotifyAdmin(emotion_name, intensity)) {
+  // Check if notification is needed for negative emotions
+  if (!error && alert && shouldNotifyAdmin(emotion_name)) {
     // Get student name from user_profile for notification
     const { data: student } = await supabase
       .from('user_profiles')
@@ -53,13 +50,10 @@ export async function createAlertWithNotification({
   return { data: alert, error };
 }
 
-// Check if admin should be notified
-function shouldNotifyAdmin(emotion_name, intensity) {
-  const negativeEmotions = ['sad', 'angry'];
-  const alertIntensityLevels = [3, 4, 5];
-  
-  return negativeEmotions.includes(emotion_name.toLowerCase()) && 
-         alertIntensityLevels.includes(intensity);
+// Check if admin should be notified (simplified - no intensity needed)
+function shouldNotifyAdmin(emotion_name) {
+  const negativeEmotions = ['sad', 'angry', 'frustrated', 'anxious', 'scared', 'overwhelmed'];
+  return negativeEmotions.includes(emotion_name.toLowerCase());
 }
 
 // Notify admin/teacher of negative emotion alert
@@ -81,8 +75,8 @@ async function notifyAdminOfNegativeEmotion(alertData, emotionName) {
           recipient_id: admin.profile_id,
           alert_id: alertData.alert_id,
           student_name: alertData.student_name || 'Student', // Fallback if no name
-          emotion_name: emotionName,
-          intensity: alertData.intensity
+          emotion_name: emotionName
+          // intensity parameter removed as it's no longer needed
         });
       }
     }
@@ -143,15 +137,7 @@ export async function getAlertsByStatus(status) {
   return { data, error };
 }
 
-// Get alerts by intensity level
-export async function getAlertsByIntensity(intensity) {
-  const { data, error } = await supabase
-    .from('alert')
-    .select('*')
-    .eq('intensity', intensity)
-    .order('created_at', { ascending: false });
-  return { data, error };
-}
+// Note: getAlertsByIntensity function removed as intensity is no longer used
 
 // Get active alerts for a user profile
 export async function getActiveAlertsByUserProfile(user_profile_id) {
@@ -164,7 +150,7 @@ export async function getActiveAlertsByUserProfile(user_profile_id) {
   return { data, error };
 }
 
-// Get negative emotion alerts (sad/angry with intensity 3-5)
+// Get negative emotion alerts (simplified without intensity filtering)
 export async function getNegativeEmotionAlerts() {
   const { data, error } = await supabase
     .from('alert')
@@ -172,7 +158,6 @@ export async function getNegativeEmotionAlerts() {
       *,
       profiles(*)
     `)
-    .in('intensity', [3, 4, 5])
     .eq('status', 'active')
     .order('created_at', { ascending: false });
   return { data, error };
@@ -186,9 +171,7 @@ export async function getUnresolvedNegativeAlerts() {
       *,
       profiles(*)
     `)
-    .in('intensity', [3, 4, 5])
     .neq('status', 'resolved')
-    .order('intensity', { ascending: false })
     .order('created_at', { ascending: false });
   return { data, error };
 }
@@ -271,14 +254,7 @@ export async function resolveAlert(alert_id) {
   return { data, error };
 }
 
-// Update alert intensity
-export async function updateAlertIntensity(alert_id, intensity) {
-  const { data, error } = await supabase
-    .from('alert')
-    .update({ intensity })
-    .eq('alert_id', alert_id);
-  return { data, error };
-}
+// Note: updateAlertIntensity function removed as intensity is no longer used
 
 // Delete an alert by alert_id
 export async function deleteAlert(alert_id) {
@@ -302,7 +278,7 @@ export async function deleteAlertsByUserProfileId(user_profile_id) {
 export async function getAlertStats(user_profile_id) {
   const { data, error } = await supabase
     .from('alert')
-    .select('status, intensity, expression_id')
+    .select('status, expression_id')
     .eq('user_profile_id', user_profile_id);
   return { data, error };
 }

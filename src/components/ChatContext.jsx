@@ -38,11 +38,11 @@ export function ChatProvider({ children }) {
       
       console.log('✅ Auth user found:', user.email);
       
-      // Get user_profiles id from auth user (using user_id field since it references auth.users.id)
+
       const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
         .select('id, username, full_name')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .single();
       
       if (profileError) {

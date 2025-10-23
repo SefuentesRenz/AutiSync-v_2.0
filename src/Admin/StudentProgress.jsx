@@ -44,7 +44,6 @@ const StudentProgress = () => {
             age: profileData.age || 0,
             gender: profileData.gender || 'Not specified',
             address: profileData.address || 'No address provided',
-            grade: profileData.grade || '',
             school: profileData.school || '',
             joinDate: new Date(profileData.created_at).toLocaleDateString(),
             status: 'Active'
@@ -97,7 +96,6 @@ const StudentProgress = () => {
       id: 1,
       name: 'Emma Johnson',
       age: 8,
-      grade: '2nd Grade',
       address: '123 Main St, Springfield, IL',
       gender: 'Female',
       parentEmail: 'parent.emma@email.com',
@@ -113,7 +111,6 @@ const StudentProgress = () => {
       id: 2,
       name: 'Liam Smith',
       age: 7,
-      grade: '1st Grade',
       address: '456 Oak Ave, Springfield, IL',
       gender: 'Male',
       parentEmail: 'parent.liam@email.com',
@@ -129,7 +126,6 @@ const StudentProgress = () => {
       id: 3,
       name: 'Sophia Davis',
       age: 9,
-      grade: '3rd Grade',
       address: '789 Pine Rd, Springfield, IL',
       gender: 'Female',
       parentEmail: 'parent.sophia@email.com',
@@ -145,7 +141,6 @@ const StudentProgress = () => {
       id: 4,
       name: 'Noah Wilson',
       age: 6,
-      grade: 'Kindergarten',
       address: '321 Elm St, Springfield, IL',
       gender: 'Male',
       parentEmail: 'parent.noah@email.com',
@@ -161,7 +156,6 @@ const StudentProgress = () => {
       id: 5,
       name: 'Isabella Brown',
       age: 8,
-      grade: '2nd Grade',
       address: '654 Maple Dr, Springfield, IL',
       gender: 'Female',
       parentEmail: 'parent.isabella@email.com',
@@ -489,7 +483,9 @@ const StudentProgress = () => {
                 className="w-16 h-16  rounded-full object-cover border-4 border-white shadow-lg"
               />
               <div>
+
                 <h1 className="text-4xl mt-4 font-bold text-gray-800">{student?.name || 'Unknown Student'}</h1>
+
               </div>
             </div>
           </div>

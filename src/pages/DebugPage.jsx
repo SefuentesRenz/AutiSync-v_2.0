@@ -38,8 +38,7 @@ const DebugPage = () => {
             first_name,
             last_name,
             email,
-            age,
-            grade
+            age
           )
         `)
         .eq('parent_user_id', user.id);

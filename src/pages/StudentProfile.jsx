@@ -4,8 +4,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { getStudentProgress } from '../lib/progressApi';
 import { useBadges } from '../hooks/useBadges';
+
 import { getAllBadges, getStudentBadges, checkAndAwardBadges } from '../lib/badgesApi';
 import { getStreakStats } from '../lib/streaksApi';
+
 
 const StudentProfile = () => {
   const { user, signOut } = useAuth();
@@ -15,7 +17,6 @@ const StudentProfile = () => {
     username: 'Student',
     full_name: '',
     email: '',
-    grade: '',
     gender: '',
     address: '',
     birthdate: '',
@@ -32,9 +33,11 @@ const StudentProfile = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [allBadges, setAllBadges] = useState([]);
+
   const [realStudentBadges, setRealStudentBadges] = useState([]);
   const [streakData, setStreakData] = useState(null);
   const [awardingBadges, setAwardingBadges] = useState(false);
+
 
   // Use badges hook for current user
   const { badges: studentBadges, loading: badgesLoading, checkBadges } = useBadges(user?.id);
@@ -62,6 +65,7 @@ const StudentProfile = () => {
       setLoading(false);
     }
   }, [user]);
+
 
   const loadAllBadges = async () => {
     try {
@@ -141,7 +145,6 @@ const StudentProfile = () => {
           username: existingProfile.username || user.user_metadata?.username || user.email?.split('@')[0] || 'Student',
           full_name: existingProfile.full_name || user.user_metadata?.full_name || '',
           email: existingProfile.email || user.email || '',
-          grade: existingProfile.grade || user.user_metadata?.grade || '',
           gender: existingProfile.gender || user.user_metadata?.gender || '',
           address: existingProfile.address || user.user_metadata?.address || '',
           birthdate: existingProfile.birthdate || existingProfile.birthday || user.user_metadata?.birthdate || user.user_metadata?.birthday || '',
@@ -169,6 +172,7 @@ const StudentProfile = () => {
       setLoading(false);
     }
   };
+
 
   // Fetch real streak data from streaks API
   const fetchStreakData = async () => {
@@ -218,6 +222,7 @@ const StudentProfile = () => {
         fetchStreakData(),
         fetchBadgeData()
       ]);
+
       
       // Get user's activity progress
       const { data: progressData, error } = await getStudentProgress(user.id);
@@ -237,6 +242,7 @@ const StudentProfile = () => {
         // Calculate completion rate (for now, let's assume all fetched activities are completed)
         const completionRate = activitiesDone > 0 ? 100 : 0;
 
+
         console.log('Calculated stats:', {
           activitiesDone,
           averageAccuracy,
@@ -248,6 +254,7 @@ const StudentProfile = () => {
           ...prevInfo,
           activities_done: activitiesDone,
           accuracy_rate: averageAccuracy
+
         }));
 
         // Update completion rate in tracking data
@@ -275,7 +282,6 @@ const StudentProfile = () => {
       username: metadata.username || user.email?.split('@')[0] || 'Student',
       full_name: metadata.full_name || '',
       email: user.email || '',
-      grade: metadata.grade || '',
       gender: metadata.gender || '',
       address: metadata.address || '',
       birthdate: metadata.birthdate || metadata.birthday || '',
@@ -353,7 +359,6 @@ const StudentProfile = () => {
         email: profileEmail,
         gender: metadata.gender || '',
         address: metadata.address || '',
-        grade: metadata.grade || '',
         birthdate: metadata.birthdate || metadata.birthday || ''
       };
 
@@ -389,7 +394,6 @@ const StudentProfile = () => {
                 username: retryData.username,
                 full_name: retryData.full_name || '',
                 email: retryData.email || user.email || '',
-                grade: retryData.grade || '',
                 gender: retryData.gender || '',
                 address: retryData.address || '',
                 birthdate: retryData.birthdate || retryData.birthday || '',
@@ -421,7 +425,6 @@ const StudentProfile = () => {
         username: data.username,
         full_name: data.full_name || '',
         email: data.email || user.email || '',
-        grade: data.grade || '',
         gender: data.gender || '',
         address: data.address || '',
         birthdate: data.birthdate || data.birthday || '',
@@ -536,7 +539,6 @@ const StudentProfile = () => {
         username: finalUsername,
         full_name: userInfo.full_name,
         email: userInfo.email,
-        grade: userInfo.grade,
         gender: userInfo.gender,
         address: userInfo.address,
         birthdate: userInfo.birthdate

@@ -2,21 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AcademicCapIcon, PlayIcon, ClockIcon, StarIcon, EyeIcon, ChartBarIcon } from '@heroicons/react/24/solid';
 import ActivityDetailsModal from '../components/ActivityDetailsModal';
-import { getActivitiesWithDetails, searchActivities } from '../lib/activitiesApi';
-import { getCategories } from '../lib/categoriesApi';
-import { getDifficulties } from '../lib/difficultiesApi';
+import { getActivitiesWithDetails } from '../lib/activitiesApi';
 import { supabase } from '../lib/supabase';
 
 const ActivitiesPage = ({ isOpen, onClose, activity }) => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activities, setActivities] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [difficulties, setDifficulties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activityStats, setActivityStats] = useState({});
@@ -137,31 +131,6 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
         setActivities(transformedActivities);
         setActivityStats(statsResult);
       }
-
-      // Fetch categories
-      const { data: categoriesData, error: categoriesError } = await getCategories();
-      if (categoriesError) {
-        console.error('Error fetching categories:', categoriesError);
-      } else {
-        const transformedCategories = [
-          { value: 'all', label: 'All Activities', icon: '📚' },
-          ...(categoriesData?.map(cat => ({
-            value: cat.category_name,
-            label: cat.category_name,
-            icon: cat.icon || '📖'
-          })) || [])
-        ];
-        setCategories(transformedCategories);
-      }
-
-      // Fetch difficulties
-      const { data: difficultiesData, error: difficultiesError } = await getDifficulties();
-      if (difficultiesError) {
-        console.error('Error fetching difficulties:', difficultiesError);
-      } else {
-        console.log('Difficulties from database:', difficultiesData);
-        setDifficulties(difficultiesData || []);
-      }
     } catch (err) {
       console.error('Error in fetchData:', err);
       setError('Failed to load data');
@@ -170,37 +139,7 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
     }
   };
 
-  // Handle search with backend API
-  const handleSearch = async (term) => {
-    setSearchTerm(term);
-    if (term.trim()) {
-      try {
-        const { data, error } = await searchActivities(term);
-        if (error) {
-          console.error('Search error:', error);
-        } else {
-          const transformedActivities = data?.map(activity => ({
-            id: activity.id,
-            title: activity.title,
-            description: activity.description,
-            category: 'Academic', // You might want to join with Categories table
-            difficulty: 'Intermediate', // You might want to join with Difficulties table
-            duration: activity.duration || '10-15 min',
-            participants: activity.participants || 0,
-            icon: activity.icon || '📝',
-            color: activity.color || 'from-blue-400 to-blue-600',
-            points: activity.points || 10
-          })) || [];
-          setActivities(transformedActivities);
-        }
-      } catch (err) {
-        console.error('Search error:', err);
-      }
-    } else {
-      // If search is empty, reload all activities
-      fetchData();
-    }
-  };
+
 
   const filteredActivities = activities
     .filter(activity => {
@@ -215,6 +154,7 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
       }
       
       return matchesSearch && matchesCategory && matchesDifficulty;
+
     })
     .sort((a, b) => {
       // Sort by total completions (most used first), then by title alphabetically
@@ -342,68 +282,46 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
             </button>
           </div>
 
-          {/* Search and Filter Controls */}
-          <div className="bg-gray-50 rounded-xl p-6 space-y-6">
-            {/* Search Bar */}
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search activities..."
-                value={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="w-full px-4 py-3 pl-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-                🔍
-              </div>
-            </div>
-
-            {/* Category Filter */}
+          {/* Dynamic Category Filter */}
+          <div className="bg-gray-50 rounded-xl p-6">
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Filter by Category</h3>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                {categories.map((category) => (
-                  <button
-                    key={category.value}
-                    onClick={() => setSelectedCategory(category.value)}
-                    className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
-                      selectedCategory === category.value
-                        ? 'bg-blue-500 text-white shadow-lg transform scale-105'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    <span>{category.icon}</span>
-                    <span className="hidden sm:inline">{category.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Difficulty Filter */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Filter by Difficulty</h3>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                {[
-                  { value: 'all', label: 'All Levels', icon: '📚' },
-                  ...(difficulties.map(diff => ({
-                    value: diff.difficulty,
-                    label: diff.difficulty,
-                    icon: diff.difficulty === 'Beginner' ? '🟢' : diff.difficulty === 'Intermediate' ? '🟡' : '🔴'
-                  })))
-                ].map((difficulty) => (
-                  <button
-                    key={difficulty.value}
-                    onClick={() => setSelectedDifficulty(difficulty.value)}
-                    className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
-                      selectedDifficulty === difficulty.value
-                        ? 'bg-purple-500 text-white shadow-lg transform scale-105'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    <span>{difficulty.icon}</span>
-                    <span className="hidden sm:inline">{difficulty.label}</span>
-                  </button>
-                ))}
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Filter by Category</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <button
+                  onClick={() => setSelectedCategory('all')}
+                  className={`p-4 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center space-x-3 ${
+                    selectedCategory === 'all'
+                      ? 'bg-blue-500 text-white shadow-lg transform scale-105'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                  }`}
+                >
+                  <span className="text-xl">📚</span>
+                  <span className="font-semibold">All Activities</span>
+                </button>
+                
+                <button
+                  onClick={() => setSelectedCategory('Academic')}
+                  className={`p-4 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center space-x-3 ${
+                    selectedCategory === 'Academic'
+                      ? 'bg-green-500 text-white shadow-lg transform scale-105'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                  }`}
+                >
+                  <span className="text-xl">🎓</span>
+                  <span className="font-semibold">Academic</span>
+                </button>
+                
+                <button
+                  onClick={() => setSelectedCategory('Daily/Social Life Skill')}
+                  className={`p-4 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center space-x-3 ${
+                    selectedCategory === 'Daily/Social Life Skill'
+                      ? 'bg-purple-500 text-white shadow-lg transform scale-105'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                  }`}
+                >
+                  <span className="text-xl">🤝</span>
+                  <span className="font-semibold">Daily/Social Life Skill</span>
+                </button>
               </div>
             </div>
           </div>
@@ -570,9 +488,9 @@ const ActivitiesPage = ({ isOpen, onClose, activity }) => {
         {/* No Results */}
         {filteredActivities.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">🔍</div>
+            <div className="text-6xl mb-4">�</div>
             <h3 className="text-xl font-semibold text-gray-700 mb-2">No activities found</h3>
-            <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+            <p className="text-gray-500">Try selecting a different category</p>
           </div>
         )}
       

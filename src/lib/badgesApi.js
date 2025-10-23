@@ -252,6 +252,7 @@ export async function checkAndAwardBadges(studentId) {
         continue; // Already has this badge
       }
 
+
       // Parse criteria (might be JSON string or object)
       let criteria;
       try {
@@ -359,6 +360,7 @@ export async function checkAndAwardBadges(studentId) {
         const uniqueCategories = new Set(progress.map(p => p.activities?.category).filter(Boolean));
         shouldAward = uniqueCategories.size >= 5;
       }
+
 
       console.log(`🏆 Badge ${badge.title}: shouldAward = ${shouldAward}`);
 

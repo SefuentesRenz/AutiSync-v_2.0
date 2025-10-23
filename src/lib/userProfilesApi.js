@@ -11,7 +11,6 @@ export async function createUserProfile({
   age,
   birthdate,
   address,
-  grade,
   school,
   phone_number
 }) {
@@ -29,7 +28,6 @@ export async function createUserProfile({
     if (birthdate) profileData.birthdate = birthdate;
     if (address) profileData.address = address;
     if (gender) profileData.gender = gender;
-    if (grade) profileData.grade = grade;
     if (school) profileData.school = school;
 
     // Remove null/undefined values to avoid insert issues

@@ -159,7 +159,6 @@ const ParentDashboard = () => {
             username: childProfile.username,
             age: childProfile.age,
             email: childProfile.email,
-            grade: childProfile.grade,
             gender: childProfile.gender,
             profile_picture: childProfile.profile_picture || "/assets/kidprofile1.jpg",
             linked_at: new Date().toISOString() // Default since we don't have this in children_ids approach
@@ -803,10 +802,7 @@ const ParentDashboard = () => {
                         )}
                       </div>
                       <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Grade:</span>
-                          <span className="font-medium">{child.grade || 'Not set'}</span>
-                        </div>
+
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Email:</span>
                           <span className="font-medium text-xs">{child.email}</span>

@@ -54,8 +54,8 @@ const HomePage = () => {
     return date.toLocaleDateString();
   };
 
-  // Function to create an alert for high-intensity negative emotions
-  const createAlert = async (profileId, emotion, intensity, expressionId, note) => {
+  // Function to create an alert for negative emotions
+  const createAlert = async (profileId, emotion, expressionId, note) => {
     try {
       console.log('Creating alert for profile:', profileId);
       
@@ -69,14 +69,13 @@ const HomePage = () => {
         console.error('Error fetching admin:', adminError);
       }
 
-      // Create alert with available data
+      // Create alert with available data (removed intensity)
       const alertData = {
         profile_id: profileId,
         emotion_id: expressionId, // Using expression ID as emotion reference
-        intensity: intensity,
         status: 'priority',
         created_at: new Date().toISOString(),
-        message: `High-intensity ${emotion} detected (Level ${intensity})${note ? `: ${note}` : ''}`,
+        message: `Negative emotion detected: ${emotion}${note ? ` - ${note}` : ''}`,
         ...(admins && admins.length > 0 && { admin_id: admins[0].id })
       };
 
@@ -91,7 +90,7 @@ const HomePage = () => {
         console.log('Alert created successfully:', alertResult);
         
         // Create notification for admin
-        await createNotifications(profileId, emotion, intensity, note, null, admins?.[0]?.id);
+        await createNotifications(profileId, emotion, note, null, admins?.[0]?.id);
       }
     } catch (error) {
       console.error('Error in createAlert:', error);
@@ -99,10 +98,10 @@ const HomePage = () => {
   };
 
   // Function to create notifications for admin and parent
-  const createNotifications = async (profileId, emotion, intensity, note, parentId, adminId) => {
+  const createNotifications = async (profileId, emotion, note, parentId, adminId) => {
     try {
       const studentName = userProfile?.username || userProfile?.full_name?.split(' ')[0] || 'Student';
-      const message = `🚨 HIGH PRIORITY ALERT: ${studentName} submitted "${emotion}" with intensity level ${intensity}${note ? `. Note: "${note}"` : ''}. Please check on the student.`;
+      const message = `🚨 HIGH PRIORITY ALERT: ${studentName} submitted "${emotion}"${note ? `. Note: "${note}"` : ''}. Please check on the student.`;
 
       const notifications = [];
 
@@ -366,7 +365,6 @@ const HomePage = () => {
       const expressionData = {
         user_id: currentStudent.user_id, // Use user_id to match user_profiles table
         emotion: mappedEmotion,
-        intensity: 3,
         note: emotionNote.trim() || null
       };
 
@@ -399,7 +397,6 @@ const HomePage = () => {
       const userEmotionData = {
         profile_id: userProfile.user_id, // Use user_id from user_profiles
         expressions_id: expressionResult.id,
-        intensity: 3,
         created_at: new Date().toISOString()
       };
 
@@ -413,7 +410,9 @@ const HomePage = () => {
 
       // Check if this is a negative emotion that needs an alert
       if (isNegativeEmotion) {
+
         await createAlert(userProfile.user_id, selectedEmotion, 3, expressionResult.id, emotionNote);
+
       }
       
       // Don't add to local state immediately - let the refresh handle it
@@ -571,9 +570,9 @@ const HomePage = () => {
                 autoPlay
                 preload="metadata"
                 playsInline
-                poster="/assets/banner.jpg"
+                poster="/VideoTutorial.mp4"
               >
-                <source src="/assets/videotutorial.mp4" type="video/mp4" />
+                <source src="/VideoTutorial.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
             </div>

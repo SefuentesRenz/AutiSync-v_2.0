@@ -1,8 +1,10 @@
 ﻿import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+
 import { getAllBadges, getStudentBadges, checkAndAwardBadges } from '../lib/badgesApi';
 import { getStreakStats, updateStreakOnLogin } from '../lib/streaksApi';
+
 import { supabase } from '../lib/supabase';
 
 const StudentPage = () => {
@@ -46,6 +48,7 @@ const StudentPage = () => {
     fetchUserProfile();
   }, [user?.id]);
 
+
   // Fetch streak data and update streak on page visit
   useEffect(() => {
     const fetchAndUpdateStreakData = async () => {
@@ -80,6 +83,7 @@ const StudentPage = () => {
     };
 
     fetchAndUpdateStreakData();
+
   }, [user?.id]);
 
   // Fetch badges data
@@ -206,6 +210,7 @@ const StudentPage = () => {
         });
 
         setBadges(mappedBadges);
+
         
         // Automatically check for new badges when the page loads
         try {
@@ -295,6 +300,7 @@ const StudentPage = () => {
           console.error('❌ Error auto-checking badges:', badgeCheckError);
         }
         
+
       } catch (error) {
         console.error('Error fetching badges data:', error);
       } finally {

@@ -101,7 +101,6 @@ const AddChildModal = ({ isOpen, onClose, onChildAdded }) => {
           parent_email: user.email,
           address: childData.address,
           gender: childData.gender,
-          grade: '', // Can be added later
           interests: ["Drawing", "Animals", "Music", "Numbers"], // Default interests
           achievements: 0,
           day_streak: 0,

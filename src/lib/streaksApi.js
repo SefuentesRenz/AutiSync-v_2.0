@@ -75,17 +75,28 @@ function shouldBreakStreak(lastLoginTimestamp) {
 // Update streak when student logs in
 export async function updateStreakOnLogin(studentId) {
   try {
+
     console.log('🔥 Updating streak on login for student:', studentId);
+
 
     const { data: currentStreak, error: getError } = await getStudentStreak(studentId);
     if (getError) {
-      console.error('Error getting current streak:', getError);
+      console.error('❌ Error getting current streak:', getError);
       return { data: null, error: getError };
     }
+
 
     const now = new Date();
     const lastLogin = currentStreak.last_login;
     const today = now.toISOString().split('T')[0]; // Get YYYY-MM-DD format
+
+
+    console.log('🔥 Streak calculation:', {
+      today,
+      lastActiveDate,
+      currentStreak: currentStreak.current_streak,
+      longestStreak: currentStreak.longest_streak
+    });
 
     let newCurrentStreak = currentStreak.current_streak;
     let newLongestStreak = currentStreak.longest_streak;
@@ -96,6 +107,7 @@ export async function updateStreakOnLogin(studentId) {
       lastLogin,
       lastActiveDate: currentStreak.last_active_date
     });
+
 
     if (!lastLogin) {
       // First time login
@@ -121,12 +133,15 @@ export async function updateStreakOnLogin(studentId) {
       // Same 24-hour period - no update needed
       console.log('🔥 Same 24-hour period - no streak update needed');
       shouldUpdate = false;
+
     }
 
     // Update longest streak if current streak is higher
     if (newCurrentStreak > newLongestStreak) {
       newLongestStreak = newCurrentStreak;
+      console.log('🔥 New longest streak record:', newLongestStreak);
     }
+
 
     // Only update if there's a change
     if (shouldUpdate) {
@@ -169,6 +184,7 @@ export async function updateStreakOnLogin(studentId) {
       console.log('🔥 Updated login timestamp only');
       return { data: currentStreak, error: null };
     }
+
   } catch (error) {
     console.error('Unexpected error updating streak:', error);
     return { data: null, error: { message: error.message } };
@@ -215,6 +231,36 @@ export async function getStreakStats(studentId) {
   } catch (error) {
     console.error('Error getting streak stats:', error);
     return { data: null, error: { message: error.message } };
+  }
+}
+
+// Test function to debug streak functionality
+export async function testStreakSystem(studentId) {
+  console.log('🧪 Testing streak system for student:', studentId);
+  
+  try {
+    // Test 1: Try to get/create streak record
+    console.log('🧪 Test 1: Getting streak record...');
+    const { data: streak, error: getError } = await getStudentStreak(studentId);
+    if (getError) {
+      console.error('🧪 Test 1 FAILED:', getError);
+      return { success: false, error: getError };
+    }
+    console.log('🧪 Test 1 PASSED: Streak record:', streak);
+
+    // Test 2: Try to update streak
+    console.log('🧪 Test 2: Updating streak...');
+    const { data: updated, error: updateError } = await updateStreak(studentId);
+    if (updateError) {
+      console.error('🧪 Test 2 FAILED:', updateError);
+      return { success: false, error: updateError };
+    }
+    console.log('🧪 Test 2 PASSED: Updated streak:', updated);
+
+    return { success: true, data: updated };
+  } catch (error) {
+    console.error('🧪 Test CRASHED:', error);
+    return { success: false, error: { message: error.message } };
   }
 }
 

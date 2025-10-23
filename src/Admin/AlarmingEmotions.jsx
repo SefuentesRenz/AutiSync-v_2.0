@@ -553,7 +553,7 @@ const AlarmingEmotions = () => {
         {/* Content Sections */}
         {activeTab === 'alerts' && (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">🚨 Priority Alerts (High-Intensity Negative Emotions)</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">🚨 Priority Alerts (Negative Emotions)</h2>
             {alerts.length === 0 ? (
               <div className="bg-white rounded-xl shadow-lg p-8 text-center">
                 <div className="text-6xl mb-4">😊</div>

@@ -222,10 +222,9 @@ export async function createEmotionAlertNotification({
   recipient_id,
   alert_id,
   student_name,
-  emotion_name,
-  intensity
+  emotion_name
 }) {
-  const message = `${student_name} is experiencing ${emotion_name} emotion with intensity level ${intensity}`;
+  const message = `${student_name} is experiencing ${emotion_name} emotion and may need attention`;
   
   return await createNotification({
     recipient_id,

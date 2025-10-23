@@ -472,6 +472,7 @@ function SignupPage() {
           )}
 
 
+
           {/* Birthdate Field - Only show for students */}
           {userType === 'student' && (
             <div>

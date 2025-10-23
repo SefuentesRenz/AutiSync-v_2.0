@@ -5,7 +5,6 @@ import { supabase } from './supabase';
 export async function createUserEmotion({
   profile_id,
   emotion_id,
-  intensity,
   expressions_id
 }) {
   const { data, error } = await supabase
@@ -13,7 +12,6 @@ export async function createUserEmotion({
     .insert([{
       profile_id,
       emotion_id,
-      intensity,
       expressions_id
     }]);
   return { data, error };
@@ -68,26 +66,7 @@ export async function getUserEmotionsByExpressionId(expressions_id) {
   return { data, error };
 }
 
-// Get user emotions by intensity level
-export async function getUserEmotionsByIntensity(intensity) {
-  const { data, error } = await supabase
-    .from('User_emotion')
-    .select('*')
-    .eq('intensity', intensity)
-    .order('created_at', { ascending: false });
-  return { data, error };
-}
-
-// Get user emotions within intensity range
-export async function getUserEmotionsByIntensityRange(minIntensity, maxIntensity) {
-  const { data, error } = await supabase
-    .from('User_emotion')
-    .select('*')
-    .gte('intensity', minIntensity)
-    .lte('intensity', maxIntensity)
-    .order('created_at', { ascending: false });
-  return { data, error };
-}
+// Note: Intensity-related functions removed as intensity column is no longer needed for autistic children
 
 // Get user emotions within a date range
 export async function getUserEmotionsByDateRange(startDate, endDate, profile_id = null) {
@@ -163,7 +142,7 @@ export async function getUserEmotionsWithProfiles() {
 export async function getEmotionStatsByProfile(profile_id) {
   const { data, error } = await supabase
     .from('User_emotion')
-    .select('emotion_id, intensity, created_at')
+    .select('emotion_id, created_at')
     .eq('profile_id', profile_id);
   return { data, error };
 }
@@ -182,27 +161,7 @@ export async function getRecentUserEmotions(profile_id, limit = 10) {
   return { data, error };
 }
 
-// Get high intensity emotions (intensity >= 4)
-export async function getHighIntensityEmotions(profile_id = null) {
-  let query = supabase
-    .from('User_emotion')
-    .select(`
-      *,
-      expressions(emotion_name, confidence_score),
-      user_profiles(
-        profiles(first_name, last_name)
-      )
-    `)
-    .gte('intensity', 4);
-  
-  if (profile_id) {
-    query = query.eq('profile_id', profile_id);
-  }
-  
-  const { data, error } = await query.order('intensity', { ascending: false })
-                                   .order('created_at', { ascending: false });
-  return { data, error };
-}
+// Note: High intensity emotions function removed as intensity is no longer needed for autistic children
 
 // Get negative emotions (for monitoring purposes)
 export async function getNegativeEmotions(profile_id = null) {
@@ -260,21 +219,7 @@ export async function getUserEmotionCount(profile_id) {
   return { count, error };
 }
 
-// Get emotion count by intensity level
-export async function getEmotionCountByIntensity(profile_id) {
-  const { data, error } = await supabase
-    .from('User_emotion')
-    .select('intensity')
-    .eq('profile_id', profile_id);
-  return { data, error };
-}
-
-// Get average emotion intensity for a user
-export async function getAverageEmotionIntensity(profile_id) {
-  const { data, error } = await supabase
-    .rpc('get_average_emotion_intensity', { user_profile_id: profile_id });
-  return { data, error };
-}
+// Note: Intensity-related analytics functions removed as intensity is no longer needed for autistic children
 
 // Update user emotion entry
 export async function updateUserEmotion(entry_id, updates) {
@@ -285,14 +230,7 @@ export async function updateUserEmotion(entry_id, updates) {
   return { data, error };
 }
 
-// Update emotion intensity
-export async function updateEmotionIntensity(entry_id, intensity) {
-  const { data, error } = await supabase
-    .from('User_emotion')
-    .update({ intensity })
-    .eq('entry_id', entry_id);
-  return { data, error };
-}
+// Note: Update emotion intensity function removed as intensity is no longer needed
 
 // Delete user emotion entry
 export async function deleteUserEmotion(entry_id) {
@@ -529,16 +467,20 @@ export async function getParentDashboardEmotions(parentAuthId) {
         full_name: studentData?.full_name || studentData?.username || `Student ${studentId}`,
         email: studentData?.email || null,
         age: studentData?.age || null,
+<<<<<<< HEAD
         grade: studentData?.grade || null,
+=======
+>>>>>>> 7fb750e (commit the new changes in the backend)
         user_id: studentId,
         relationship: relation,
         emotions: emotions || [],
         latestEmotion: emotions && emotions.length > 0 ? emotions[0] : null,
         emotionSummary: {
           total: emotions?.length || 0,
-          positive: emotions?.filter(e => (e.intensity || 0) >= 4).length || 0,
-          negative: emotions?.filter(e => (e.intensity || 0) <= 2).length || 0,
-          neutral: emotions?.filter(e => (e.intensity || 0) === 3).length || 0
+          // Simplified emotion categorization based on emotion types instead of intensity
+          positive: emotions?.filter(e => ['happy', 'excited', 'proud', 'calm', 'loved'].includes(e.emotion_type?.toLowerCase())).length || 0,
+          negative: emotions?.filter(e => ['sad', 'angry', 'frustrated', 'anxious', 'scared', 'overwhelmed'].includes(e.emotion_type?.toLowerCase())).length || 0,
+          neutral: emotions?.filter(e => ['neutral', 'confused', 'tired', 'bored'].includes(e.emotion_type?.toLowerCase())).length || 0
         }
       };
       

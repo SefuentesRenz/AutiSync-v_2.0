@@ -506,6 +506,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       let validActivityId = activityId;
       if (activity && difficulty && activityMapping[activity] && activityMapping[activity][difficulty]) {
         validActivityId = activityMapping[activity][difficulty];
+
         console.log('✅ Found matching activity ID in mapping:', validActivityId);
       } else {
         // Fallback to a default activity ID if mapping fails
@@ -520,6 +521,7 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
       }
       
       console.log('🎯 Final activity ID to record:', validActivityId, 'for', activity, difficulty);
+
       
       const result = await recordActivityProgress(studentId, validActivityId, score, status);
       
@@ -3394,6 +3396,9 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
     }
     setShowMatchingFeedback(true);
     
+    // Record activity completion in database and check for badges
+    await handleActivityComplete(finalScore, totalItems);
+    
     // Start countdown for auto-redirect
     setRedirectCountdown(5);
     
@@ -3832,38 +3837,91 @@ const Flashcards = ({ category, difficulty, activity, onComplete }) => {
         
         // Map activity names to IDs (based on actual database activities)
         const getActivityId = (activityName, category, difficulty) => {
-          // Map to actual database activity IDs:
-          // 1: Counting Adventure (Academic, Easy)
-          // 2: Shape Detective (Academic, Medium) 
-          // 3: Grocery Helper (Social/Daily Life, Medium)
+          // Map to actual database activity IDs - creating separate IDs for different activity types
           
           const activityMap = {
-            // Academic activities with numbers/counting
+            // Numbers/Counting activities - ID 1
             'Numbers 1-10': 1,
             'Numbers 11-20': 1,
             'Basic Math': 1,
             'Counting Adventure': 1,
+            'Numbers': 1,
             
-            // Academic activities with shapes
+            // Shape activities - ID 2  
             'Basic Shapes': 2,
             'Shape Recognition': 2,
             'Shape Detective': 2,
-            'Basic Colors': 2,
-            'Advanced Colors': 2,
-            'Color Mixing': 2,
+            'Shapes': 2,
             
-            // Social/Daily Life activities
+            // Color activities - ID 4 (separate from shapes)
+            'Basic Colors': 4,
+            'Advanced Colors': 4,
+            'Color Mixing': 4,
+            'Colors': 4,
+            
+            // Social/Daily Life activities - ID 3
             'Hygiene Hero': 3,
             'Cashier Game': 3,
             'Safe Street Crossing': 3,
             'Tooth Brushing': 3,
-            'Grocery Helper': 3
+            'Grocery Helper': 3,
+            
+            // Identification activities - ID 5
+            'Identification': 5,
+            'Animal Recognition': 5,
+            'Object Naming': 5,
+            
+            // Matching activities - ID 6
+            'Matching Type': 6,
+            'Matching': 6,
+            'Match Finder': 6,
+            
+            // Memory activities - ID 7
+            'Visual Memory Challenge': 7,
+            'Memory Game': 7,
+            
+            // Academic Puzzles - ID 8
+            'Academic Puzzles': 8,
+            'Puzzles': 8
           };
           
-          return activityMap[activityName] || 1; // Default to 1 (Counting Adventure) if not found
+          // Try exact activity name match first
+          if (activityMap[activityName]) {
+            return activityMap[activityName];
+          }
+          
+          // Try category-based mapping if no exact match
+          if (category === 'Academic') {
+            if (activityName.toLowerCase().includes('number') || activityName.toLowerCase().includes('count')) {
+              return 1; // Numbers
+            } else if (activityName.toLowerCase().includes('shape')) {
+              return 2; // Shapes
+            } else if (activityName.toLowerCase().includes('color')) {
+              return 4; // Colors
+            } else if (activityName.toLowerCase().includes('identification')) {
+              return 5; // Identification
+            } else if (activityName.toLowerCase().includes('matching')) {
+              return 6; // Matching
+            } else if (activityName.toLowerCase().includes('memory')) {
+              return 7; // Memory
+            } else if (activityName.toLowerCase().includes('puzzle')) {
+              return 8; // Puzzles
+            }
+          } else if (category === 'Social / Daily Life Skill' || category === 'Social/Daily Life') {
+            return 3; // Social/Daily Life
+          }
+          
+          return 1; // Default to Numbers if not found
         };
         
         const activityId = getActivityId(activity, category, difficulty);
+        
+        console.log('🚀 Activity mapping details:', {
+          activityName: activity,
+          category: category,
+          difficulty: difficulty,
+          mappedActivityId: activityId
+        });
         
         console.log('🚀 Calling handleActivityCompletion with:', {
           studentId: user.id,

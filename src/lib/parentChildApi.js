@@ -93,7 +93,9 @@ export async function getChildrenByParentId(parentUserId) {
       username: student.username,
       age: student.age,
       email: student.email || 'No email provided',
-      grade: student.grade,
+
+      // grade: student.grade,
+
       gender: student.gender,
       activities_done: student.activities_done || 0,
       starts_earned: student.starts_earned || 0,
